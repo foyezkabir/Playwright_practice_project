@@ -42,3 +42,6 @@ class AgencyLocators:
         self.agency_list_item = page.locator("div").filter(has_text=re.compile(r"^A$")).nth(1)
         self.main_content = page.get_by_role("main")
         self.agency_page_url = "https://bprp-qa.shadhinlab.xyz/agency"
+        self.agency_list_item_data_testid = page.locator("[data-testid='agency-list-item']")
+        self.user_menu_data_testid = page.locator("[data-testid='user-menu']")
+        self.logout_button_data_testid = page.locator("[data-testid='logout-button']")

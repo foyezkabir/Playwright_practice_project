@@ -10,6 +10,9 @@ class AgencyPage:
 
     def navigate_to_login_page(self, url: str):
         self.page.goto(url)
+        self.page.wait_for_load_state("networkidle")
+        self.locators.email_input.wait_for()
+        self.locators.password_input.wait_for()
 
     def navigate_to_agency_page(self):
         self.page.goto(self.locators.agency_page_url)
@@ -164,14 +167,18 @@ class AgencyPage:
     # Custom helpers for test_agency_04
     # =====================
 
+
     def delete_all_agencies_if_exist(self):
-        """Delete all agencies if any exist (for cleanup before test)."""
+        """
+        Delete all agencies if any exist (for cleanup before test).
+        Returns True if any agencies were deleted, False otherwise.
+        """
         try:
-            # Wait for agencies list to load
             self.expect_all_agencies_list()
             time.sleep(2)
-            agencies = self.page.locator("[data-testid='agency-list-item']")
+            agencies = self.locators.agency_list_item_data_testid
             count = agencies.count()
+            deleted = False
             while count > 0:
                 agencies.nth(0).click()
                 time.sleep(1)
@@ -182,20 +189,49 @@ class AgencyPage:
                 time.sleep(2)
                 self.verify_agency_deleted_successfully()
                 time.sleep(1)
-                # Refresh list
                 self.page.reload()
                 self.expect_all_agencies_list()
-                agencies = self.page.locator("[data-testid='agency-list-item']")
+                agencies = self.locators.agency_list_item_data_testid
                 count = agencies.count()
+                deleted = True
         except Exception as e:
             print(f"No agencies to delete or error occurred: {e}")
+            return False
+        return deleted
+
+    def delete_agency_by_name(self, agency_name: str):
+        """
+        Delete only the agency with the given name.
+        Returns True if deleted, False if not found.
+        """
+        try:
+            self.expect_all_agencies_list()
+            time.sleep(2)
+            agency_locator = self.page.get_by_text(f"{agency_name}")
+            print(agency_locator)
+            if agency_locator.count() == 0:
+                print(f"Agency '{agency_name}' not found for deletion.")
+                return False
+            agency_locator.first.click()
+            time.sleep(1)
+            self.click_delete_button()
+            time.sleep(1)
+            self.verify_delete_confirmation_modal()
+            self.click_confirm_button()
+            time.sleep(2)
+            self.verify_agency_deleted_successfully()
+            print(f"Agency '{agency_name}' deleted successfully.")
+            return True
+        except Exception as e:
+            print(f"Error deleting agency '{agency_name}': {e}")
+            return False
 
     def logout(self):
         """Logout from the current session."""
         try:
-            self.page.locator("[data-testid='user-menu']").click()
+            self.locators.user_menu_data_testid.click()
             time.sleep(1)
-            self.page.locator("[data-testid='logout-button']").click()
+            self.locators.logout_button_data_testid.click()
             time.sleep(2)
         except Exception as e:
             print(f"Logout failed or already logged out: {e}")

@@ -116,26 +116,22 @@ def test_reset_pass_12_verify_empty_fields_validation(page: Page):
     reset_page.expect_new_password_required_error()
     reset_page.expect_confirm_password_required_error()
 
-def test_reset_pass_13_verify_attempt_limit_exceeded(page: Page):
-    """Verify attempt limit exceeded error."""
-    reset_page = ResetPasswordPage(page)
-    reset_page.navigate_to_reset_password(BASE_URL + "/forgot-password")
-    reset_page.enter_email("50st3o@mepost.pw")  # EMAIL 1 - Attempt 5 (LAST ATTEMPT)
-    reset_page.click_next()
-    reset_page.enter_otp("123456")
-    reset_page.enter_new_password("SecurePass123!")
-    reset_page.enter_confirm_password("SecurePass123!")
-    reset_page.click_set_password()
-    reset_page.expect_attempt_limit_error()
-
-def test_reset_pass_14_verify_otp_accepts_numbers_only(page: Page):
+def test_reset_pass_13_verify_otp_accepts_numbers_only(page: Page):
     """Verify OTP input accepts only numbers."""
     reset_page = ResetPasswordPage(page)
     reset_page.navigate_to_reset_password(BASE_URL + "/forgot-password")
-    reset_page.enter_email("gi7j8d@mepost.pw")  # Email 2 - Attempt 1
+    reset_page.enter_email("50st3o@mepost.pw")  # Email 1 - Attempt 5
     reset_page.click_next()
     reset_page.enter_otp("OTP!@#")
     reset_page.expect_otp_accept_numbers_only_error()
+
+def test_reset_pass_14_verify_attempt_limit_exceeded(page: Page):
+    """Verify attempt limit exceeded error."""
+    reset_page = ResetPasswordPage(page)
+    reset_page.navigate_to_reset_password(BASE_URL + "/forgot-password")
+    reset_page.enter_email("50st3o@mepost.pw")  # EMAIL 1 - LAST ATTEMPT
+    reset_page.click_next()
+    reset_page.expect_attempt_limit_error()
 
 # NOTE: SWITCH TO NEW EMAIL STARTING FROM TEST 13
 # ============================================================================
@@ -144,7 +140,7 @@ def test_reset_pass_15_verify_otp_input_limit_with_less_than_6(page: Page):
     """Verify OTP input limit validation with less than 6 digits."""
     reset_page = ResetPasswordPage(page)
     reset_page.navigate_to_reset_password(BASE_URL + "/forgot-password")
-    reset_page.enter_email("gi7j8d@mepost.pw")  # EMAIL 2 - Attempt 2
+    reset_page.enter_email("gi7j8d@mepost.pw")  # EMAIL 2 - Attempt 1
     reset_page.click_next()
     reset_page.enter_otp("123")
     reset_page.click_set_password()
@@ -154,7 +150,7 @@ def test_reset_pass_16_verify_otp_input_limit_with_more_than_6(page: Page):
     """Verify OTP input limit validation with more than 6 digits."""
     reset_page = ResetPasswordPage(page)
     reset_page.navigate_to_reset_password(BASE_URL + "/forgot-password")
-    reset_page.enter_email("gi7j8d@mepost.pw")  # EMAIL 2 - Attempt 3
+    reset_page.enter_email("gi7j8d@mepost.pw")  # EMAIL 2 - Attempt 2
     reset_page.click_next()
     reset_page.enter_otp("12345678901")
     reset_page.click_set_password()
@@ -164,7 +160,7 @@ def test_reset_pass_17_verify_invalid_otp_validation(page: Page):
     """Verify invalid OTP validation."""
     reset_page = ResetPasswordPage(page)
     reset_page.navigate_to_reset_password(BASE_URL + "/forgot-password")
-    reset_page.enter_email("gi7j8d@mepost.pw")  # EMAIL 2 - Attempt 4
+    reset_page.enter_email("gi7j8d@mepost.pw")  # EMAIL 2 - Attempt 3
     reset_page.click_next()
     reset_page.enter_otp("123456")
     reset_page.enter_new_password("SecurePass123!")
