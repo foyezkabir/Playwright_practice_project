@@ -1,0 +1,37 @@
+from playwright.sync_api import Page
+
+class LoginLocators:
+    def __init__(self, page: Page):
+        self.page = page
+        self.get_started_button = page.get_by_role("button", name="Get Started")
+        self.email_input = page.get_by_role("textbox", name="Email")
+        self.password_input = page.get_by_role("textbox", name="Password")
+        self.sign_in_button = page.get_by_role("button", name="Sign in")
+        self.error_email_required = page.get_by_text("Email is required")
+        self.error_password_required = page.get_by_text("Password is required")
+        self.public_domain_warning = page.get_by_text("Please use your official work email")
+        self.error_invalid_email = page.get_by_text("Invalid email address")
+        self.error_invalid_credentials = page.get_by_text("Invalid email or password")
+        self.show_password_button = page.get_by_text("Show")
+        self.hide_password_button = page.get_by_text("Hide")
+        self.forgot_password_link = page.get_by_role("link", name="Forgot password?")
+        self.sign_in_heading = page.get_by_role("heading", name="Sign in")
+        self.black_pigeon_link = page.get_by_role("link", name="Black Pigeon HR")
+        self.sign_in_button_visible = page.get_by_role("button", name="Sign in").first
+        self.email_label = page.get_by_text("Email", exact=True)
+        self.password_label = page.get_by_text("Password", exact=True)
+        self.unregistered_email_error = page.get_by_text("Invalid email or password")
+        self.dont_have_account_text = page.get_by_text("Don’t you have an account?")
+        self.nonverified_email_error = page.get_by_text("Your email is not confirmed. Please check your inbox for the confirmation link.")
+        self.verification_required_for_login = page.get_by_text("Your email is not confirmed. Please check your inbox for the confirmation link.")
+        self.system_shows_verification_page = page.locator("div").filter(has_text="OTP VerificationWe just sent").nth(2)
+        self.verification_page_heading = page.get_by_role("heading", name="OTP Verification")
+        self.mailbox_image = page.get_by_role("img", name="Mail Inbox")
+        self.verification_instructions = page.get_by_text("We just sent a verification")
+        self.otp_input_box = page.locator(".flex.justify-center.gap-2")
+        self.input_box_title = page.get_by_text("Enter the OTP below to verify")
+        self.verify_button = page.get_by_role("button", name="Verify OTP")
+        self.resend_otp_countdown = page.get_by_text("Resend OTP in")
+        self.resend_otp_button = page.get_by_role("button", name="Resend OTP")
+        self.resend_otp_success_message = page.get_by_text("OTP resent successfully")
+        self.verification_success_message = page.get_by_text("Email verified successfully")
