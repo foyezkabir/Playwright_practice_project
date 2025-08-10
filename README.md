@@ -54,7 +54,7 @@ pytest
 ```
 Or for a specific test:
 ```powershell
-pytest -k test_agency_04_verify_create_new_agency_functionality
+pytest -k test_agency_01_verify_agency_modal_appearing_in_first_time_login
 ```
 
 ### 6. View HTML Report
