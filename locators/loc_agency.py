@@ -32,8 +32,12 @@ class AgencyLocators:
         self.upload_logo_button = page.locator("div").filter(has_text=re.compile(r"^Upload Logo$"))
         self.agency_save_button = page.get_by_role("button", name="Save")
         self.agency_created_successfully_message = page.get_by_text("Agency created successfully")
-        self.edit_button = page.locator("div").filter(has_text=re.compile(r"^asd sdfdEditDelete$")).get_by_role("button").first
-        self.delete_button = page.locator("div").filter(has_text=re.compile(r"^asd sdfdEditDelete$")).get_by_role("button").nth(2)
+        self.locate_agency_card = lambda name: page.get_by_role("heading", name=name)
+        self.Three_dot_icon = page.locator(".p-1").first
+        self.delete_button = page.locator(".absolute.right-0.mt-1 > .py-1 > button:nth-child(2)").first
+        self.edit_button = lambda text: page.locator("div").filter(has_text=re.compile(rf"^{text}EditDelete$")).get_by_role("button").nth(1)
+        self.agency_update_button = page.get_by_role("button", name="Update")
+        self.update_confirm_message = page.get_by_text("Agency updated successfully")
         self.update_agency_modal = page.locator("div").filter(has_text=re.compile(r"^Update Agency$"))
         self.delete_confirmation_modal = page.get_by_text("Are you sure you want to delete this agency?This action cannot be undone. All")
         self.cancel_button = page.get_by_role("button", name="Cancel")

@@ -116,6 +116,54 @@ def test_agency_05_verify_agency_deletion(page: Page, created_agency_name):
     agency_page.click_sign_in()
     time.sleep(5)
     page.go_back()
-    agency_page.delete_all_agencies_if_exist()
-    agency_page.verify_agency_deleted_successfully()
+    agency_page.delete_agency_by_name(agency_name)
 
+def test_agency_06_verify_agency_creation(page: Page, created_agency_name):
+    """Test: Create a new agency and verify it appears in the list."""
+    agency_name = created_agency_name
+    agency_page = AgencyPage(page)
+    do_login(page, "50st3o@mepost.pw", "Kabir123#") 
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    agency_page.fill_agency_name(agency_name)
+    agency_page.click_industry_dropdown()
+    agency_page.click_healthcare_option()
+    agency_page.fill_website("https://testagency123.com")
+    agency_page.fill_address("123 Test Agency St")
+    agency_page.fill_description("This is a test agency for automation.")
+    agency_page.click_agency_save_button()
+    time.sleep(3)
+    agency_page.verify_agency_created_successfully()
+    time.sleep(12)
+    agency_page.find_agency_in_paginated_list(page, agency_name)
+    expect(page.get_by_text(agency_name, exact=True)).to_be_visible()
+
+def test_agency_07_verify_edit_agency(page: Page, created_agency_name):
+    """Test: Edit the agency created in test_agency_06."""
+    agency_name = created_agency_name
+    agency_page = AgencyPage(page)
+    do_login(page, "867da9@onemail.host", "Kabir123#")
+    time.sleep(5)
+    agency_page.click_create_new_agency()
+    agency_page.fill_agency_name(agency_name)
+    agency_page.click_industry_dropdown()
+    agency_page.click_healthcare_option()
+    agency_page.fill_website("https://testagency123.com")
+    agency_page.fill_address("123 Test Agency St")
+    agency_page.fill_description("This is a test agency for automation.")
+    agency_page.click_agency_save_button()
+    time.sleep(10)
+    agency_page.get_agency_actions(agency_name)
+    page.pause()  # Pause to inspect the page if needed
+    agency_page.click_edit_button()
+    page.pause()  # Pause to inspect the page if needed
+
+
+    # page.get_by_text(agency_name, exact=True)
+    time.sleep(10)
+    updated_name = agency_name + " - Edited"
+    agency_page.edit_agency_by_name(agency_name, updated_name)
+
+    agency_page.verify_update_confirm_message()
+    time.sleep(12)
+    agency_page.get_agency_by_name(updated_name)

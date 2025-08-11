@@ -1,3 +1,4 @@
+from encodings.punycode import T
 from playwright.sync_api import Page, expect
 from locators.loc_agency import AgencyLocators
 from utils.config import BASE_URL
@@ -134,6 +135,12 @@ class AgencyPage:
     def click_edit_button(self):
         self.locators.edit_button.click()
 
+    def click_update_button(self):
+        self.locators.agency_update_button.click()
+
+    def verify_update_confirm_message(self):
+        expect(self.locators.update_confirm_message).to_be_visible()
+
     def click_delete_button(self):
         self.locators.delete_button.click()
 
@@ -159,7 +166,6 @@ class AgencyPage:
         expect(self.locators.main_content).to_be_visible()
 
     def go_back_to_all_agencies(self):
-        """Navigate back to All Agencies page using browser back"""
         self.page.go_back()
         self.page.wait_for_load_state("networkidle")
 
@@ -167,12 +173,20 @@ class AgencyPage:
     # Custom helpers for test_agency_04
     # =====================
 
+    def get_three_dot_icon_and_click(self):
+        self.locators.Three_dot_icon.click()
+
+    def get_edit_icon_and_click(self):
+        self.locators.edit_button.click()
+
+    def get_agency_by_name(self, agency_name: str):
+        return self.locators.locate_agency_card(agency_name)
+
+    def get_agency_actions(self, agency_name: str):
+        agency_card = self.get_agency_by_name(agency_name)
+        return agency_card.locator("//following-sibling::div/button").click(force=True)
 
     def delete_all_agencies_if_exist(self):
-        """
-        Delete all agencies if any exist (for cleanup before test).
-        Returns True if any agencies were deleted, False otherwise.
-        """
         try:
             self.expect_all_agencies_list()
             time.sleep(2)
@@ -200,20 +214,13 @@ class AgencyPage:
         return deleted
 
     def delete_agency_by_name(self, agency_name: str):
-        """
-        Delete only the agency with the given name.
-        Returns True if deleted, False if not found.
-        """
         try:
-            self.expect_all_agencies_list()
-            time.sleep(2)
-            agency_locator = self.page.get_by_text(f"{agency_name}")
+            agency_locator = self.get_agency_by_name(agency_name)
             print(agency_locator)
             if agency_locator.count() == 0:
                 print(f"Agency '{agency_name}' not found for deletion.")
                 return False
-            agency_locator.first.click()
-            time.sleep(1)
+            agency_locator.locator("//following-sibling::div/button").click(force=True)
             self.click_delete_button()
             time.sleep(1)
             self.verify_delete_confirmation_modal()
@@ -226,6 +233,61 @@ class AgencyPage:
             print(f"Error deleting agency '{agency_name}': {e}")
             return False
 
+    def edit_agency_by_name(self, agency_name: str, new_name: str):
+        try:
+            
+            self.fill_agency_name(new_name)
+            self.click_update_button()
+            time.sleep(2)
+            print(f"Agency '{agency_name}' updated successfully to {new_name}.")
+            return True
+        except Exception as e:
+            print(f"Error updating agency '{agency_name}': {e}")
+            return False
+
+    def find_agency_in_paginated_list(self, page: Page, agency_name: str):
+        """
+        Loops through a paginated list to find specific text.
+
+        This function checks the current page for the agency_name. If the name is not found,
+        it looks for a clickable 'next' button and clicks it, repeating the process
+        until the agency is found or the last page is reached.
+        """
+        # This locator targets the 'next' button, which is the last list item (`li:last-child`)
+        # in the pagination container. The `:not(.disabled)` part ensures we only select it
+        # when it's clickable.
+        next_button = page.locator("ul.pagination-container > li:last-child:not(.disabled)")
+
+        while True:
+            # Check if the agency name is visible on the current page.
+            # We use count() > 0 to see if the element exists without causing an error.
+            # page.pausse()
+            if page.get_by_text(agency_name, exact=True).count() > 0:
+                print(f"✅ Found agency '{agency_name}' on the current page.")
+                break  # Exit the loop since we found it
+
+            # If the agency is not on this page, check if a 'next' button is available.
+            if next_button.count() == 0:
+            #    page.pause()
+               print(f"❌ Reached the end of pagination. Agency '{agency_name}' was not found.")
+               break # Exit the loop because there are no more pages
+
+            # If we are here, it means the agency wasn't found AND there's a next page.
+            print("-> Agency not found, navigating to the next page...")
+            # page.pause()
+            next_button.click()
+            # page.pause()
+
+
+            # Wait for the network to be idle. This is a robust way to wait for
+            # the new page's content to finish loading after the click.
+            page.wait_for_load_state("networkidle")
+            time.sleep(15)
+
+        # After the loop finishes, this final assertion validates the result.
+        # It will pass if the agency was found and fail the test if it was not.
+        # page.pause()
+        
     def logout(self):
         """Logout from the current session."""
         try:
