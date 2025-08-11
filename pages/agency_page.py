@@ -297,3 +297,17 @@ class AgencyPage:
             time.sleep(2)
         except Exception as e:
             print(f"Logout failed or already logged out: {e}")
+
+    def click_edit_button_for_agency(self, agency_name: str):
+        """Find the agency card by name and click its edit button reliably."""
+        agency_card = self.page.get_by_text(agency_name, exact=True)
+        agency_card.wait_for()
+        # Try common edit button selectors within the card's parent/container
+        parent = agency_card.locator('xpath=..')
+        # Try several possible selectors for the edit button
+        edit_btn = parent.locator("button[title='Edit'], .edit-icon, [aria-label='Edit']")
+        if edit_btn.count() == 0:
+            # Fallback to the original locator if needed
+            edit_btn = self.locators.edit_button(agency_name)
+        edit_btn.wait_for()
+        edit_btn.click(force=True)

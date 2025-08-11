@@ -1,3 +1,4 @@
+import os
 import pytest
 from playwright.sync_api import sync_playwright, Page
 from utils.config import BROWSER_NAME, HEADLESS, DEFAULT_TIMEOUT, SLOW_MO, SCREENSHOT_DELAY
@@ -23,19 +24,27 @@ def browser():
         browser.close()
 
 @pytest.fixture
-def page(browser):
-    """Page fixture with configured timeout"""
-    page = browser.new_page()
+def context(browser, request):
+    """Browser context fixture with tracing support."""
+    context = browser.new_context()
+    tracing_enabled = request.config.getoption("--tracing") if hasattr(request.config, 'getoption') else False
+    if tracing_enabled:
+        context.tracing.start(screenshots=True, snapshots=True, sources=True)
+    yield context
+    if tracing_enabled:
+        trace_dir = os.path.join(os.getcwd(), "traces")
+        os.makedirs(trace_dir, exist_ok=True)
+        trace_file = os.path.join(trace_dir, f"trace_{request.node.name}.zip")
+        context.tracing.stop(path=trace_file)
+    context.close()
+
+@pytest.fixture
+def page(context):
+    """Page fixture using context, with configured timeout."""
+    page = context.new_page()
     page.set_default_timeout(DEFAULT_TIMEOUT)
     yield page
     page.close()
-
-@pytest.fixture
-def context(browser):
-    """Browser context fixture for tests requiring context"""
-    context = browser.new_context()
-    yield context
-    context.close()
 
 # SCREENSHOT HOOKS AND FIXTURES
 # ============================================================================

@@ -153,17 +153,15 @@ def test_agency_07_verify_edit_agency(page: Page, created_agency_name):
     agency_page.fill_description("This is a test agency for automation.")
     agency_page.click_agency_save_button()
     time.sleep(10)
+    agency_page.find_agency_in_paginated_list(page, agency_name)
     agency_page.get_agency_actions(agency_name)
-    page.pause()  # Pause to inspect the page if needed
-    agency_page.click_edit_button()
-    page.pause()  # Pause to inspect the page if needed
-
-
-    # page.get_by_text(agency_name, exact=True)
-    time.sleep(10)
+    agency_page.click_edit_button_for_agency(agency_name)
+    time.sleep(2)
+    agency_page.locators.agency_name_input.wait_for(timeout=10000)
     updated_name = agency_name + " - Edited"
-    agency_page.edit_agency_by_name(agency_name, updated_name)
-
-    agency_page.verify_update_confirm_message()
-    time.sleep(12)
+    agency_page.locators.agency_name_input.fill(updated_name)
+    time.sleep(1)
+    agency_page.locators.agency_update_button.click()
+    expect(agency_page.locators.update_confirm_message).to_be_visible(timeout=10000)
+    time.sleep(2)
     agency_page.get_agency_by_name(updated_name)
