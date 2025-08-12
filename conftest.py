@@ -209,7 +209,8 @@ def generate_excel_report(test_file: str, test_descriptions: dict, results: dict
     # Data rows
     for idx, (test_name, desc) in enumerate(test_descriptions.items(), start=1):
         status = results.get(test_name, "Not Run")
-        tc_id = f"TC_{base_name.upper()}_{idx:03d}"
+        #tc_id = f"TC_{base_name.upper()}_{idx:03d}"
+        tc_id = f"TC_{idx:03d}"
         test_data = get_dynamic_test_data(test_name, test_file)
         
         # Determine actual result based on test status

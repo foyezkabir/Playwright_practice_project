@@ -151,6 +151,9 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
+#tracer.zp
+traces/
+
 # mkdocs documentation
 /site
 
