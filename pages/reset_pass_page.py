@@ -66,7 +66,10 @@ class ResetPasswordPage:
     
     def expect_unregistered_email_error(self):
         expect(self.locators.error_unregistered_email).to_be_visible()
-    
+
+    def expect_nonverified_email_error(self):
+        expect(self.locators.error_nonverified_email).to_be_visible()
+
     def expect_invalid_otp_error(self):
         expect(self.locators.error_invalid_otp).to_be_visible()
     

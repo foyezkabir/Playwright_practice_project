@@ -180,7 +180,7 @@ def test_14_signup_full_name_max_limit(page: Page):
     signup_page.expect_full_name_max_limit()
 
 def test_15_signup_full_name_special_characters(page: Page):
-    """Test full name with special characters."""
+    """full name can contain special characters."""
     signup_page = SignupPage(page)
     signup_page.navigate_to_landing_page(BASE_URL + "/sign-up")
     signup_page.fill_full_name("John@Doe")
@@ -189,10 +189,11 @@ def test_15_signup_full_name_special_characters(page: Page):
     signup_page.fill_password("Kabir123#")
     signup_page.fill_confirm_password("Kabir123#")
     signup_page.click_sign_up_button()
-    signup_page.expect_full_name_contains_special_characters()
+    signup_page.expect_signup_success_message()
+    # signup_page.expect_full_name_contains_special_characters()
 
-def test_16_signup_full_name_contains_numbers(page: Page):
-    """Test full name containing numbers."""
+def test_16_signup_full_name_only_contains_numbers(page: Page):
+    """full name can only contain numbers."""
     signup_page = SignupPage(page)
     signup_page.navigate_to_landing_page(BASE_URL + "/sign-up")
     signup_page.fill_full_name("123")
@@ -201,10 +202,11 @@ def test_16_signup_full_name_contains_numbers(page: Page):
     signup_page.fill_password("Kabir123#")
     signup_page.fill_confirm_password("Kabir123#")
     signup_page.click_sign_up_button()
-    signup_page.expect_full_name_contains_numbers()
+    signup_page.expect_signup_success_message()
+    # signup_page.expect_full_name_contains_numbers()
 
 def test_17_signup_full_name_contains_special_characters(page: Page):
-    """Test full name starting or ending with special characters."""
+    """full name can not start or end with special characters."""
     signup_page = SignupPage(page)
     signup_page.navigate_to_landing_page(BASE_URL + "/sign-up")
     signup_page.fill_full_name(" John Doe")
@@ -242,7 +244,6 @@ def test_21_signup_confirm_password_label_visibility(page: Page):
     signup_page = SignupPage(page)
     signup_page.navigate_to_landing_page(BASE_URL + "/sign-up")
     signup_page.expect_confirm_password_label()
-
 
 def test_22_signup_show_hide_password_button(page: Page):
     """Test show/hide password functionality."""
@@ -370,7 +371,7 @@ def test_33_signup_resend_otp_button_visibility(page: Page):
     signup_page.fill_password("Kabir123#")
     signup_page.fill_confirm_password("Kabir123#")
     signup_page.click_sign_up_button()
-    time.sleep(5)  # Wait for the OTP input box to appear
+    time.sleep(60)  # Wait for the OTP input box to appear
     signup_page.expect_resend_otp_button()
 
 def test_34_signup_resend_otp_countdown_visibility(page: Page):

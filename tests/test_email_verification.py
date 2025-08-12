@@ -14,7 +14,7 @@ from pages.email_verify_page import EmailVerifyPage, EmailService
 email_service = EmailService("5uH0ULA52vndQ2PKYKhEavj7G1ISTKB1", "lgb6k58k")
 
 def test_01_verify_successful_email_verification_with_valid_otp(page: Page):
-    """Test successful email verification with valid OTP."""
+    """user can successfully complete email verification with valid OTP."""
 
     signup_page = SignupPage(page)
     email_verify_page = EmailVerifyPage(page)
@@ -51,7 +51,7 @@ def test_01_verify_successful_email_verification_with_valid_otp(page: Page):
 
 
 def test_02_verify_email_verification_with_invalid_otp(page: Page):
-    """Test email verification with invalid OTP."""
+    """user can not verify email with invalid OTP."""
 
     signup_page = SignupPage(page)
     email_verify_page = EmailVerifyPage(page)
@@ -81,7 +81,7 @@ def test_02_verify_email_verification_with_invalid_otp(page: Page):
 
 
 def test_03_verify_email_verification_with_resend_otp_flow(page: Page):
-    """Test email verification with resend OTP flow."""
+    """user can verify email with resend OTP flow."""
 
     signup_page = SignupPage(page)
     email_verify_page = EmailVerifyPage(page)
