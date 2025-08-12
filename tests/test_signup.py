@@ -25,17 +25,16 @@ def test_02_signup_success(page: Page):
     signup_page.fill_confirm_password("Kabir123#")
     signup_page.click_sign_up_button()
     signup_page.expect_signup_success_message()
+    time.sleep(2)  # Wait for the success message to appear
+    signup_page.expect_email_verification_page()
+    signup_page.expect_verification_page_heading()
 
-    # signup_page.expect_email_verification_page()
-    # signup_page.expect_verification_page_heading()
-    # print("Verification Page Heading: " + signup_page.expect_verification_page_heading())
-    # signup_page.expect_mail_image_visible()
-    # signup_page.expect_verification_instructions()
-    # signup_page.expect_otp_input_box()
-    # signup_page.expect_verify_button()
-    # signup_page.expect_resend_otp_button()
-    # signup_page.expect_input_box_title()
-    # signup_page.expect_back_button()
+    signup_page.expect_mail_image_visible()
+    signup_page.expect_verification_instructions()
+    signup_page.expect_otp_input_box()
+    signup_page.expect_verify_button()
+    signup_page.expect_input_box_title()
+    signup_page.expect_back_button()
 
 def test_03_signup_full_name_required(page: Page):
     """Test signup with full name required error."""
@@ -358,7 +357,7 @@ def test_32_signup_verify_button_visibility(page: Page):
     signup_page.fill_email(email19)
     signup_page.fill_password("Kabir123#")
     signup_page.fill_confirm_password("Kabir123#")
-    signup_page.click_sign_up_button()
+    signup_page.click_sign_up_button()  # Wait for the OTP input box to appear
     signup_page.expect_verify_button()
 
 def test_33_signup_resend_otp_button_visibility(page: Page):
@@ -385,15 +384,3 @@ def test_34_signup_resend_otp_countdown_visibility(page: Page):
     signup_page.fill_confirm_password("Kabir123#")
     signup_page.click_sign_up_button()
     signup_page.expect_resend_otp_countdown()
-
-# def test_35_signup_verification_success_message(page: Page):
-#     """Test visibility of verification success message after successful signup."""
-#     signup_page = SignupPage(page)
-#     signup_page.navigate_to_landing_page(BASE_URL + "/sign-up")
-#     signup_page.fill_full_name("John Doe")
-#     email22 = random_email.generate_email()
-#     signup_page.fill_email(email22)
-#     signup_page.fill_password("Kabir123#")
-#     signup_page.fill_confirm_password("Kabir123#")
-#     signup_page.click_sign_up_button()
-#     signup_page.expect_verification_success_message()

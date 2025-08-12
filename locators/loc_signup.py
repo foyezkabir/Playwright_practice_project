@@ -53,7 +53,7 @@ class SignupLocators:
         self.resend_otp_button = page.get_by_role("button", name="Resend OTP")
         self.verification_success_message = page.get_by_text("Email verified successfully")
         self.verification_error_message = page.get_by_text("Invalid code")
-        self.back_button = page.get_by_role("button").filter(has_text=re.compile(r"^$"))
+        self.back_button = page.locator('svg.heading-color')
         self.resend_otp_success_message = page.get_by_text("OTP resent successfully")
         self.back_to_sign_in_page = page.get_by_role("heading", name="Sign in")
 

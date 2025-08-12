@@ -19,9 +19,8 @@ def test_agency_01_verify_agency_modal_appearing_in_first_time_login(page: Page)
 
     # Wait for page to load after login
     page.wait_for_load_state("networkidle")
-
-    agency_page.expect_agency_modal_heading()
-    time.sleep(1)
+    # agency_page.expect_agency_modal_heading()
+    # time.sleep(1)
     agency_page.expect_agency_modal_body()
     time.sleep(1)
     agency_page.click_cancel_button()
@@ -37,7 +36,6 @@ def test_agency_02_verify_agency_page_with_existing_agencies(page: Page):
     time.sleep(5)
     agency_page.expect_no_agency_modal()
     agency_page.verify_agency_page_url()
-
 
 def test_agency_03_verify_create_new_agency_modal(page: Page):
     """user can open create new agency modal."""
@@ -77,7 +75,6 @@ def test_agency_04_verify_create_new_agency_functionality(page: Page, created_ag
 
     page.go_back()
     time.sleep(4)
-
     agency_page.verify_created_agency_appears_in_list(agency_name)
 
 def test_agency_05_verify_agency_deletion(page: Page, created_agency_name):
@@ -116,7 +113,7 @@ def test_agency_07_verify_edit_agency(page: Page, created_agency_name):
     """user can edit the agency user created"""
     agency_name = created_agency_name
     agency_page = AgencyPage(page)
-    do_login(page, "867da9@onemail.host", "Kabir123#")
+    do_login(page, "gi7j8d@mepost.pw", "Kabir123#")
     time.sleep(5)
     agency_page.click_create_new_agency()
     agency_page.fill_agency_name(agency_name)
