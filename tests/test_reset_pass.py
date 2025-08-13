@@ -3,7 +3,6 @@ from playwright.sync_api import Page, expect
 from utils.config import BASE_URL
 from pages.reset_pass_page import ResetPasswordPage
 
-# UI VISIBILITY TESTS (Tests 01-05).
 # 4 Emails are ready for testing.
 # ============================================================================
 
