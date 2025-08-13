@@ -73,7 +73,6 @@ def test_02_verify_email_verification_with_invalid_otp(page: Page):
     time.sleep(2)
     email_verify_page.expect_verification_error()
 
-
 def test_03_verify_email_verification_with_resend_otp_flow(page: Page):
     """user can verify email with resend OTP flow."""
 

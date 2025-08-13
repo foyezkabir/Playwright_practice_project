@@ -14,22 +14,22 @@ class EmailVerifyPage:
     
     # Navigation and Page Verification
     def expect_verification_page_visible(self):
-        expect(self.locators.verification_page_heading).to_be_visible()
+        assert self.locators.verification_page_heading.is_visible(), "Verification page heading should be visible"
     
     def expect_verification_instructions_visible(self):
-        expect(self.locators.verification_instructions).to_be_visible()
+        assert self.locators.verification_instructions.is_visible(), "Verification instructions should be visible"
     
     def expect_otp_input_container_visible(self):
-        expect(self.locators.otp_input_container).to_be_visible()
+        assert self.locators.otp_input_container.is_visible(), "OTP input container should be visible"
     
     def expect_verify_button_visible(self):
-        expect(self.locators.verify_button).to_be_visible()
+        assert self.locators.verify_button.is_visible(), "Verify button should be visible"
     
     def expect_resend_otp_button_visible(self):
-        expect(self.locators.resend_otp_button).to_be_visible()
+        assert self.locators.resend_otp_button.is_visible(), "Resend OTP button should be visible"
     
     def expect_resend_countdown_visible(self):
-        expect(self.locators.resend_otp_countdown).to_be_visible()
+        assert self.locators.resend_otp_countdown.is_visible(), "Resend countdown should be visible"
     
     # OTP Input Operations
     def enter_otp_code(self, otp_code: str):
@@ -117,22 +117,22 @@ class EmailVerifyPage:
     
     # Verification and Validation
     def expect_verification_success(self):
-        expect(self.locators.verification_success_message).to_be_visible()
+        assert self.locators.verification_success_message.is_visible(), "Verification success message should be visible"
     
     def expect_verification_error(self):
-        expect(self.locators.verification_error_message).to_be_visible()
+        assert self.locators.verification_error_message.is_visible(), "Verification error message should be visible"
     
     def expect_resend_success(self):
-        expect(self.locators.resend_otp_success_message).to_be_visible()
+        assert self.locators.resend_otp_success_message.is_visible(), "Resend OTP success message should be visible"
     
     def expect_sign_in_heading_visible(self):
-        expect(self.locators.sign_in_heading).to_be_visible()
+        assert self.locators.sign_in_heading.is_visible(), "Sign in heading should be visible"
     
     def is_verify_button_enabled(self):
         return self.locators.verify_button.is_enabled()
     
     def wait_for_verify_button_enabled(self):
-        expect(self.locators.verify_button).to_be_enabled(timeout=2000)
+        assert self.locators.verify_button.is_enabled(timeout=2000), "Verify button should be enabled"
 
 class EmailService:
     

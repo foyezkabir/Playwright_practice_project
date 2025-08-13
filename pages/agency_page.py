@@ -28,16 +28,16 @@ class AgencyPage:
         self.locators.sign_in_button.click()
 
     def expect_agency_modal_heading(self):
-        expect(self.locators.agency_create_modal_heading).to_be_visible()
+        assert self.locators.agency_create_modal_heading.is_visible(), "Agency create modal heading should be visible"
 
     def expect_agency_modal_body(self):
-        expect(self.locators.create_modal_body).to_be_visible()
+        assert self.locators.create_modal_body.is_visible(), "Create modal body should be visible"
 
     def expect_no_agency_modal(self):
         try:
             time.sleep(3)
-            expect(self.locators.agency_create_modal_heading).not_to_be_visible(timeout=2000)
-            expect(self.locators.create_modal_body).not_to_be_visible(timeout=2000)
+            assert not self.locators.agency_create_modal_heading.is_visible(timeout=2000), "Agency create modal heading should not be visible"
+            assert not self.locators.create_modal_body.is_visible(timeout=2000), "Create modal body should not be visible"
             print("✅ No agency creation modal appeared (as expected for account which has at least single agency)")
         except Exception as e:
             raise AssertionError(f"Agency creation modal appeared when it shouldn't have: {str(e)}")
@@ -57,10 +57,10 @@ class AgencyPage:
         self.locators.close_modal_button.click()
 
     def expect_all_agencies_message(self):
-        expect(self.locators.all_agencies_message).to_be_visible()
+        assert self.locators.all_agencies_message.is_visible(), "All agencies message should be visible"
 
     def expect_all_agencies_list(self):
-        expect(self.locators.all_agencies_list).to_be_visible()
+        assert self.locators.all_agencies_list.is_visible(), "All agencies list should be visible"
 
     def fill_agency_name(self, agency_name: str):
         self.locators.agency_name_input.fill(agency_name)
@@ -97,10 +97,10 @@ class AgencyPage:
         self.locators.agency_save_button.click()
 
     def verify_agency_created_successfully(self):
-        expect(self.locators.agency_created_successfully_message).to_be_visible()
+        assert self.locators.agency_created_successfully_message.is_visible(), "Agency created successfully message should be visible"
 
     def verify_created_agency_appears(self):
-        expect(self.locators.created_agency_appear).to_be_visible()
+        assert self.locators.created_agency_appear.is_visible(), "Created agency should appear"
 
     def verify_created_agency_appears_in_list(self, agency_name: str):
         """Verify that the created agency appears in the agencies list with the correct name"""
@@ -110,7 +110,7 @@ class AgencyPage:
             
             # Look for the agency name in the page content
             agency_locator = self.page.locator(f"text={agency_name}")
-            expect(agency_locator).to_be_visible(timeout=10000)
+            assert agency_locator.is_visible(timeout=10000), f"Agency '{agency_name}' should be visible in list"
             print(f"✅ Agency '{agency_name}' found in the agencies list")
             
         except Exception as e:
@@ -121,7 +121,7 @@ class AgencyPage:
             try:
                 # Try case-insensitive search
                 agency_locator_alt = self.page.locator(f"text={agency_name}", has_text=agency_name)
-                expect(agency_locator_alt).to_be_visible(timeout=5000)
+                assert agency_locator_alt.is_visible(timeout=5000), f"Agency '{agency_name}' should be visible with alternative locator"
                 print(f"✅ Agency '{agency_name}' found with alternative locator")
             except:
                 raise AssertionError(f"Agency '{agency_name}' not found in the agencies list: {str(e)}")
@@ -139,16 +139,16 @@ class AgencyPage:
         self.locators.agency_update_button.click()
 
     def verify_update_confirm_message(self):
-        expect(self.locators.update_confirm_message).to_be_visible()
+        assert self.locators.update_confirm_message.is_visible(), "Update confirm message should be visible"
 
     def click_delete_button(self):
         self.locators.delete_button.click()
 
     def verify_update_agency_modal(self):
-        expect(self.locators.update_agency_modal).to_be_visible()
+        assert self.locators.update_agency_modal.is_visible(), "Update agency modal should be visible"
 
     def verify_delete_confirmation_modal(self):
-        expect(self.locators.delete_confirmation_modal).to_be_visible()
+        assert self.locators.delete_confirmation_modal.is_visible(), "Delete confirmation modal should be visible"
 
     def click_cancel_button(self):
         self.locators.cancel_button.click()
@@ -157,13 +157,13 @@ class AgencyPage:
         self.locators.confirm_button.click()
 
     def verify_agency_deleted_successfully(self):
-        expect(self.locators.agency_deleted_successfully_message).to_be_visible()
+        assert self.locators.agency_deleted_successfully_message.is_visible(), "Agency deleted successfully message should be visible"
 
     def click_agency_list_item(self):
         self.locators.agency_list_item.click()
 
     def verify_main_content(self):
-        expect(self.locators.main_content).to_be_visible()
+        assert self.locators.main_content.is_visible(), "Main content should be visible"
 
     def go_back_to_all_agencies(self):
         self.page.go_back()

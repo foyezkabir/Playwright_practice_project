@@ -308,7 +308,7 @@ def page(context):
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Pytest hook to capture test execution results."""
+    """Pytest hook to capture test execution results and screenshots for failures."""
     outcome = yield
     rep = outcome.get_result()
     setattr(item, f"rep_{rep.when}", rep)
@@ -329,6 +329,50 @@ def pytest_runtest_makereport(item, call):
             test_results[test_file][test_name] = "PASSED"
         elif rep.failed:
             test_results[test_file][test_name] = "FAILED"
+            
+            # Capture screenshot for failed test cases ONLY
+            try:
+                # Get the page fixture from the test
+                page_fixture = None
+                for fixture_name in item.fixturenames:
+                    if 'page' in fixture_name:
+                        page_fixture = item._request.getfixturevalue(fixture_name)
+                        break
+                
+                if page_fixture and hasattr(page_fixture, 'screenshot'):
+                    # Take screenshot immediately 
+                    timestamp = datetime.now().strftime("%d-%m-%Y_%H.%M.%S")
+                    
+                    # Determine screenshot folder
+                    if "login" in test_name.lower():
+                        folder = "login_screenshots"
+                    elif "signup" in test_name.lower():
+                        folder = "signup_screenshots"
+                    elif "agency" in test_name.lower():
+                        folder = "agency_screenshots"
+                    elif "email" in test_name.lower():
+                        folder = "email_verify_screenshots"
+                    elif "reset" in test_name.lower():
+                        folder = "reset_pass_screenshots"
+                    else:
+                        folder = "general_screenshots"
+                    
+                    # Create directory
+                    screenshot_dir = os.path.join("screenshots", folder)
+                    os.makedirs(screenshot_dir, exist_ok=True)
+                    
+                    # Generate filename
+                    clean_test_name = test_name.replace("test_", "").replace("_", "_")
+                    filename = f"{clean_test_name}_{timestamp}.png"
+                    filepath = os.path.join(screenshot_dir, filename)
+                    
+                    # Take screenshot
+                    page_fixture.screenshot(path=filepath)
+                    print(f"📸 Screenshot saved: {filepath}")
+                    
+            except Exception as e:
+                print(f"⚠️  Failed to capture screenshot for failed test {test_name}: {e}")
+                
         elif rep.skipped:
             test_results[test_file][test_name] = "SKIPPED"
 
@@ -346,30 +390,4 @@ def pytest_sessionfinish(session, exitstatus):
     test_results.clear()
     test_files_executed.clear()
 
-@pytest.fixture(autouse=True)
-def auto_screenshot_on_failure(request, page: Page):
-    """Automatic screenshot capture fixture for failed tests."""
-    yield
-    
-    # Check if test failed
-    if hasattr(request.node, 'rep_call') and request.node.rep_call.failed:
-        test_name = request.node.name
-        test_file = request.node.fspath.strpath
-        capture_failure_screenshot(page, test_name, test_file)
-
-@pytest.fixture
-def screenshot_on_failure(request, page: Page):
-    """Manual screenshot fixture for tests marked with @pytest.mark.screenshot"""
-    def _capture_screenshot():
-        test_name = request.node.name
-        test_file = request.node.fspath.strpath
-        capture_failure_screenshot(page, test_name, test_file)
-    
-    yield _capture_screenshot
-    
-    # Auto-capture on failure if marked with @pytest.mark.screenshot
-    if request.node.get_closest_marker("screenshot"):
-        if hasattr(request.node, 'rep_call') and request.node.rep_call.failed:
-            test_name = request.node.name
-            test_file = request.node.fspath.strpath
-            capture_failure_screenshot(page, test_name, test_file)
+# Note: Screenshots are automatically captured for failed tests in pytest_runtest_makereport hook above

@@ -22,85 +22,85 @@ class LoginPage:
         self.locators.sign_in_button.click()
 
     def expect_verification_required_for_login(self):
-        expect(self.locators.verification_required_for_login).to_be_visible()
+        assert self.locators.verification_required_for_login.is_visible(), "Verification required for login should be visible"
 
     def expect_system_shows_email_verification_page(self):
-        expect(self.locators.system_shows_verification_page).to_be_visible()
+        assert self.locators.system_shows_verification_page.is_visible(), "System shows verification page should be visible"
 
     def expect_verification_page_heading(self):
-        expect(self.locators.verification_page_heading).to_be_visible()
+        assert self.locators.verification_page_heading.is_visible(), "Verification page heading should be visible"
 
     def expect_mailbox_image(self):
-        expect(self.locators.mailbox_image).to_be_visible()
+        assert self.locators.mailbox_image.is_visible(), "Mailbox image should be visible"
 
     def expect_verification_instructions(self):
-        expect(self.locators.verification_instructions).to_be_visible()
+        assert self.locators.verification_instructions.is_visible(), "Verification instructions should be visible"
 
     def expect_otp_input_box(self):
-        expect(self.locators.otp_input_box).to_be_visible()
+        assert self.locators.otp_input_box.is_visible(), "OTP input box should be visible"
     
     def expect_input_box_title(self):
-        expect(self.locators.input_box_title).to_be_visible()
+        assert self.locators.input_box_title.is_visible(), "Input box title should be visible"
 
     def expect_resend_otp_countdown(self):
-        expect(self.locators.resend_otp_countdown).to_be_visible()
+        assert self.locators.resend_otp_countdown.is_visible(), "Resend OTP countdown should be visible"
 
     def expect_verify_button(self):
-        expect(self.locators.verify_button).to_be_visible()
+        assert self.locators.verify_button.is_visible(), "Verify button should be visible"
 
     def expect_resend_otp_button(self):
-        expect(self.locators.resend_otp_button).to_be_visible()
+        assert self.locators.resend_otp_button.is_visible(), "Resend OTP button should be visible"
 
     def click_resend_otp(self):
         self.locators.resend_otp_button.click()
 
     def expect_resend_otp_success_message(self):
-        expect(self.locators.resend_otp_success_message).to_be_visible()
+        assert self.locators.resend_otp_success_message.is_visible(), "Resend OTP success message should be visible"
 
     def expect_email_required_error(self):
-        expect(self.locators.error_email_required).to_be_visible()
+        assert self.locators.error_email_required.is_visible(), "Email required error should be visible"
 
     def expect_password_required_error(self):
-        expect(self.locators.error_password_required).to_be_visible()
+        assert self.locators.error_password_required.is_visible(), "Password required error should be visible"
 
     def expect_public_domain_warning(self):
-        expect(self.locators.public_domain_warning).to_be_visible()
+        assert self.locators.public_domain_warning.is_visible(), "Public domain warning should be visible"
 
     def expect_invalid_email_error(self):
-        expect(self.locators.error_invalid_email).to_be_visible()
+        assert self.locators.error_invalid_email.is_visible(), "Invalid email error should be visible"
 
     def expect_invalid_credentials_error(self):
-        expect(self.locators.error_invalid_credentials).to_be_visible()
+        assert self.locators.error_invalid_credentials.is_visible(), "Invalid credentials error should be visible"
 
     def expect_show_password_button(self):
-        expect(self.locators.show_password_button).to_be_visible()
+        assert self.locators.show_password_button.is_visible(), "Show password button should be visible"
 
     def expect_hide_password_button(self):
-        expect(self.locators.hide_password_button).to_be_visible()
+        assert self.locators.hide_password_button.is_visible(), "Hide password button should be visible"
 
     def expect_forgot_password_link(self):
-        expect(self.locators.forgot_password_link).to_be_visible()
+        assert self.locators.forgot_password_link.is_visible(), "Forgot password link should be visible"
 
     def expect_sign_in_heading(self):
-        expect(self.locators.sign_in_heading).to_be_visible()
+        assert self.locators.sign_in_heading.is_visible(), "Sign in heading should be visible"
 
     def expect_black_pigeon_link(self):
-        expect(self.locators.black_pigeon_link).to_be_visible()
+        assert self.locators.black_pigeon_link.is_visible(), "Black pigeon link should be visible"
 
     def expect_sign_in_button_visible(self):
-        expect(self.locators.sign_in_button_visible).to_be_visible()
+        assert self.locators.sign_in_button_visible.is_visible(), "Sign in button should be visible"
 
     def expect_email_label(self):
-        expect(self.locators.email_label).to_be_visible()
+        assert self.locators.email_label.is_visible(), "Email label should be visible"
 
     def expect_password_label(self):
-        expect(self.locators.password_label).to_be_visible()
+        assert self.locators.password_label.is_visible(), "Password label should be visible"
 
     def expect_unregistered_email_error(self):
-        expect(self.locators.unregistered_email_error).to_be_visible()
+        assert self.locators.unregistered_email_error.is_visible(), "Unregistered email error should be visible"
 
     def expect_dont_have_account_text(self):
-        expect(self.locators.dont_have_account_text).to_be_visible()
+        assert self.locators.dont_have_account_text.is_visible(), "Don't have account text should be visible"
 
     def expect_nonverified_email_error(self):
-        expect(self.locators.nonverified_email_error).to_be_visible()
+        assert self.locators.nonverified_email_error.is_visible(), "Non-verified email error should be visible"

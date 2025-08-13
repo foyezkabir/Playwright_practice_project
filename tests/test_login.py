@@ -98,7 +98,6 @@ def test_TC_17(page: Page):
 def test_TC_18(page: Page):
     """Verify user can not login with invalid credentials."""
     login_page = do_login(page, "50st3o@mepost.pw", "wrong-password")
-    page.screenshot(path="./screenshots/login_screenshot/ss_invalid_credentials.png")
     login_page.expect_invalid_credentials_error()
 
 def test_TC_19(page: Page):

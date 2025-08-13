@@ -27,7 +27,6 @@ def test_agency_01_verify_agency_modal_appearing_in_first_time_login(page: Page)
     time.sleep(1)
     agency_page.expect_all_agencies_message()
 
-
 def test_agency_02_verify_agency_page_with_existing_agencies(page: Page):
     """agency create modal appears or not with existing agencies."""
     agency_page = AgencyPage(page)
