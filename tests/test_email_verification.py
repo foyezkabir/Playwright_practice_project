@@ -43,12 +43,6 @@ def test_01_verify_successful_email_verification_with_valid_otp(page: Page):
     email_verify_page.click_verify_button()
     email_verify_page.expect_verification_success()
     email_verify_page.expect_sign_in_heading_visible()
-    
-    # Assertion: Verify success (redirect from OTP page)
-    # time.sleep(3)
-    # current_url = page.url
-    # assert "otp-verification" not in current_url, f"Should redirect from OTP page after successful verification, still on: {current_url}"
-
 
 def test_02_verify_email_verification_with_invalid_otp(page: Page):
     """user can not verify email with invalid OTP."""
@@ -76,7 +70,7 @@ def test_02_verify_email_verification_with_invalid_otp(page: Page):
     email_verify_page.click_verify_button()
     
     # Assertion: Verify error message is displayed
-    time.sleep(2)  # Wait for error message to appear
+    time.sleep(2)
     email_verify_page.expect_verification_error()
 
 
@@ -136,8 +130,3 @@ def test_03_verify_email_verification_with_resend_otp_flow(page: Page):
     email_verify_page.click_verify_button()
     email_verify_page.expect_verification_success()
     email_verify_page.expect_sign_in_heading_visible()
-    
-    # # Step 8: Verify successful verification
-        # time.sleep(3)
-        # current_url = page.url
-        # assert "otp-verification" not in current_url, f"Should redirect from OTP page after successful verification with resent OTP, still on: {current_url}"
