@@ -1,8 +1,6 @@
-
 from playwright.sync_api import Page, expect
 from utils.config import BASE_URL
 from pages.login_page import LoginPage
-
 
 def do_login(page: Page, email: str, password: str):
     login_page = LoginPage(page)
