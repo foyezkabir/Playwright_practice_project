@@ -254,36 +254,72 @@ class AgencyPage:
         it looks for a clickable 'next' button and clicks it, repeating the process
         until the agency is found or the last page is reached.
         """
+        # Wait for page to load initially
+        time.sleep(2)
+        
+        print(f"🔍 Starting search for agency: '{agency_name}'")
+        print(f"📍 Current URL: {page.url}")
+        
         # This locator targets the 'next' button, which is the last list item (`li:last-child`)
         # in the pagination container. The `:not(.disabled)` part ensures we only select it
         # when it's clickable.
         next_button = page.locator("ul.pagination-container > li:last-child:not(.disabled)")
+        max_pages = 10  # Prevent infinite loops
+        current_page = 0
 
-        while True:
+        while current_page < max_pages:
+            current_page += 1
+            
+            # Wait for content to load and be stable
+            try:
+                page.wait_for_load_state("domcontentloaded", timeout=5000)
+                time.sleep(1)  # Small wait for content to stabilize
+            except:
+                pass
+            
+            print(f"🔍 Searching page {current_page} for '{agency_name}'...")
+            
+            # Debug: print all agency names on current page
+            all_agencies = page.locator("[data-testid='agency-name'], .agency-name, .agency-list-item")
+            agency_count = all_agencies.count()
+            print(f"📊 Found {agency_count} agencies on page {current_page}")
+            
+            # Print visible agencies for debugging
+            for i in range(min(agency_count, 5)):  # Limit to first 5 for debugging
+                try:
+                    agency_text = all_agencies.nth(i).text_content()
+                    print(f"  - Agency {i+1}: '{agency_text}'")
+                except:
+                    pass
+            
             # Check if the agency name is visible on the current page.
-            # We use count() > 0 to see if the element exists without causing an error.
-            # page.pausse()
-            if page.get_by_text(agency_name, exact=True).count() > 0:
-                print(f"✅ Found agency '{agency_name}' on the current page.")
-                break  # Exit the loop since we found it
-
+            agency_element = page.get_by_text(agency_name, exact=True)
+            if agency_element.count() > 0:
+                print(f"✅ Found agency '{agency_name}' on page {current_page}.")
+                # Check if there are multiple elements with same name (duplicates)
+                if agency_element.count() > 1:
+                    print(f"⚠️ Warning: Found {agency_element.count()} duplicate agencies with name '{agency_name}'")
+                return True  # Return success
+                
             # If the agency is not on this page, check if a 'next' button is available.
             if next_button.count() == 0:
-            #    page.pause()
-               print(f"❌ Reached the end of pagination. Agency '{agency_name}' was not found.")
-               break # Exit the loop because there are no more pages
+               print(f"❌ Reached the end of pagination after {current_page} pages. Agency '{agency_name}' was not found.")
+               return False  # Return failure
 
             # If we are here, it means the agency wasn't found AND there's a next page.
-            print("-> Agency not found, navigating to the next page...")
-            # page.pause()
-            next_button.click()
-            # page.pause()
-
-
-            # Wait for the network to be idle. This is a robust way to wait for
-            # the new page's content to finish loading after the click.
-            page.wait_for_load_state("networkidle")
-            time.sleep(15)
+            print(f"-> Agency not found on page {current_page}, navigating to the next page...")
+            
+            try:
+                next_button.click()
+                # Wait for the network to be idle with shorter timeout
+                page.wait_for_load_state("networkidle", timeout=8000)
+                time.sleep(2)  # Shorter wait than before
+            except Exception as e:
+                print(f"Error clicking next button: {e}")
+                return False
+                
+        print(f"❌ Searched {max_pages} pages but couldn't find agency '{agency_name}'")
+        return False
         
     def logout(self):
         """Logout from the current session."""
