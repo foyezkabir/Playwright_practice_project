@@ -1,4 +1,8 @@
 import time
+import email
+import sys
+import os
+from turtle import reset
 import pytest
 from playwright.sync_api import Page, expect
 from utils.config import BASE_URL
@@ -8,13 +12,11 @@ from utils.signup_helper import do_signup
 from pages.agency_page import AgencyPage   
 from pages.reset_pass_page import ResetPasswordPage
 from random_values_generator.random_agency_name import generate_agency_name
-import email
-import time
-import sys
-import os
 from pages.signup_page import SignupPage
 from random_values_generator.random_email import RandomEmail
 from utils.signup_helper import do_signup, fill_valid_signup_form, navigate_to_signup_page, navigate_to_landing_and_signup
+from conftest import wait_for_action_completion
+from utils.enhanced_assertions import enhanced_assert_visible
 
 random_email = RandomEmail()
 
@@ -38,6 +40,7 @@ def test_TC_01(page: Page):
     """Verify successful signup message."""
     email = random_email.generate_email()
     signup_page = do_signup(page, full_name="John Doe", email=email, password="Kabir123#", confirm_password="Kabir123#")
+    # Wait is now handled in the helper function
     signup_page.expect_signup_success_message()
 
 def test_TC_02(page: Page):
@@ -80,6 +83,10 @@ def test_TC_04(page: Page):
     email_verify_page.enter_otp_code(otp_code)
     email_verify_page.wait_for_verify_button_enabled()
     email_verify_page.click_verify_button()
+    
+    # Wait for verification to complete using global wait function
+    wait_for_action_completion(page, "verify")
+    
     email_verify_page.expect_verification_success()
     email_verify_page.expect_sign_in_heading_visible()
 
@@ -148,11 +155,12 @@ def test_TC_10(page: Page):
     reset_page.expect_otp_accept_numbers_only_error()
 
 def test_TC_11(page: Page):
-    """email required validation is visible."""
+    """email required validation is visible & Next button in disabled."""
     reset_page = ResetPasswordPage(page)
     reset_page.navigate_to_reset_password(BASE_URL + "/forgot-password")
-    reset_page.click_next()
-    # Note: Button might be disabled for empty email
+    reset_page.expect_next_button_disabled()
+    reset_page.click_on_email_input_box()
+    reset_page.click_forgot_password_heading()
 
 def test_TC_12(page: Page):
     """unregistered email validation is visible."""
@@ -167,11 +175,8 @@ def test_TC_12(page: Page):
 def test_TC_13(page: Page):
     """Verify agency modal appears on first time login."""
     agency_page = AgencyPage(page)
-    agency_page.navigate_to_login_page(BASE_URL + "/login")
     do_login(page, "867da9@onemail.host", "Kabir123#")
-
-    # Wait for page to load after login
-    page.wait_for_load_state("networkidle")
+    # Wait is now handled in login helper
     agency_page.expect_agency_modal_body()
     time.sleep(1)
     agency_page.click_cancel_button()
@@ -181,10 +186,10 @@ def test_TC_13(page: Page):
 def test_TC_14(page: Page):
     """agency create modal appears or not with existing agencies."""
     agency_page = AgencyPage(page)
-    agency_page.navigate_to_login_page(BASE_URL + "/login")
     do_login(page, "50st3o@mepost.pw", "Kabir123#")
-    time.sleep(5)
+    # Wait is now handled in login helper - no manual sleep needed
     agency_page.expect_no_agency_modal()
+    agency_page.verify_agency_page_url()
     agency_page.verify_agency_page_url()
 
 def test_TC_15(page: Page, created_agency_name):
@@ -192,7 +197,8 @@ def test_TC_15(page: Page, created_agency_name):
     agency_name = created_agency_name
     agency_page = AgencyPage(page)
     do_login(page, "gi7j8d@mepost.pw", "Kabir123#")
-    time.sleep(5)
+    # Wait is now handled in login helper - reduced sleep
+    time.sleep(2)
     agency_page.click_create_new_agency()
     agency_page.fill_agency_name(agency_name)
     agency_page.click_industry_dropdown()
@@ -211,8 +217,10 @@ def test_TC_15(page: Page, created_agency_name):
     agency_page.locators.agency_name_input.fill(updated_name)
     time.sleep(1)
     agency_page.locators.agency_update_button.click()
-    expect(agency_page.locators.update_confirm_message).to_be_visible(timeout=10000)
-    time.sleep(2)
+    # Use enhanced assertion to capture screenshot immediately if message doesn't appear
+    wait_for_action_completion(page, "update")  # Wait for update to complete
+    enhanced_assert_visible(page, agency_page.locators.update_confirm_message, 
+                           "Update confirmation message should be visible", "test_TC_15")
     agency_page.get_agency_by_name(updated_name)
 
 

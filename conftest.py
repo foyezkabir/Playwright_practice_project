@@ -303,6 +303,118 @@ def page(context):
     yield page
     page.close()
 
+# GLOBAL UTILITY FUNCTIONS
+# ============================================================================
+
+def wait_for_action_completion(page: Page, action_type: str = "general"):
+    """
+    Global utility function to wait for various actions to complete.
+    
+    Args:
+        page: Playwright page object
+        action_type: Type of action performed (signup, login, verify, etc.)
+    """
+    # Always wait for network to be idle first
+    page.wait_for_load_state("networkidle", timeout=15000)
+    
+    # Add specific waits based on action type
+    if action_type == "signup":
+        page.wait_for_timeout(3000)  # 3 seconds for signup success/error messages
+    elif action_type == "login":
+        page.wait_for_timeout(2000)  # 2 seconds for login processing ONLY
+    elif action_type == "verify" or action_type == "otp":
+        page.wait_for_timeout(4000)  # 4 seconds for verification processing
+    elif action_type == "save" or action_type == "update":
+        page.wait_for_timeout(2500)  # 2.5 seconds for save operations
+        # Additional wait for success/error messages
+        page.wait_for_timeout(1500)  # Extra 1.5 seconds for messages
+    elif action_type == "navigation":
+        page.wait_for_timeout(1500)  # 1.5 seconds for navigation
+    elif action_type == "modal":
+        page.wait_for_timeout(3000)  # 3 seconds specifically for modal appearance
+    else:
+        page.wait_for_timeout(2000)  # Default 2 seconds
+
+def wait_for_modal_or_content(page: Page, timeout: int = 10000):
+    """
+    Global utility to wait for modals or dynamic content to appear after login.
+    """
+    try:
+        # Wait for any dynamic content to load
+        page.wait_for_load_state("networkidle", timeout=timeout)
+        page.wait_for_timeout(3000)  # Additional 3 seconds for modals
+        
+        # Try to detect if any modal or overlay is present
+        modal_selectors = [
+            '[role="dialog"]',
+            '.modal',
+            '[data-modal]',
+            '.overlay',
+            '[aria-modal="true"]'
+        ]
+        
+        for selector in modal_selectors:
+            try:
+                if page.locator(selector).count() > 0:
+                    page.wait_for_timeout(1000)  # Extra wait if modal detected
+                    break
+            except:
+                continue
+                
+    except Exception as e:
+        print(f"⚠️  Modal wait completed with timeout: {e}")
+
+def capture_immediate_screenshot(page: Page, test_name: str, description: str = "failure"):
+    """
+    Immediately capture screenshot for failed assertions.
+    This function is called right when an assertion fails.
+    """
+    try:
+        timestamp = datetime.now().strftime("%d-%m-%Y_%H.%M.%S")
+        
+        # Get the test file from the call stack to determine correct folder
+        import inspect
+        frame = inspect.currentframe()
+        test_file = ""
+        while frame:
+            frame_info = inspect.getframeinfo(frame)
+            if frame_info.filename and 'test_' in frame_info.filename:
+                test_file = frame_info.filename
+                break
+            frame = frame.f_back
+        
+        # Determine screenshot folder based on test file name
+        if "test_login.py" in test_file:
+            folder = "login_screenshots"
+        elif "test_signup.py" in test_file:
+            folder = "signup_screenshots"
+        elif "test_agency.py" in test_file:
+            folder = "agency_screenshots"
+        elif "test_email" in test_file:
+            folder = "email_verify_screenshots"
+        elif "test_reset" in test_file:
+            folder = "reset_pass_screenshots"
+        else:
+            folder = "general_screenshots"
+        
+        # Create directory
+        screenshot_dir = os.path.join("screenshots", folder)
+        os.makedirs(screenshot_dir, exist_ok=True)
+        
+        # Generate filename in format: TC_XX_DD-MM-YYYY_HH.MM.SS.png
+        clean_test_name = test_name.replace("test_", "").replace("_", "_")
+        filename = f"{clean_test_name}_{description}_{timestamp}.png"
+        filepath = os.path.join(screenshot_dir, filename)
+        
+        # Take screenshot immediately
+        page.screenshot(path=filepath)
+        print(f"📸 Immediate screenshot saved: {filepath}")
+        return filepath
+        
+    except Exception as e:
+        print(f"⚠️  Failed to capture immediate screenshot: {e}")
+        return None
+
 # SCREENSHOT HOOKS AND FIXTURES
 # ============================================================================
 
@@ -330,48 +442,8 @@ def pytest_runtest_makereport(item, call):
         elif rep.failed:
             test_results[test_file][test_name] = "FAILED"
             
-            # Capture screenshot for failed test cases ONLY
-            try:
-                # Get the page fixture from the test
-                page_fixture = None
-                for fixture_name in item.fixturenames:
-                    if 'page' in fixture_name:
-                        page_fixture = item._request.getfixturevalue(fixture_name)
-                        break
-                
-                if page_fixture and hasattr(page_fixture, 'screenshot'):
-                    # Take screenshot immediately 
-                    timestamp = datetime.now().strftime("%d-%m-%Y_%H.%M.%S")
-                    
-                    # Determine screenshot folder
-                    if "login" in test_name.lower():
-                        folder = "login_screenshots"
-                    elif "signup" in test_name.lower():
-                        folder = "signup_screenshots"
-                    elif "agency" in test_name.lower():
-                        folder = "agency_screenshots"
-                    elif "email" in test_name.lower():
-                        folder = "email_verify_screenshots"
-                    elif "reset" in test_name.lower():
-                        folder = "reset_pass_screenshots"
-                    else:
-                        folder = "general_screenshots"
-                    
-                    # Create directory
-                    screenshot_dir = os.path.join("screenshots", folder)
-                    os.makedirs(screenshot_dir, exist_ok=True)
-                    
-                    # Generate filename
-                    clean_test_name = test_name.replace("test_", "").replace("_", "_")
-                    filename = f"{clean_test_name}_{timestamp}.png"
-                    filepath = os.path.join(screenshot_dir, filename)
-                    
-                    # Take screenshot
-                    page_fixture.screenshot(path=filepath)
-                    print(f"📸 Screenshot saved: {filepath}")
-                    
-            except Exception as e:
-                print(f"⚠️  Failed to capture screenshot for failed test {test_name}: {e}")
+            # Screenshot capture is now handled by enhanced assertions
+            # No need to capture screenshots here to avoid duplicates
                 
         elif rep.skipped:
             test_results[test_file][test_name] = "SKIPPED"

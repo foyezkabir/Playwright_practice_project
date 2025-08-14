@@ -62,7 +62,7 @@ def test_TC_11(page: Page):
     login_page.expect_resend_otp_button()
 
 def test_TC_12(page: Page):
-    """Verify visibility of verification success message."""
+    """Verify visibility of OTP resent success message."""
     login_page = do_login(page, "50so@mepost.pw", "Kabir123#")
     time.sleep(60)
     login_page.click_resend_otp()

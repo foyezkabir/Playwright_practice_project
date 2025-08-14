@@ -152,7 +152,7 @@ venv.bak/
 .ropeproject
 
 #tracer.zp
-traces/
+*.zip
 
 # mkdocs documentation
 /site

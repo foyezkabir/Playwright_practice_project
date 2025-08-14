@@ -2,6 +2,7 @@ from encodings.punycode import T
 from playwright.sync_api import Page, expect
 from locators.loc_agency import AgencyLocators
 from utils.config import BASE_URL
+import utils.agency_helper as agency_helper
 import time
 
 class AgencyPage:
@@ -28,16 +29,16 @@ class AgencyPage:
         self.locators.sign_in_button.click()
 
     def expect_agency_modal_heading(self):
-        assert self.locators.agency_create_modal_heading.is_visible(), "Agency create modal heading should be visible"
+        agency_helper.assert_agency_create_modal_heading(self.page)
 
     def expect_agency_modal_body(self):
-        assert self.locators.create_modal_body.is_visible(), "Create modal body should be visible"
+        agency_helper.assert_create_modal_body(self.page)
 
     def expect_no_agency_modal(self):
         try:
             time.sleep(3)
-            assert not self.locators.agency_create_modal_heading.is_visible(timeout=2000), "Agency create modal heading should not be visible"
-            assert not self.locators.create_modal_body.is_visible(timeout=2000), "Create modal body should not be visible"
+            # Use enhanced assertions for better screenshot timing
+            agency_helper.assert_agency_create_modal_not_visible(self.page)
             print("✅ No agency creation modal appeared (as expected for account which has at least single agency)")
         except Exception as e:
             raise AssertionError(f"Agency creation modal appeared when it shouldn't have: {str(e)}")
@@ -57,10 +58,10 @@ class AgencyPage:
         self.locators.close_modal_button.click()
 
     def expect_all_agencies_message(self):
-        assert self.locators.all_agencies_message.is_visible(), "All agencies message should be visible"
+        agency_helper.assert_all_agencies_message(self.page)
 
     def expect_all_agencies_list(self):
-        assert self.locators.all_agencies_list.is_visible(), "All agencies list should be visible"
+        agency_helper.assert_all_agencies_list(self.page)
 
     def fill_agency_name(self, agency_name: str):
         self.locators.agency_name_input.fill(agency_name)
@@ -97,10 +98,10 @@ class AgencyPage:
         self.locators.agency_save_button.click()
 
     def verify_agency_created_successfully(self):
-        assert self.locators.agency_created_successfully_message.is_visible(), "Agency created successfully message should be visible"
+        agency_helper.assert_agency_created_successfully_message(self.page)
 
     def verify_created_agency_appears(self):
-        assert self.locators.created_agency_appear.is_visible(), "Created agency should appear"
+        agency_helper.assert_created_agency_appear(self.page)
 
     def verify_created_agency_appears_in_list(self, agency_name: str):
         """Verify that the created agency appears in the agencies list with the correct name"""
@@ -139,16 +140,16 @@ class AgencyPage:
         self.locators.agency_update_button.click()
 
     def verify_update_confirm_message(self):
-        assert self.locators.update_confirm_message.is_visible(), "Update confirm message should be visible"
+        agency_helper.assert_update_confirm_message(self.page)
 
     def click_delete_button(self):
         self.locators.delete_button.click()
 
     def verify_update_agency_modal(self):
-        assert self.locators.update_agency_modal.is_visible(), "Update agency modal should be visible"
+        agency_helper.assert_update_agency_modal(self.page)
 
     def verify_delete_confirmation_modal(self):
-        assert self.locators.delete_confirmation_modal.is_visible(), "Delete confirmation modal should be visible"
+        agency_helper.assert_delete_confirmation_modal(self.page)
 
     def click_cancel_button(self):
         self.locators.cancel_button.click()
@@ -157,13 +158,13 @@ class AgencyPage:
         self.locators.confirm_button.click()
 
     def verify_agency_deleted_successfully(self):
-        assert self.locators.agency_deleted_successfully_message.is_visible(), "Agency deleted successfully message should be visible"
+        agency_helper.assert_agency_deleted_successfully_message(self.page)
 
     def click_agency_list_item(self):
         self.locators.agency_list_item.click()
 
     def verify_main_content(self):
-        assert self.locators.main_content.is_visible(), "Main content should be visible"
+        agency_helper.assert_main_content(self.page)
 
     def go_back_to_all_agencies(self):
         self.page.go_back()
@@ -283,10 +284,6 @@ class AgencyPage:
             # the new page's content to finish loading after the click.
             page.wait_for_load_state("networkidle")
             time.sleep(15)
-
-        # After the loop finishes, this final assertion validates the result.
-        # It will pass if the agency was found and fail the test if it was not.
-        # page.pause()
         
     def logout(self):
         """Logout from the current session."""
