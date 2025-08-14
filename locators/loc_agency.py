@@ -49,3 +49,22 @@ class AgencyLocators:
         self.agency_list_item_data_testid = page.locator("[data-testid='agency-list-item']")
         self.user_menu_data_testid = page.locator("[data-testid='user-menu']")
         self.logout_button_data_testid = page.locator("[data-testid='logout-button']")
+
+        # Validation-related locators
+        self.file_upload_input = page.locator("input[type='file']")
+        self.upload_area = page.locator(".upload, [class*='upload']")
+        self.form_labels = page.locator("label, .label, [class*='label']")
+        self.all_agencies_heading = page.get_by_text("All Agencies")
+        
+        # Specific validation messages
+        self.agency_name_required_error = page.get_by_text("Agency name is required")
+        self.agency_name_min_length_error = page.get_by_text("Agency name must be at least 3 characters")
+        self.agency_name_special_char_error = page.get_by_text("Agency Name not start or end with special characters.")
+        self.invalid_website_url_error = page.get_by_text("Please enter a valid website URL")
+        self.file_format_error = page.get_by_text("Only accept jpg, png, jpeg, gif file")
+        self.file_size_error = page.get_by_text("File can't be larger than 5 MB")
+        
+        # Toast/notification locators for validation messages
+        self.toast_message = page.get_by_role("alert")
+        self.error_toast = page.get_by_text("error", exact=False)
+        self.success_toast = page.get_by_text("success", exact=False)

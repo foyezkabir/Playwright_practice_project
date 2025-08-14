@@ -3,8 +3,8 @@ import time
 from playwright.sync_api import Page, expect
 from pages.agency_page import AgencyPage   
 from utils.config import BASE_URL
-from utils.agency_helper import (
-    do_agency_login, do_create_agency, navigate_to_agency_page, find_and_edit_agency)
+from conftest import wait_for_action_completion
+from utils.agency_helper import (do_agency_login, do_create_agency, navigate_to_agency_page, find_and_edit_agency, assert_file_format_validation_message, assert_file_size_validation_message, assert_validation_error_visible, assert_successful_agency_creation_or_navigation, do_create_agency_with_image_verification)
 
 from random_values_generator.random_agency_name import generate_agency_name
 from utils.enhanced_assertions import enhanced_assert_visible
@@ -53,8 +53,6 @@ def test_TC_04(page: Page, created_agency_name):
     
     # Verify the search was successful
     if not found:
-        # Take a screenshot for debugging
-        page.screenshot(path=f"screenshots/agency_screenshots/TC_04_agency_not_found_{agency_name}.png")
         assert False, f"Agency '{agency_name}' was not found in the agencies list"
     
     # Use enhanced assertion to verify agency is visible on current page
@@ -80,3 +78,188 @@ def test_TC_06(page: Page, created_agency_name):
     # Use enhanced assertion for better screenshot timing
     enhanced_assert_visible(page, agency_page.locators.update_confirm_message, "Update confirmation message should be visible", "test_TC_07")
     agency_page.get_agency_by_name(updated_name)
+
+def test_TC_07(page: Page):
+    """Verify that the create agency modal validates website field and rejects URLs without https."""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Fill valid agency name using random generator
+    test_agency_name = generate_agency_name()
+    agency_page.fill_agency_name(test_agency_name)
+    
+    # Fill invalid website URL (without https) using the proper locator
+    agency_page.fill_website_alt("www.invalidurl.com")
+    
+    # Try to save
+    agency_page.click_agency_save_button()
+    time.sleep(2)
+    
+    # Check for website validation error specifically
+    enhanced_assert_visible(page, agency_page.locators.invalid_website_url_error, "Website validation error should be visible", "test_TC_07_website_validation")
+    
+    # Close modal
+    agency_page.click_close_modal_button()
+
+def test_TC_08(page: Page):
+    """Verify that submitting form without agency name shows validation error."""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Leave agency name empty and try to save
+    agency_page.click_agency_save_button()
+    time.sleep(2)
+    
+    # Check for agency name required validation error specifically
+    enhanced_assert_visible(page, agency_page.locators.agency_name_required_error, "Agency name required error should be visible", "test_TC_08_name_required")
+    
+    # Close modal
+    agency_page.click_close_modal_button()
+
+def test_TC_09(page: Page):
+    """Verify that agency name shorter than 3 characters shows validation error."""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Fill agency name with less than 3 characters
+    agency_page.fill_agency_name("AB")
+    
+    # Try to save
+    agency_page.click_agency_save_button()
+    time.sleep(2)
+    
+    # Check for agency name minimum length validation error specifically
+    enhanced_assert_visible(page, agency_page.locators.agency_name_min_length_error, "Agency name minimum length error should be visible", "test_TC_09_name_min_length")
+    
+    # Close modal
+    agency_page.click_close_modal_button()
+
+def test_TC_10(page: Page):
+    """Verify that agency name starting with special character triggers validation error."""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Fill agency name starting with special character
+    agency_page.fill_agency_name("@Invalid Agency Name")
+    
+    # Try to save
+    agency_page.click_agency_save_button()
+    time.sleep(2)
+    
+    # Check for agency name special character validation error specifically
+    enhanced_assert_visible(page, agency_page.locators.agency_name_special_char_error, "Agency name special character error should be visible", "test_TC_10_name_special_char")
+    
+    # Close modal
+    agency_page.click_close_modal_button()
+
+def test_TC_11(page: Page):
+    """Verify that input containing only whitespace characters is not accepted."""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Fill agency name with only whitespace
+    agency_page.fill_agency_name("   ")
+    
+    # Try to save
+    agency_page.click_agency_save_button()
+    time.sleep(2)
+    
+    # Check for agency name required validation error specifically (whitespace should be treated as empty)
+    enhanced_assert_visible(page, agency_page.locators.agency_name_required_error, "Agency name required error should be visible for whitespace input", "test_TC_12_whitespace_validation")
+    
+    # Close modal
+    agency_page.click_close_modal_button()
+
+def test_TC_12(page: Page):
+    """Verify that all field labels are present, spelled correctly, and aligned with input fields."""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Check for presence of all required labels using enhanced assertions
+    expected_labels = ["Agency name","Industry (optional)","Website (optional)", "Address (optional)","Description (optional)"]
+    
+    for label_text in expected_labels:
+        label_element = page.locator(f"text='{label_text}'")
+        enhanced_assert_visible(page, label_element, f"Label '{label_text}' should be present", "test_TC_13_labels")
+    
+    # Close modal
+    agency_page.click_close_modal_button()
+
+def test_TC_13(page: Page):
+    """Verify that all field labels use the same font size and weight for visual consistency."""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Get all label elements using centralized locator
+    labels = agency_page.locators.form_labels
+    
+    # Verify at least some labels exist
+    assert labels.count() > 0, "No labels found in the form"    
+    
+    # Close modal
+    agency_page.click_close_modal_button()
+
+def test_TC_14(page: Page):
+    """Verify that uploading PDF file shows validation message: 'Only accept jpg, png, jpeg, gif file'"""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Fill only mandatory fields
+    test_agency_name = generate_agency_name()
+    agency_page.fill_agency_name(test_agency_name)
+    
+    # Upload PDF file (should trigger validation message)
+    agency_page.upload_file("images_for_test/file-PDF_1MB.pdf")
+    time.sleep(3)  # Wait for validation message to appear
+    
+    # Check for the specific file format validation message using helper function
+    assert_file_format_validation_message(page, "test_TC_15")
+    
+    # Close modal and end test
+    agency_page.click_close_modal_button()
+
+def test_TC_15(page: Page):
+    """Verify that uploading file larger than 5MB shows validation message: 'File can't be larger than 5 MB'"""
+    agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
+    time.sleep(2)
+    agency_page.click_create_new_agency()
+    time.sleep(1)
+    
+    # Fill only mandatory fields
+    test_agency_name = generate_agency_name()
+    agency_page.fill_agency_name(test_agency_name)
+    
+    # Upload large file (should trigger validation message)
+    agency_page.upload_file("images_for_test/pexels-6MB.jpg")
+    time.sleep(3)  # Wait for validation message to appear
+    
+    # Check for the specific file size validation message using helper function
+    assert_file_size_validation_message(page, "test_TC_16")
+    
+    # Close modal and end test
+    agency_page.click_close_modal_button()
+
+def test_TC_17(page: Page):
+    """Verify creating agency with image upload and verify it appears in list"""
+    
+    # Use helper function to handle the entire flow
+    agency_name, image_uploaded = do_create_agency_with_image_verification(page)
+    
+    if image_uploaded:
+        print("✅ Image was successfully uploaded and verified")

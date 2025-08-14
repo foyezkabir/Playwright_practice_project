@@ -72,18 +72,72 @@ class AgencyPage:
     def select_industry_finance(self):
         self.locators.finance_option.click()
 
-    # def select_industry(self, industry: str):
-    #     if industry == "Information Technology":
-    #         self.locators.information_technology_option.click()
-    #     elif industry == "Finance":
-    #         self.locators.finance_option.click()
-    #     elif industry == "Healthcare":
-    #         self.locators.healthcare_option.click()
-    #     elif industry == "Education":
-    #         self.locators.education_option.click()
-
     def fill_website(self, website: str):
         self.locators.website_input.fill(website)
+
+    def fill_website_alt(self, website: str):
+        """Alternative website input method using backup locator"""
+        self.locators.website_input_alt.first.fill(website)
+
+    def check_validation_error(self):
+        """Check if validation error is visible"""
+        # Check multiple error sources
+        form_errors = self.locators.validation_error.count() > 0
+        toast_errors = self.locators.error_toast.count() > 0
+        toast_messages = self.locators.toast_message.count() > 0
+        return form_errors or toast_errors or toast_messages
+
+    def check_file_format_error(self):
+        """Check if file format validation error is visible"""
+        # Check both form errors and toast messages
+        format_errors = self.locators.file_format_error.count() > 0
+        toast_errors = self.locators.error_toast.count() > 0
+        return format_errors or toast_errors
+
+    def check_file_size_error(self):
+        """Check if file size validation error is visible"""
+        # Check both form errors and toast messages
+        size_errors = self.locators.file_size_error.count() > 0
+        toast_errors = self.locators.error_toast.count() > 0
+        return size_errors or toast_errors
+
+    def get_validation_error_message(self) -> str:
+        """Get the text of any validation error or toast message."""
+        # Try different error sources
+        if self.locators.validation_error.count() > 0:
+            return self.locators.validation_error.first.text_content()
+        elif self.locators.error_toast.count() > 0:
+            return self.locators.error_toast.first.text_content()
+        elif self.locators.toast_message.count() > 0:
+            return self.locators.toast_message.first.text_content()
+        return ""
+
+    def wait_for_toast_message(self, timeout=5000):
+        """Wait for any toast message to appear"""
+        try:
+            self.locators.toast_message.first.wait_for(state="visible", timeout=timeout)
+            return True
+        except:
+            return False
+
+    def upload_file(self, file_path: str):
+        """Upload file using file input - handles hidden inputs"""
+        try:
+            # Try to use the first file input (even if hidden)
+            self.locators.file_upload_input.first.set_input_files(file_path)
+        except Exception as e:
+            # If first method fails, try clicking the upload area first
+            try:
+                self.locators.upload_logo_button.first.click()
+                time.sleep(1)
+                self.locators.file_upload_input.first.set_input_files(file_path)
+            except Exception as e2:
+                print(f"File upload failed: {e2}")
+                raise e2
+
+    def check_all_agencies_heading(self):
+        """Check if we're on the all agencies page"""
+        return self.locators.all_agencies_heading.count() > 0
 
     def fill_address(self, address: str):
         self.locators.address_input.fill(address)
@@ -169,10 +223,6 @@ class AgencyPage:
     def go_back_to_all_agencies(self):
         self.page.go_back()
         self.page.wait_for_load_state("networkidle")
-
-    # =====================
-    # Custom helpers for test_agency_04
-    # =====================
 
     def get_three_dot_icon_and_click(self):
         self.locators.Three_dot_icon.click()
@@ -344,3 +394,49 @@ class AgencyPage:
             edit_btn = self.locators.edit_button(agency_name)
         edit_btn.wait_for()
         edit_btn.click(force=True)
+
+    # ===== NEW VALIDATION HELPER METHODS =====
+    
+    def fill_website_field(self, website_url: str):
+        """Fill the website field with the given URL."""
+        try:
+            self.locators.website_input.fill(website_url)
+        except:
+            # Fallback to alternative locator
+            self.locators.website_input_alt.first.fill(website_url)
+    
+    def upload_logo_file(self, file_path: str):
+        """Upload a logo file."""
+        try:
+            self.locators.file_upload_input.set_input_files(file_path)
+        except:
+            # Alternative approach
+            upload_area = self.page.locator("input[type='file'], .upload, [class*='upload']")
+            if upload_area.count() > 0:
+                upload_area.first.set_input_files(file_path)
+    
+    def check_validation_error_exists(self) -> bool:
+        """Check if any validation error is visible."""
+        return self.locators.validation_error.count() > 0
+    
+    def check_success_message_exists(self) -> bool:
+        """Check if any success message is visible."""
+        return self.locators.success_message.count() > 0
+    
+    def get_validation_error_message(self) -> str:
+        """Get the text of the first validation error."""
+        if self.check_validation_error_exists():
+            return self.locators.validation_error.first.text_content()
+        return ""
+    
+    def verify_field_labels_present(self, expected_labels: list) -> bool:
+        """Verify that all expected field labels are present."""
+        for label_text in expected_labels:
+            label_element = self.page.locator(f"text='{label_text}'")
+            if label_element.count() == 0:
+                return False
+        return True
+    
+    def count_form_labels(self) -> int:
+        """Count the number of form labels present."""
+        return self.locators.form_labels.count()
