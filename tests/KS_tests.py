@@ -136,6 +136,7 @@ def test_TC_08(page: Page):
     login_page.expect_public_domain_warning()
 
 # Reset password tests
+
 def test_TC_09(page: Page):
     """non-verified email validation is visible."""
     reset_page = ResetPasswordPage(page)
@@ -219,8 +220,7 @@ def test_TC_15(page: Page, created_agency_name):
     agency_page.locators.agency_update_button.click()
     # Use enhanced assertion to capture screenshot immediately if message doesn't appear
     wait_for_action_completion(page, "update")  # Wait for update to complete
-    enhanced_assert_visible(page, agency_page.locators.update_confirm_message, 
-                           "Update confirmation message should be visible", "test_TC_15")
+    enhanced_assert_visible(page, agency_page.locators.update_confirm_message, "Update confirmation message should be visible", "test_TC_15")
     agency_page.get_agency_by_name(updated_name)
 
 

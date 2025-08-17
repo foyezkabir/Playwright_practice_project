@@ -17,11 +17,71 @@ class CompanyLocators:
         # Agency selection locators  
         self.agency_card = lambda agency_name: page.locator(f"text={agency_name}").first
         self.test_agency_card = page.get_by_text("Test this agency")
+        self.agency_t_selector = page.locator("div").filter(has_text=re.compile(r"^T$")).nth(2)
+        
+        # Company list navigation locators
+        self.first_company_link = page.locator(".text-primary-color.font-medium.text-base").first
+        self.company_name_heading_link = lambda company_name: page.get_by_role("heading", name=company_name)
+        self.company_name_text_link = lambda company_name: page.get_by_text(company_name, exact=True).first
+        
+        # Company details page - Summary tab editable fields
+        # Field display locators
+        self.company_name_display = page.locator("div").filter(has_text="Company name").locator("xpath=following-sibling::div")
+        self.web_page_display = page.locator("div").filter(has_text="Web page").locator("xpath=following-sibling::div")
+        self.industry_display = page.locator("div").filter(has_text="Industry").locator("xpath=following-sibling::div")
+        self.hq_in_jpn_display = page.locator("div").filter(has_text="HQ in JPN").locator("xpath=following-sibling::div")
+        self.global_hq_display = page.locator("div").filter(has_text="Global HQ").locator("xpath=following-sibling::div")
+        self.country_of_origin_display = page.locator("div").filter(has_text="Country of origin").locator("xpath=following-sibling::div")
+        self.company_address_display = page.locator("div").filter(has_text="Company address").locator("xpath=following-sibling::div")
+        self.company_hiring_status_display = page.locator("div").filter(has_text="Company hiring status").locator("xpath=following-sibling::div")
+        self.job_opening_display = page.locator("div").filter(has_text="Job opening").locator("xpath=following-sibling::div")
+        self.total_employees_jpn_display = page.locator("div").filter(has_text="Total employees JPN").locator("xpath=following-sibling::div")
+        self.company_grade_display = page.locator("div").filter(has_text="Company grade").locator("xpath=following-sibling::div")
+        self.company_client_owner_display = page.locator("div").filter(has_text="Company client owner").locator("xpath=following-sibling::div")
+        self.telephone_display = page.locator("div").filter(has_text="Telephone").locator("xpath=following-sibling::div")
+        
+        # Edit icon locators for each field
+        self.company_name_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Company name").get_by_role("img")
+        self.web_page_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Web page").get_by_role("img") 
+        self.industry_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Industry").get_by_role("img")
+        self.hq_in_jpn_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="HQ in JPN").get_by_role("img")
+        self.global_hq_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Global HQ").get_by_role("img")
+        self.country_of_origin_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Country of origin").get_by_role("img")
+        self.company_address_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Company address").get_by_role("img")
+        self.company_hiring_status_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Company hiring status").get_by_role("img")
+        self.job_opening_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Job opening").get_by_role("img")
+        self.total_employees_jpn_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Total employees JPN").get_by_role("img")
+        self.company_grade_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Company grade").get_by_role("img")
+        self.company_client_owner_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Company client owner").get_by_role("img")
+        self.telephone_edit_icon = page.locator("div").filter(has_text=re.compile(r"^:.*$")).filter(has_text="Telephone").get_by_role("img")
+        
+        # Edit modal input fields  
+        self.edit_company_name_input = page.get_by_role("textbox", name="Company name")
+        self.edit_web_page_input = page.get_by_role("textbox", name="Web page")
+        self.edit_industry_dropdown = page.locator(".select-trigger")
+        self.edit_hq_in_jpn_dropdown = page.locator(".select-trigger")
+        self.edit_global_hq_input = page.get_by_role("textbox", name="Global HQ")
+        self.edit_country_of_origin_input = page.get_by_role("textbox", name="Country of origin")
+        self.edit_company_address_input = page.get_by_role("textbox", name="Company address")
+        self.edit_company_hiring_status_dropdown = page.locator(".select-trigger")
+        self.edit_job_opening_dropdown = page.locator(".select-trigger")
+        self.edit_total_employees_jpn_input = page.get_by_role("textbox", name="Total employees JPN")
+        self.edit_company_grade_dropdown = page.locator(".select-trigger")
+        self.edit_company_client_owner_dropdown = page.locator(".select-trigger")
+        self.edit_telephone_input = page.get_by_role("textbox", name="Telephone")
+        
+        # Edit modal buttons
+        self.edit_modal_save_button = page.get_by_role("button", name="Save")
+        self.edit_modal_cancel_button = page.get_by_role("button", name="Cancel")
+        
+        # Company details page navigation
+        self.summary_tab = page.get_by_role("button", name="Summary")
+        self.company_details_heading = lambda company_name: page.get_by_role("heading", name=company_name, level=1)
         
         # Company list page locators
         self.add_new_company_button = page.get_by_role("button", name="Add new company")
         self.create_new_company_button = page.get_by_role("button", name="Create new company")
-        self.add_company_button = page.get_by_text("Add new company")
+        self.add_company_button = page.get_by_text("Add company")
         self.no_companies_found_message = page.get_by_text("No companies found Add new")
         
         # Company form locators - Basic fields
@@ -44,38 +104,34 @@ class CompanyLocators:
         self.main_tel_input = page.get_by_role("textbox", name="Main Tel")
         self.hr_tel_input = page.get_by_role("textbox", name="HR TEL")
         
-        # Hiring status dropdown and options
-        self.hiring_status_dropdown = page.locator(".select-trigger.open")
-        # self.hiring_active_option = page.get_by_text("Active", exact=True)
-        self.hiring_active_option = page.get_by_text("Active")
-        self.hiring_inactive_option = page.get_by_text("Inactive")
-        self.hiring_on_hold_option = page.get_by_text("On Hold")
-        self.hiring_recruiting_option = page.get_by_text("Recruiting")
+        # Hiring status dropdown and options  
+        self.hiring_status_dropdown = page.locator("div:nth-child(5) > .custom-searchable-select > .searchable-select > .select-trigger > .trigger-content")
+        self.hiring_active_option = page.locator("div").filter(has_text=re.compile(r"^Active$")).nth(1)
+        self.hiring_inactive_option = page.locator("div").filter(has_text=re.compile(r"^Inactive$")).nth(1)
+        self.hiring_on_hold_option = page.locator("div").filter(has_text=re.compile(r"^On Hold$"))
+        self.hiring_recruiting_option = page.locator("div").filter(has_text=re.compile(r"^Recruiting$"))
         
         # Company grade dropdown and options
         self.company_grade_dropdown = page.locator("div:nth-child(7) > .custom-searchable-select > .searchable-select > .select-trigger")
-        # self.grade_aaa_option = page.locator("div").filter(has_text=re.compile(r"^AAA$"))
-        #self.grade_aa_option = page.get_by_text("AA", exact=True)
-        self.grade_aa_option = page.get_by_text("AA")
-        self.grade_bbb_option = page.get_by_text("BBB")
-        self.grade_aaa_option = page.get_by_text("AAA")
+        self.grade_aaa_option = page.get_by_text("AAA", exact=True)
+        self.grade_aa_option = page.get_by_text("AA", exact=True)
+        self.grade_a_option = page.get_by_text("A", exact=True)
+        self.grade_bbb_option = page.get_by_text("BBB", exact=True)
         
         # HQ in Japan dropdown and options
         self.hq_in_japan_dropdown = page.locator("div:nth-child(8) > .custom-searchable-select > .searchable-select > .select-trigger")
-        self.hq_yes_option = page.get_by_text("Yes")
-        self.hq_no_option = page.get_by_text("No")
-        # self.hq_no_option = page.get_by_text("No", exact=True)
-        
+        self.hq_yes_option = page.locator(".select-options").get_by_text("Yes", exact=True)
+        self.hq_no_option = page.get_by_text("No", exact=True)
+
         # Job opening dropdown and options
         self.job_opening_dropdown = page.locator("div:nth-child(9) > .custom-searchable-select > .searchable-select > .select-trigger")
-        self.job_opening_yes_option = page.get_by_text("Yes")
-        self.job_opening_no_option = page.get_by_text("No")
-        # self.job_opening_no_option = page.get_by_text("No").nth(2)
+        self.job_opening_yes_option = page.locator("div").filter(has_text=re.compile(r"^Yes$")).nth(1)
+        self.job_opening_no_option = page.locator("div").filter(has_text=re.compile(r"^No$"))
         
         # Owner dropdown
         self.owner_dropdown = page.locator("div:nth-child(10) > .custom-searchable-select > .searchable-select > .select-trigger")
-        # self.owner_test_option = page.locator("div").filter(has_text=re.compile(r"^test$")).nth(3)
-        self.owner_option = page.get_by_text("test")
+        # Use more specific locator to avoid strict mode violation
+        self.owner_option = page.locator("div").filter(has_text=re.compile(r"^test$")).nth(3)
         
         # File upload
         # self.company_logo_upload = page.locator("body")
@@ -88,9 +144,10 @@ class CompanyLocators:
         self.cancel_button = page.get_by_role("button", name="Cancel")
         self.close_modal_button = page.get_by_role("button", name="Close modal")
         
-        # Company actions and menus
+        # Company actions and menus (global locators using company card siblings)
         self.view_details_button = page.get_by_role("button", name="View Details")
-        self.three_dot_menu = page.get_by_role("main").get_by_role("button").filter(has_text=re.compile(r"^$"))
+        self.three_dot_menu_global = page.locator("button.w-\\[42px\\]")  # Global locator for all three dot menus
+        self.three_dot_menu_by_company = lambda company_name: page.get_by_role("heading", name=company_name).locator("xpath=ancestor::div[contains(@class,'flex')]").locator("button.w-\\[42px\\]").first  # Specific three dot for a company
         self.edit_company_button = page.get_by_role("button", name="Edit")
         self.delete_company_button = page.get_by_role("button", name="Delete")
         
@@ -111,10 +168,13 @@ class CompanyLocators:
         self.breadcrumb_company = page.get_by_text("Company")
         
         # Success and validation messages
-        self.company_created_successfully_message = page.get_by_text("Company created successfully")
+        self.company_created_successfully_message = page.get_by_text("Company added successfully")
         self.company_added_successfully_message = page.get_by_text("Company added successfully")
         self.company_updated_successfully_message = page.get_by_text("Company info updated successfully")
-        self.company_deleted_successfully_message = page.get_by_text("Company remove successfully")
+        self.company_deleted_successfully_message = page.get_by_text("Company deleted successfully")  # Used by both TC_12 and TC_14
+        # Alternative bulk deletion messages
+        self.companies_deleted_successfully_message = page.get_by_text("Companies removed successfully")
+        self.bulk_delete_success_message = page.get_by_text("successfully", exact=False)  # Generic success
         self.file_size_error = page.get_by_text("File can't be larger than 5 MB")
         self.file_type_error = page.get_by_text("Only accept jpg, png, jpeg, gif file")
         
@@ -186,9 +246,21 @@ class CompanyLocators:
         self.selected_delete_text = page.get_by_text("SelectedDelete (1)").first
         self.add_new_client_modal_heading = page.get_by_role("heading", name="Add New Client")
         
+        # Company multiple selection and bulk operations
+        self.company_checkbox = page.locator("input[type='checkbox']")  # Individual company checkboxes
+        self.select_all_companies_checkbox = page.locator("input[type='checkbox']").first  # Header select all checkbox
+        # Better checkbox locators based on live site inspection
+        self.company_checkbox_labels = page.locator("label[for*='companySelect']")  # Click labels instead of checkboxes
+        self.select_all_companies_label = page.locator("label").first  # Header select all label
+        self.individual_company_checkboxes = page.locator("input[id*='companySelect-']")  # Specific company checkboxes
+        self.bulk_delete_button = lambda count: page.get_by_text(f"Delete ({count})")  # Dynamic delete button based on count
+        self.bulk_delete_button_pattern = page.locator("text=/Delete \\(\\d+\\)/")  # Pattern matcher for any Delete (N) button
+        self.selected_count_text = lambda count: page.get_by_text(f"Selected ({count})")  # Shows selected count
+        
         # Company list and search
         self.company_list_container = page.locator(".company-list, [data-testid='company-list']")
         self.company_search_input = page.get_by_placeholder("Search companies...")
+        self.search_input = page.get_by_placeholder("Search", exact=False)
         self.no_companies_message = page.get_by_text("No companies found")
         
         # Created company reference (dynamic)
