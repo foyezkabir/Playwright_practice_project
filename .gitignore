@@ -157,6 +157,14 @@ venv.bak/
 # mkdocs documentation
 /site
 
+#Reports
+report.html
+
+#excel reports
+*.xlsx
+*.xls
+*.xlsm
+
 # mypy
 .mypy_cache/
 .dmypy.json
