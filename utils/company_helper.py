@@ -74,6 +74,51 @@ def navigate_to_company_list(page: Page, email: str, password: str):
     
     return company_page
 
+def navigate_to_company_details_direct(page: Page, email: str, password: str):
+    """
+    Direct navigation flow to company details page using exact working locators
+    
+    Args:
+        page: Playwright page object
+        email: User email  
+        password: User password
+        
+    Returns:
+        CompanyPage instance positioned at company details page
+    """
+    import time
+    from pages.company_page import CompanyPage
+    
+    print("📍 Starting direct navigation to company details...")
+    
+    # Direct login flow
+    page.goto("https://bprp-qa.shadhinlab.xyz/login")
+    page.get_by_role("textbox", name="Email").fill(email)
+    page.get_by_role("textbox", name="Password").fill(password)
+    page.get_by_role("button", name="Sign in").click()
+    time.sleep(2)
+
+    # Finding the agency and clicking it
+    page.get_by_role("heading", name="Test this agency").click()
+    time.sleep(2)
+
+    # Going to company list
+    page.get_by_role("link", name="Company").click()
+    time.sleep(2)
+
+    # 1st company card on the list
+    page.locator(".flex.flex-col.sm\\:flex-row").first.wait_for(state="visible")
+
+    # View details button on the card
+    page.get_by_role("button", name="View Details").first.click()
+    time.sleep(2)
+    
+    # Create company page instance 
+    company_page = CompanyPage(page)
+    
+    print("✅ Successfully navigated to company details page")
+    return company_page
+
 def navigate_to_company_details(page: Page, email: str, password: str):
     """
     Complete navigation flow to company details page for field editing tests
@@ -626,16 +671,18 @@ def create_company_with_all_fields_and_image(page: Page, company_name: str, emai
     company_page.fill_hr_tel_input("+1234567891")
     time.sleep(0.5)
     
-    # Fill dropdown fields using codegen locators
+    # Fill dropdown fields using direct working locators from browser investigation
     print("🔧 Selecting dropdown options...")
     
-    # Hiring Status
-    page.locator("div:nth-child(5) > .custom-searchable-select > .searchable-select > .select-trigger > .trigger-content").click()
-    page.locator("div").filter(has_text=re.compile(r"^Active$")).nth(1).click()
+    # Hiring Status - Use exact locators that worked in browser
+    page.locator("div:nth-child(5) > .custom-searchable-select > .searchable-select > .select-trigger > .self-center > .chevron").click()
+    time.sleep(1)
+    page.get_by_text("Active", exact=True).click()
     time.sleep(1)
     
-    # Company Grade  
-    page.locator("div:nth-child(7) > .custom-searchable-select > .searchable-select > .select-trigger").click()
+    # Company Grade - Use exact locators that worked in browser  
+    page.locator("div:nth-child(7) > .custom-searchable-select > .searchable-select > .select-trigger > .self-center > .chevron").click()
+    time.sleep(1)
     page.get_by_text("A", exact=True).click()
     time.sleep(1)
     
@@ -643,9 +690,10 @@ def create_company_with_all_fields_and_image(page: Page, company_name: str, emai
     company_page.select_hq_in_japan_option("No")
     time.sleep(1)
     
-    # Job Opening
-    page.locator("div:nth-child(9) > .custom-searchable-select > .searchable-select > .select-trigger").click()
-    page.locator("div").filter(has_text=re.compile(r"^No$")).click()
+    # Job Opening - Use exact locators that worked in browser
+    page.locator("div:nth-child(9) > .custom-searchable-select > .searchable-select > .select-trigger > .self-center > .chevron").click()
+    time.sleep(1)
+    page.get_by_text("Yes", exact=True).click()
     time.sleep(1)
     
     # Upload image
@@ -1170,3 +1218,984 @@ class CompanyFieldEditingHelper:
         CompanyFieldEditingHelper.edit_and_assert_telephone(page, company_page, test_values['telephone'])
         
         print("🎉 All Summary tab field editing tests completed successfully!")
+
+# =============================================================================
+# DIRECT FIELD EDITING FUNCTIONS (Using Direct Locators)
+# =============================================================================
+
+def edit_and_assert_company_name_direct(page: Page, new_value: str):
+    """Edit company name field using direct locators and assert the update."""
+    import re
+    import time
+    from playwright.sync_api import expect
+    
+    print(f"🔧 Editing company name to: {new_value}")
+    
+    # Click edit icon for company name
+    page.locator("div").filter(has_text=re.compile(r"^:Updated Modern Company$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Company name").fill(new_value)
+    page.get_by_role("button", name="Save").click()
+    time.sleep(1)
+    
+    # Assert the updated value is visible
+    expect(page.get_by_text(new_value).first).to_be_visible()
+    print(f"✅ Company name successfully updated to: {new_value}")
+
+def edit_and_assert_website_direct(page: Page, new_value: str):
+    """Edit website field using direct locators and assert the update."""
+    import re
+    import time
+    from playwright.sync_api import expect
+    
+    print(f"🔧 Editing website to: {new_value}")
+    
+    # Click edit icon for website
+    page.locator("div").filter(has_text=re.compile(r"^:https://www\.updated-modern\.com$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Website").clear()
+    page.get_by_role("textbox", name="Website").fill(new_value)
+    page.get_by_role("button", name="Save").click()
+    time.sleep(1)
+    
+    # Assert the updated value is visible
+    expect(page.get_by_text(new_value).first).to_be_visible()
+    print(f"✅ Website successfully updated to: {new_value}")
+
+def edit_and_assert_industry_direct(page: Page, new_value: str):
+    """Edit industry field using direct locators and assert the update."""
+    import re
+    import time
+    from playwright.sync_api import expect
+    
+    print(f"🔧 Editing industry to: {new_value}")
+    
+    # Click edit icon for industry
+    page.locator("div").filter(has_text=re.compile(r"^:Technology$")).get_by_role("img").click()
+    page.locator("div").filter(has_text=re.compile(r"^Technology$")).nth(2).click()
+    page.get_by_text(new_value).click()
+    page.get_by_role("button", name="Save").click()
+    time.sleep(1)
+    
+    # Assert the updated value is visible
+    expect(page.get_by_text(new_value).first).to_be_visible()
+    print(f"✅ Industry successfully updated to: {new_value}")
+
+def edit_and_assert_hq_in_jpn_direct(page: Page, new_value: str):
+    """Edit HQ in JPN field using direct locators and assert the update."""
+    import re
+    import time
+    from playwright.sync_api import expect
+    
+    print(f"🔧 Editing HQ in JPN to: {new_value}")
+    
+    # Click edit icon for HQ in JPN
+    page.locator("div").filter(has_text=re.compile(r"^:No$")).get_by_role("img").click()
+    page.locator("div").filter(has_text=re.compile(r"^No$")).nth(2).click()
+    page.get_by_text(new_value).click()
+    page.get_by_role("button", name="Save").click()
+    time.sleep(1)
+    
+    # Assert the updated value is visible
+    expect(page.get_by_text(new_value).first).to_be_visible()
+    print(f"✅ HQ in JPN successfully updated to: {new_value}")
+
+def edit_and_assert_global_hq_direct(page: Page, new_value: str):
+    """Edit Global HQ field using direct locators and assert the update."""
+    import re
+    import time
+    from playwright.sync_api import expect
+    
+    print(f"🔧 Editing Global HQ to: {new_value}")
+    
+    # Click edit icon for Global HQ
+    page.locator("div").filter(has_text=re.compile(r"^Global HQ:United Kingdom$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Global HQ").clear()
+    page.get_by_role("textbox", name="Global HQ").fill(new_value)
+    page.get_by_role("button", name="Save").click()
+    time.sleep(1)
+    
+    # Assert the updated value is visible
+    expect(page.get_by_text(new_value).first).to_be_visible()
+    print(f"✅ Global HQ successfully updated to: {new_value}")
+
+def edit_and_assert_country_of_origin_direct(page: Page, new_value: str):
+    """Edit Country of origin field using direct locators and assert the update."""
+    import re
+    import time
+    from playwright.sync_api import expect
+    
+    print(f"🔧 Editing Country of origin to: {new_value}")
+    
+    # Click edit icon for Country of origin
+    page.locator("div").filter(has_text=re.compile(r"^Country of origin:Bangladesh$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Country of Origin").clear()
+    page.get_by_role("textbox", name="Country of Origin").fill(new_value)
+    page.get_by_role("button", name="Save").click()
+    time.sleep(1)
+    
+    # Assert the updated value is visible
+    expect(page.get_by_text(new_value).first).to_be_visible()
+    print(f"✅ Country of origin successfully updated to: {new_value}")
+
+def edit_and_assert_company_address_direct(page: Page, new_value: str):
+    """Edit Company address field using direct locators and assert the update."""
+    import re
+    import time
+    from playwright.sync_api import expect
+    
+    print(f"🔧 Editing Company address to: {new_value}")
+    
+    # Click edit icon for Company address
+    page.locator("div").filter(has_text=re.compile(r"^:456 Corporate Avenue, Suite 100$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Address").clear()
+    page.get_by_role("textbox", name="Address").fill(new_value)
+    page.get_by_role("button", name="Save").click()
+    time.sleep(1)
+    
+    # Assert the updated value is visible
+    expect(page.get_by_text(new_value).first).to_be_visible()
+    print(f"✅ Company address successfully updated to: {new_value}")
+
+def comprehensive_company_fields_editing_direct(page: Page):
+    """Comprehensive editing of all company fields using direct locators."""
+    import re
+    import time
+    from playwright.sync_api import expect
+    
+    print("🚀 Starting comprehensive company fields editing...")
+    
+    # Edit company name
+    page.get_by_text("Modern Consulting").nth(2).click()
+    expect(page.locator("div").filter(has_text=re.compile(r"^:Modern Consulting 08171741$")).get_by_role("img")).to_be_visible()
+    page.locator("div").filter(has_text=re.compile(r"^:Modern Consulting 08171741$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Company name").fill("Modern")
+    page.get_by_role("button", name="Save").click()
+    expect(page.get_by_text("Modern").nth(2)).to_be_visible()
+    time.sleep(1)
+    
+    # Edit website
+    page.locator("div").filter(has_text=re.compile(r"^:https://www\.example\.com$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Website").fill("https://www.exe.com")
+    page.get_by_role("button", name="Save").click()
+    expect(page.get_by_text("https://www.exe.com").nth(1)).to_be_visible()
+    time.sleep(1)
+    
+    # Edit industry
+    page.locator("div").filter(has_text=re.compile(r"^:Finance$")).get_by_role("img").click()
+    page.locator("div").filter(has_text=re.compile(r"^Finance$")).nth(2).click()
+    page.get_by_text("Healthcare").click()
+    page.get_by_role("button", name="Save").click()
+    expect(page.get_by_text("Healthcare")).to_be_visible()
+    time.sleep(1)
+    
+    # Edit HQ in JPN
+    page.locator("div").filter(has_text=re.compile(r"^:No$")).get_by_role("img").click()
+    page.locator("div").filter(has_text=re.compile(r"^No$")).nth(2).click()
+    page.get_by_text("Yes").click()
+    page.get_by_role("button", name="Save").click()
+    expect(page.get_by_text("Yes")).to_be_visible()
+    time.sleep(1)
+    
+    # Edit Global HQ
+    page.locator("div").filter(has_text=re.compile(r"^Global HQ:N/A$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Global HQ").click()
+    page.get_by_role("textbox", name="Global HQ").fill("USA")
+    page.get_by_role("button", name="Save").click()
+    expect(page.get_by_text("USA")).to_be_visible()
+    time.sleep(1)
+    
+    # Edit Country of origin
+    page.locator("div").filter(has_text=re.compile(r"^Country of origin:N/A$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Country of Origin").fill("bangu")
+    page.get_by_role("button", name="Save").click()
+    expect(page.get_by_text("bangu")).to_be_visible()
+    time.sleep(1)
+    
+    # Edit company address
+    page.locator("div").filter(has_text=re.compile(r"^:123 Business Street, City$")).get_by_role("img").click()
+    page.get_by_role("textbox", name="Address").fill("123 Business Street")
+    page.get_by_role("button", name="Save").click()
+    expect(page.get_by_text("Business Street").nth(1)).to_be_visible()
+    time.sleep(1)
+    
+    print("🎉 Comprehensive company fields editing completed successfully!")
+
+
+class CompanyTestDataManager:
+    """Manages test data for comprehensive company editing tests."""
+    
+    @staticmethod
+    def get_test_data():
+        """Generate initial and updated values for comprehensive company testing."""
+        from random_values_generator.random_company_name import generate_company_name
+        
+        # Generate unique company name
+        unique_company_name = generate_company_name()
+        
+        # Initial values (from original test_TC_08)
+        initial_values = {
+            'company_name': unique_company_name,
+            'industry': 'Information Technology',
+            'website': 'https://www.example.com',
+            'address': '123 Business Street',
+            'owner': 'test',
+            'total_employees': '100',
+            'main_tel': '+1234567890',
+            'hr_tel': '+1234567891',
+            'hiring_status': 'Active',
+            'company_grade': 'A',
+            'hq_in_japan': 'No',
+            'job_opening': 'Yes'
+        }
+        
+        # Updated values for editing (different from initial)
+        updated_values = {
+            'company_name': f'{unique_company_name} - EDITED',
+            'industry': 'Healthcare',  # Different dropdown value
+            'website': 'https://www.updated-example.com',
+            'address': '456 Updated Business Avenue, Suite 100',
+            'total_employees': '250',
+            'main_tel': '+1987654321',
+            'hr_tel': '+1987654322',
+            'hiring_status': 'Recruiting',  # Different dropdown value
+            'company_grade': 'AA',  # Different dropdown value  
+            'hq_in_japan': 'Yes',  # Different dropdown value
+            'job_opening': 'No',  # Different dropdown value
+            'global_hq': 'Tokyo, Japan',  # New field
+            'country_of_origin': 'Japan'  # New field
+        }
+        
+        return initial_values, updated_values
+
+
+class ComprehensiveCompanyTestHelper:
+    """Helper class for comprehensive company creation and editing tests."""
+    
+    @staticmethod
+    def company_create_to_details_page(page: Page):
+        """
+        Complete workflow from login to company creation and navigation to details page.
+        
+        Returns:
+            tuple: (initial_values, updated_values, company_page)
+        """
+        # Get test data
+        initial_values, updated_values = CompanyTestDataManager.get_test_data()
+        
+        print(f"🚀 Starting comprehensive company test with: {initial_values['company_name']}")
+        print("📋 STEP 1: Creating company with all initial values...")
+        
+        # Navigate to company creation form
+        company_page = navigate_to_company_creation_form(page, "nua26i@onemail.host", "Kabir123#")
+        
+        # Fill all fields with initial values
+        print("🔧 Filling mandatory fields...")
+        company_page.fill_company_name_input(initial_values['company_name'])
+        time.sleep(1)
+        
+        company_page.select_industry_option(initial_values['industry'])
+        time.sleep(1)
+        
+        company_page.fill_website_input(initial_values['website'])
+        time.sleep(1)
+        
+        company_page.fill_address_input(initial_values['address'])
+        time.sleep(1)
+        
+        company_page.select_owner_option(initial_values['owner'])
+        time.sleep(1)
+        
+        # Fill optional text fields
+        print("🔧 Filling optional text fields...")
+        company_page.fill_total_employees_input(initial_values['total_employees'])
+        time.sleep(0.5)
+        
+        company_page.fill_main_tel_input(initial_values['main_tel'])
+        time.sleep(0.5)
+        
+        company_page.fill_hr_tel_input(initial_values['hr_tel'])
+        time.sleep(0.5)
+        
+        # Fill dropdown fields using verified working locators
+        print("🔧 Selecting dropdown options...")
+        
+        # Hiring Status - Use form context to avoid ambiguity
+        page.locator("div:nth-child(5) > .custom-searchable-select > .searchable-select > .select-trigger > .self-center > .chevron").click()
+        time.sleep(1)
+        page.locator("form").get_by_text(initial_values['hiring_status'], exact=True).click()
+        time.sleep(1)
+        
+        # Company Grade - Use form context to avoid ambiguity
+        page.locator("div:nth-child(7) > .custom-searchable-select > .searchable-select > .select-trigger > .self-center > .chevron").click()
+        time.sleep(1)
+        page.locator("form").get_by_text(initial_values['company_grade'], exact=True).click()
+        time.sleep(1)
+        
+        # HQ in Japan
+        company_page.select_hq_in_japan_option(initial_values['hq_in_japan'])
+        time.sleep(1)
+        
+        # Job Opening - Use form context to avoid ambiguity  
+        page.locator("div:nth-child(9) > .custom-searchable-select > .searchable-select > .select-trigger > .self-center > .chevron").click()
+        time.sleep(1)
+        page.locator("form").get_by_text(initial_values['job_opening'], exact=True).click()
+        time.sleep(1)
+        
+        # Upload image
+        print("🔧 Uploading company logo...")
+        company_page.upload_file("images_for_test/pexels-photo.jpeg")
+        time.sleep(2)
+        
+        # Create company
+        print("🔧 Creating company...")
+        company_page.click_create_button()
+        time.sleep(3)
+        
+        # Verify company created successfully
+        assert_company_created_successfully(page, company_page, initial_values['company_name'], "comprehensive_test_creation")
+        print(f"✅ Company '{initial_values['company_name']}' created successfully with all initial values")
+        
+        # Navigate to company details page
+        print("📋 STEP 2: Navigating to company details page...")
+        print(f"🔍 Looking for company: {initial_values['company_name']}")
+        
+        # Always click the first "View Details" button (created company is always first)
+        page.get_by_role("button", name="View Details").first.click()
+        time.sleep(3)
+        
+        print("✅ Successfully navigated to company details page")
+        
+        # Create company page instance for editing operations
+        from pages.company_page import CompanyPage
+        company_page = CompanyPage(page)
+        
+        return initial_values, updated_values, company_page
+    
+    @staticmethod
+    def edit_and_assert_company_name_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit company name field with validation testing and full assertion.
+        
+        Args:
+            page: Playwright page object
+            company_page: CompanyPage instance
+            initial_values: Dictionary containing initial company values
+            updated_values: Dictionary containing updated company values
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing company name from '{initial_values['company_name']}' to '{updated_values['company_name']}'")
+        
+        # Step 1: Locate the specific company name field container in the summary section
+        company_name_container = page.locator('div.group_single_item.group').filter(has_text=f"Company name:{initial_values['company_name']}")
+        
+        # Step 2: First ensure the container is visible
+        expect(company_name_container).to_be_visible()
+        
+        # Step 3: Hover over the container to make the edit icon appear
+        print("🔍 Hovering over company name field to reveal edit icon...")
+        company_name_container.hover()
+        time.sleep(2)  # Wait longer for edit icon to appear
+        
+        # Step 4: Locate the edit icon within that specific container
+        edit_icon = company_name_container.locator('.group_single_edit_icon')
+        
+        # Step 5: Wait for the icon to be visible and then click
+        print("🔍 Waiting for edit icon to become visible...")
+        expect(edit_icon).to_be_visible(timeout=5000)
+        
+        print("🔍 Clicking edit icon...")
+        edit_icon.click()
+        time.sleep(1)  # Wait for modal to open
+        
+        # Step 6: Wait for the textbox and first test validation with space at end
+        company_name_textbox = page.get_by_role("textbox", name="Company name")
+        company_name_textbox.wait_for(state="visible", timeout=10000)
+        
+        # Test validation: Add space at the end to trigger validation error
+        print("🔍 Testing validation: Adding space at end of company name...")
+        company_name_textbox.clear()
+        company_name_textbox.fill(f"{updated_values['company_name']} ")  # Add space at end
+        time.sleep(0.5)
+        
+        # Try to save with invalid data (space at end)
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)  # Wait for validation message
+        
+        # Assert validation error appears
+        validation_error = page.get_by_text("Company name should not start or end with special characters.")
+        enhanced_assert_visible(page, validation_error, "Validation error should appear for space at end", "validation_space_at_end")
+        print("✅ Validation error correctly appeared for space at end")
+        
+        # Now clear and input the correct data
+        print("🔧 Now inputting correct company name without space...")
+        company_name_textbox.clear()
+        company_name_textbox.fill(updated_values['company_name'])
+        time.sleep(0.5)
+        
+        # Step 7: Save the changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)  # Wait for save to complete
+        
+        # Step 8: Assert the update message appears
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_company_name")
+        time.sleep(1)
+        
+        # Step 9: Assert the updated company name is visible on the page
+        print(f"🔍 Verifying company name was updated to: {updated_values['company_name']}")
+        # Use more specific locator targeting the Summary section field
+        updated_name_visible = page.locator("div.group_single_item.group").filter(has_text=f"Company name:{updated_values['company_name']}")
+        expect(updated_name_visible).to_be_visible()
+        print(f"✅ Company name successfully updated to: {updated_values['company_name']}")
+    
+    @staticmethod
+    def edit_and_assert_website_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit website field with validation testing and full assertion.
+        
+        Args:
+            page: Playwright page object
+            company_page: CompanyPage instance
+            initial_values: Dictionary containing initial company values
+            updated_values: Dictionary containing updated company values
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing website from '{initial_values['website']}' to '{updated_values['website']}'")
+        
+        # Step 1: Locate the specific website field container in the summary section
+        website_container = page.locator('div.group_single_item.group').filter(has_text=f"Web page:{initial_values['website']}")
+        
+        # Step 2: First ensure the container is visible
+        expect(website_container).to_be_visible()
+        
+        # Step 3: Hover over the container to make the edit icon appear
+        print("🔍 Hovering over website field to reveal edit icon...")
+        website_container.hover()
+        time.sleep(2)  # Wait for edit icon to appear
+        
+        # Step 4: Locate and click the edit icon
+        edit_icon = website_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)  # Wait for modal to open
+        
+        # Step 5: Test validation with invalid website (without https)
+        website_textbox = page.get_by_role("textbox", name="Web page")
+        website_textbox.wait_for(state="visible", timeout=10000)
+        
+        print("🔍 Testing validation: Adding invalid website without https...")
+        website_textbox.clear()
+        website_textbox.fill("www.invalid-website.com")  # Invalid without https
+        time.sleep(0.5)
+        
+        # Try to save with invalid data
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)  # Wait for validation message
+        
+        # Assert validation error appears
+        validation_error = page.get_by_text("Please enter a valid website URL")
+        enhanced_assert_visible(page, validation_error, "Validation error should appear for invalid website", "validation_invalid_website")
+        print("✅ Validation error correctly appeared for invalid website")
+        
+        # Now clear and input the correct data
+        print("🔧 Now inputting correct website...")
+        website_textbox.clear()
+        website_textbox.fill(updated_values['website'])
+        time.sleep(0.5)
+        
+        # Step 6: Save the changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)  # Wait for save to complete
+        
+        # Step 7: Assert the update message appears
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_website")
+        time.sleep(1)
+        
+        # Step 8: Assert the updated website is visible on the page
+        print(f"🔍 Verifying website was updated to: {updated_values['website']}")
+        updated_website_visible = page.locator("div.group_single_item.group").filter(has_text=f"Web page:{updated_values['website']}")
+        expect(updated_website_visible).to_be_visible()
+        print(f"✅ Website successfully updated to: {updated_values['website']}")
+    
+    @staticmethod
+    def edit_and_assert_industry_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit industry field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing industry from '{initial_values['industry']}' to '{updated_values['industry']}'")
+        
+        # Step 1: Locate the specific industry field container
+        industry_container = page.locator('div.group_single_item.group').filter(has_text=f"Industry:{initial_values['industry']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over industry field to reveal edit icon...")
+        expect(industry_container).to_be_visible()
+        industry_container.hover()
+        time.sleep(2)
+        
+        edit_icon = industry_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Select new industry from dropdown
+        print(f"🔧 Selecting new industry: {updated_values['industry']}")
+        industry_dropdown = page.locator(".select-trigger")
+        industry_dropdown.click()
+        time.sleep(1)
+        
+        page.get_by_text(updated_values['industry'], exact=True).click()
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_industry")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying industry was updated to: {updated_values['industry']}")
+        updated_industry_visible = page.locator("div.group_single_item.group").filter(has_text=f"Industry:{updated_values['industry']}")
+        expect(updated_industry_visible).to_be_visible()
+        print(f"✅ Industry successfully updated to: {updated_values['industry']}")
+    
+    @staticmethod
+    def edit_and_assert_address_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit company address field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing address from '{initial_values['address']}' to '{updated_values['address']}'")
+        
+        # Step 1: Locate the specific address field container
+        address_container = page.locator('div.group_single_item.group').filter(has_text=f"Company address:{initial_values['address']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over address field to reveal edit icon...")
+        expect(address_container).to_be_visible()
+        address_container.hover()
+        time.sleep(2)
+        
+        edit_icon = address_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Fill address field
+        address_textbox = page.get_by_role("textbox", name="Company address")
+        address_textbox.wait_for(state="visible", timeout=10000)
+        address_textbox.clear()
+        address_textbox.fill(updated_values['address'])
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_address")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying address was updated to: {updated_values['address']}")
+        updated_address_visible = page.locator("div.group_single_item.group").filter(has_text=f"Company address:{updated_values['address']}")
+        expect(updated_address_visible).to_be_visible()
+        print(f"✅ Address successfully updated to: {updated_values['address']}")
+    
+    @staticmethod
+    def edit_and_assert_hq_in_japan_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit HQ in Japan field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing HQ in Japan from '{initial_values['hq_in_japan']}' to '{updated_values['hq_in_japan']}'")
+        
+        # Step 1: Locate the specific HQ in Japan field container
+        hq_container = page.locator('div.group_single_item.group').filter(has_text=f"HQ in JPN:{initial_values['hq_in_japan']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over HQ in Japan field to reveal edit icon...")
+        expect(hq_container).to_be_visible()
+        hq_container.hover()
+        time.sleep(2)
+        
+        edit_icon = hq_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Select new option from dropdown
+        print(f"🔧 Selecting new HQ in Japan option: {updated_values['hq_in_japan']}")
+        hq_dropdown = page.locator(".select-trigger")
+        hq_dropdown.click()
+        time.sleep(1)
+        
+        page.get_by_text(updated_values['hq_in_japan'], exact=True).click()
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_hq_in_japan")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying HQ in Japan was updated to: {updated_values['hq_in_japan']}")
+        updated_hq_visible = page.locator("div.group_single_item.group").filter(has_text=f"HQ in JPN:{updated_values['hq_in_japan']}")
+        expect(updated_hq_visible).to_be_visible()
+        print(f"✅ HQ in Japan successfully updated to: {updated_values['hq_in_japan']}")
+    
+    @staticmethod
+    def edit_and_assert_global_hq_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit Global HQ field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing Global HQ to '{updated_values['global_hq']}'")
+        
+        # Step 1: Locate the Global HQ field container (initially N/A)
+        global_hq_container = page.locator('div.group_single_item.group').filter(has_text="Global HQ:N/A")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over Global HQ field to reveal edit icon...")
+        expect(global_hq_container).to_be_visible()
+        global_hq_container.hover()
+        time.sleep(2)
+        
+        edit_icon = global_hq_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Fill Global HQ field
+        global_hq_textbox = page.get_by_role("textbox", name="Global HQ")
+        global_hq_textbox.wait_for(state="visible", timeout=10000)
+        global_hq_textbox.clear()
+        global_hq_textbox.fill(updated_values['global_hq'])
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_global_hq")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying Global HQ was updated to: {updated_values['global_hq']}")
+        updated_global_hq_visible = page.locator("div.group_single_item.group").filter(has_text=f"Global HQ:{updated_values['global_hq']}")
+        expect(updated_global_hq_visible).to_be_visible()
+        print(f"✅ Global HQ successfully updated to: {updated_values['global_hq']}")
+    
+    @staticmethod
+    def edit_and_assert_country_of_origin_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit Country of Origin field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing Country of Origin to '{updated_values['country_of_origin']}'")
+        
+        # Step 1: Locate the Country of Origin field container (initially N/A)
+        country_container = page.locator('div.group_single_item.group').filter(has_text="Country of origin:N/A")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over Country of Origin field to reveal edit icon...")
+        expect(country_container).to_be_visible()
+        country_container.hover()
+        time.sleep(2)
+        
+        edit_icon = country_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Fill Country of Origin field
+        country_textbox = page.get_by_role("textbox", name="Country of origin")
+        country_textbox.wait_for(state="visible", timeout=10000)
+        country_textbox.clear()
+        country_textbox.fill(updated_values['country_of_origin'])
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_country_of_origin")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying Country of Origin was updated to: {updated_values['country_of_origin']}")
+        updated_country_visible = page.locator("div.group_single_item.group").filter(has_text=f"Country of origin:{updated_values['country_of_origin']}")
+        expect(updated_country_visible).to_be_visible()
+        print(f"✅ Country of Origin successfully updated to: {updated_values['country_of_origin']}")
+    
+    @staticmethod
+    def edit_and_assert_company_hiring_status_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit Company hiring status field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing Company hiring status from '{initial_values['hiring_status']}' to '{updated_values['hiring_status']}'")
+        
+        # Step 1: Locate the Company hiring status field container
+        hiring_status_container = page.locator('div.group_single_item.group').filter(has_text=f"Company hiring status:{initial_values['hiring_status']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over Company hiring status field to reveal edit icon...")
+        expect(hiring_status_container).to_be_visible()
+        hiring_status_container.hover()
+        time.sleep(2)
+        
+        edit_icon = hiring_status_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Select new option from dropdown
+        print(f"🔧 Selecting new hiring status: {updated_values['hiring_status']}")
+        hiring_dropdown = page.locator(".select-trigger")
+        hiring_dropdown.click()
+        time.sleep(1)
+        
+        page.get_by_text(updated_values['hiring_status'], exact=True).click()
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_hiring_status")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying Company hiring status was updated to: {updated_values['hiring_status']}")
+        updated_hiring_visible = page.locator("div.group_single_item.group").filter(has_text=f"Company hiring status:{updated_values['hiring_status']}")
+        expect(updated_hiring_visible).to_be_visible()
+        print(f"✅ Company hiring status successfully updated to: {updated_values['hiring_status']}")
+    
+    @staticmethod
+    def edit_and_assert_job_opening_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit Job opening field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing Job opening from '{initial_values['job_opening']}' to '{updated_values['job_opening']}'")
+        
+        # Step 1: Locate the Job opening field container
+        job_opening_container = page.locator('div.group_single_item.group').filter(has_text=f"Job opening:{initial_values['job_opening']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over Job opening field to reveal edit icon...")
+        expect(job_opening_container).to_be_visible()
+        job_opening_container.hover()
+        time.sleep(2)
+        
+        edit_icon = job_opening_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Select new option from dropdown
+        print(f"🔧 Selecting new job opening option: {updated_values['job_opening']}")
+        job_dropdown = page.locator(".select-trigger")
+        job_dropdown.click()
+        time.sleep(1)
+        
+        page.get_by_text(updated_values['job_opening'], exact=True).click()
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_job_opening")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying Job opening was updated to: {updated_values['job_opening']}")
+        updated_job_visible = page.locator("div.group_single_item.group").filter(has_text=f"Job opening:{updated_values['job_opening']}")
+        expect(updated_job_visible).to_be_visible()
+        print(f"✅ Job opening successfully updated to: {updated_values['job_opening']}")
+    
+    @staticmethod
+    def edit_and_assert_total_employees_jpn_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit Total employees JPN field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing Total employees JPN from '{initial_values['total_employees']}' to '{updated_values['total_employees']}'")
+        
+        # Step 1: Locate the Total employees JPN field container
+        total_employees_container = page.locator('div.group_single_item.group').filter(has_text=f"Total employees JPN:{initial_values['total_employees']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over Total employees JPN field to reveal edit icon...")
+        expect(total_employees_container).to_be_visible()
+        total_employees_container.hover()
+        time.sleep(2)
+        
+        edit_icon = total_employees_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Fill Total employees JPN field
+        total_employees_textbox = page.get_by_role("textbox", name="Total employees JPN")
+        total_employees_textbox.wait_for(state="visible", timeout=10000)
+        total_employees_textbox.clear()
+        total_employees_textbox.fill(updated_values['total_employees'])
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_total_employees")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying Total employees JPN was updated to: {updated_values['total_employees']}")
+        updated_employees_visible = page.locator("div.group_single_item.group").filter(has_text=f"Total employees JPN:{updated_values['total_employees']}")
+        expect(updated_employees_visible).to_be_visible()
+        print(f"✅ Total employees JPN successfully updated to: {updated_values['total_employees']}")
+    
+    @staticmethod
+    def edit_and_assert_company_grade_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit Company grade field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing Company grade from '{initial_values['company_grade']}' to '{updated_values['company_grade']}'")
+        
+        # Step 1: Locate the Company grade field container
+        company_grade_container = page.locator('div.group_single_item.group').filter(has_text=f"Company grade:{initial_values['company_grade']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over Company grade field to reveal edit icon...")
+        expect(company_grade_container).to_be_visible()
+        company_grade_container.hover()
+        time.sleep(2)
+        
+        edit_icon = company_grade_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Select new option from dropdown
+        print(f"🔧 Selecting new company grade: {updated_values['company_grade']}")
+        grade_dropdown = page.locator(".select-trigger")
+        grade_dropdown.click()
+        time.sleep(1)
+        
+        page.get_by_text(updated_values['company_grade'], exact=True).click()
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_company_grade")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying Company grade was updated to: {updated_values['company_grade']}")
+        updated_grade_visible = page.locator("div.group_single_item.group").filter(has_text=f"Company grade:{updated_values['company_grade']}")
+        expect(updated_grade_visible).to_be_visible()
+        print(f"✅ Company grade successfully updated to: {updated_values['company_grade']}")
+    
+    @staticmethod
+    def edit_and_assert_main_tel_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit Main TEL field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing Main TEL from '{initial_values['main_tel']}' to '{updated_values['main_tel']}'")
+        
+        # Step 1: Locate the Main TEL field container
+        main_tel_container = page.locator('div.group_single_item.group').filter(has_text=f"Main TEL:{initial_values['main_tel']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over Main TEL field to reveal edit icon...")
+        expect(main_tel_container).to_be_visible()
+        main_tel_container.hover()
+        time.sleep(2)
+        
+        edit_icon = main_tel_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Fill Main TEL field
+        main_tel_textbox = page.get_by_role("textbox", name="Main Tel")
+        main_tel_textbox.wait_for(state="visible", timeout=10000)
+        main_tel_textbox.clear()
+        main_tel_textbox.fill(updated_values['main_tel'])
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_main_tel")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying Main TEL was updated to: {updated_values['main_tel']}")
+        updated_main_tel_visible = page.locator("div.group_single_item.group").filter(has_text=f"Main TEL:{updated_values['main_tel']}")
+        expect(updated_main_tel_visible).to_be_visible()
+        print(f"✅ Main TEL successfully updated to: {updated_values['main_tel']}")
+    
+    @staticmethod
+    def edit_and_assert_hr_tel_field(page: Page, company_page, initial_values: dict, updated_values: dict):
+        """
+        Edit HR TEL field with validation and full assertion.
+        """
+        from playwright.sync_api import expect
+        
+        print(f"🔧 Editing HR TEL from '{initial_values['hr_tel']}' to '{updated_values['hr_tel']}'")
+        
+        # Step 1: Locate the HR TEL field container
+        hr_tel_container = page.locator('div.group_single_item.group').filter(has_text=f"HR TEL:{initial_values['hr_tel']}")
+        
+        # Step 2: Hover and click edit icon
+        print("🔍 Hovering over HR TEL field to reveal edit icon...")
+        expect(hr_tel_container).to_be_visible()
+        hr_tel_container.hover()
+        time.sleep(2)
+        
+        edit_icon = hr_tel_container.locator('.group_single_edit_icon')
+        expect(edit_icon).to_be_visible(timeout=5000)
+        edit_icon.click()
+        time.sleep(1)
+        
+        # Step 3: Fill HR TEL field
+        hr_tel_textbox = page.get_by_role("textbox", name="HR TEL")
+        hr_tel_textbox.wait_for(state="visible", timeout=10000)
+        hr_tel_textbox.clear()
+        hr_tel_textbox.fill(updated_values['hr_tel'])
+        time.sleep(0.5)
+        
+        # Step 4: Save changes
+        page.get_by_role("button", name="Save").click()
+        time.sleep(2)
+        
+        # Step 5: Assert success and updated value
+        enhanced_assert_visible(page, company_page.locators.company_updated_successfully_message, "Company info updated message should appear", "edit_hr_tel")
+        time.sleep(1)
+        
+        print(f"🔍 Verifying HR TEL was updated to: {updated_values['hr_tel']}")
+        updated_hr_tel_visible = page.locator("div.group_single_item.group").filter(has_text=f"HR TEL:{updated_values['hr_tel']}")
+        expect(updated_hr_tel_visible).to_be_visible()
+        print(f"✅ HR TEL successfully updated to: {updated_values['hr_tel']}")

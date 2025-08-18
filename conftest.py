@@ -179,7 +179,9 @@ def generate_excel_report(test_file: str, test_descriptions: dict, results: dict
 
     wb = Workbook()
     ws = wb.active
-    ws.title = f"{base_name.replace('_', ' ').title()} Test Report"
+    # Truncate title to 31 characters to avoid Excel warning
+    title = f"{base_name.replace('_', ' ').title()} Test Report"
+    ws.title = title[:31] if len(title) > 31 else title
 
     # Define styles
     header_font = Font(bold=True, color="FFFFFF")

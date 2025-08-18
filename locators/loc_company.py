@@ -26,13 +26,13 @@ class CompanyLocators:
         
         # Company details page - Summary tab editable fields
         # Field display locators
-        self.company_name_display = page.locator("div").filter(has_text="Company name").locator("xpath=following-sibling::div")
-        self.web_page_display = page.locator("div").filter(has_text="Web page").locator("xpath=following-sibling::div")
-        self.industry_display = page.locator("div").filter(has_text="Industry").locator("xpath=following-sibling::div")
-        self.hq_in_jpn_display = page.locator("div").filter(has_text="HQ in JPN").locator("xpath=following-sibling::div")
-        self.global_hq_display = page.locator("div").filter(has_text="Global HQ").locator("xpath=following-sibling::div")
-        self.country_of_origin_display = page.locator("div").filter(has_text="Country of origin").locator("xpath=following-sibling::div")
-        self.company_address_display = page.locator("div").filter(has_text="Company address").locator("xpath=following-sibling::div")
+        self.company_name_display = page.locator("div").filter(has_text="Company name").locator("xpath=following-sibling::div").first
+        self.web_page_display = page.locator("div").filter(has_text="Web page").locator("xpath=following-sibling::div").first
+        self.industry_display = page.locator("div").filter(has_text="Industry").locator("xpath=following-sibling::div").first
+        self.hq_in_jpn_display = page.locator("div").filter(has_text="HQ in JPN").locator("xpath=following-sibling::div").first
+        self.global_hq_display = page.locator("div").filter(has_text="Global HQ").locator("xpath=following-sibling::div").first
+        self.country_of_origin_display = page.locator("div").filter(has_text="Country of origin").locator("xpath=following-sibling::div").first
+        self.company_address_display = page.locator("div").filter(has_text="Company address").locator("xpath=following-sibling::div").first
         self.company_hiring_status_display = page.locator("div").filter(has_text="Company hiring status").locator("xpath=following-sibling::div")
         self.job_opening_display = page.locator("div").filter(has_text="Job opening").locator("xpath=following-sibling::div")
         self.total_employees_jpn_display = page.locator("div").filter(has_text="Total employees JPN").locator("xpath=following-sibling::div")

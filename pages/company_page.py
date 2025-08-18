@@ -211,21 +211,22 @@ class CompanyPage:
     def select_hiring_status_option(self, status: str):
         """Select hiring status from dropdown options."""
         try:
-            # Click dropdown first  
-            self.locators.hiring_status_dropdown.click()
+            # Use the exact working locator from browser investigation
+            # Click the hiring status dropdown trigger
+            self.page.locator("div:nth-child(5) > .custom-searchable-select > .searchable-select > .select-trigger > .trigger-content").click()
             time.sleep(1)  # Wait for dropdown to open
             
-            # Then click the option
+            # Then click the option using the specific locator pattern that works
             if status.lower() == "active":
-                self.locators.hiring_active_option.click()
+                self.page.locator("div").filter(has_text=re.compile(r"^Active$")).nth(1).click()
             elif status.lower() == "inactive":
-                self.locators.hiring_inactive_option.click()
+                self.page.locator("div").filter(has_text=re.compile(r"^Inactive$")).click()
             elif status.lower() == "on hold":
-                self.locators.hiring_on_hold_option.click()
+                self.page.locator("div").filter(has_text=re.compile(r"^On Hold$")).click()
             elif status.lower() == "recruiting":
-                self.locators.hiring_recruiting_option.click()
+                self.page.locator("div").filter(has_text=re.compile(r"^Recruiting$")).click()
             else:
-                self.page.get_by_text(status).click()
+                self.page.get_by_text(status, exact=True).click()
             time.sleep(1)
         except Exception as e:
             print(f"Error selecting hiring status '{status}': {e}")
@@ -244,22 +245,13 @@ class CompanyPage:
     def select_company_grade_option(self, grade: str):
         """Select company grade from dropdown options."""
         try:
-            # Click dropdown first
-            self.locators.company_grade_dropdown.click()
+            # Use the exact working locator from browser investigation
+            # Click the company grade dropdown trigger
+            self.page.locator("div:nth-child(7) > .custom-searchable-select > .searchable-select > .select-trigger").click()
             time.sleep(1)  # Wait for dropdown to open
             
-            # Then click the option
-            if grade.upper() == "A":
-                self.locators.grade_a_option.click()
-            elif grade.upper() == "AA":
-                self.locators.grade_aa_option.click()
-            elif grade.upper() == "AAA":
-                self.locators.grade_aaa_option.click()
-            elif grade.upper() == "BBB":
-                self.locators.grade_bbb_option.click()
-            else:
-                # Fallback to more specific locator within dropdown options
-                self.page.locator(".select-options").get_by_text(grade, exact=True).click()
+            # Then click the option using get_by_text with exact match
+            self.page.get_by_text(grade, exact=True).click()
             time.sleep(1)
         except Exception as e:
             print(f"Error selecting company grade '{grade}': {e}")
@@ -299,17 +291,19 @@ class CompanyPage:
     def select_job_opening_option(self, option: str):
         """Select job opening option from dropdown."""
         try:
-            # Click dropdown first
-            self.locators.job_opening_dropdown.click()
+            # Use the exact working locator from browser investigation
+            # Click the job opening dropdown trigger
+            self.page.locator("div:nth-child(9) > .custom-searchable-select > .searchable-select > .select-trigger").click()
             time.sleep(1)  # Wait for dropdown to open
             
-            # Then click the option
+            # Then click the option using the specific locator pattern that works
             if option.lower() == "yes":
-                self.locators.job_opening_yes_option.click()
+                self.page.locator("div").filter(has_text=re.compile(r"^Yes$")).click()
             elif option.lower() == "no":
-                self.locators.job_opening_no_option.click()
+                self.page.locator("div").filter(has_text=re.compile(r"^No$")).click()
             else:
-                self.page.get_by_text(option).click()
+                # Fallback for other values
+                self.page.get_by_text(option, exact=True).click()
             time.sleep(1)
         except Exception as e:
             print(f"Error selecting job opening '{option}': {e}")
