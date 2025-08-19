@@ -21,10 +21,7 @@ def test_TC_01_comprehensive_company_creation_and_editing(page: Page):
     
     # Use helper function for industry editing
     ComprehensiveCompanyTestHelper.edit_and_assert_industry_field(page, company_page, initial_values, updated_values)
-    
-    # Use helper function for address editing
-    ComprehensiveCompanyTestHelper.edit_and_assert_address_field(page, company_page, initial_values, updated_values)
-    
+        
     # Use helper function for HQ in Japan editing
     ComprehensiveCompanyTestHelper.edit_and_assert_hq_in_japan_field(page, company_page, initial_values, updated_values)
     
@@ -34,6 +31,9 @@ def test_TC_01_comprehensive_company_creation_and_editing(page: Page):
     # Use helper function for Country of Origin editing
     ComprehensiveCompanyTestHelper.edit_and_assert_country_of_origin_field(page, company_page, initial_values, updated_values)
     
+    # Use helper function for address editing
+    ComprehensiveCompanyTestHelper.edit_and_assert_address_field(page, company_page, initial_values, updated_values)
+
     # Use helper function for Company hiring status editing
     ComprehensiveCompanyTestHelper.edit_and_assert_company_hiring_status_field(page, company_page, initial_values, updated_values)
     
@@ -51,7 +51,6 @@ def test_TC_01_comprehensive_company_creation_and_editing(page: Page):
     
     # Use helper function for HR TEL editing
     ComprehensiveCompanyTestHelper.edit_and_assert_hr_tel_field(page, company_page, initial_values, updated_values)
-    
     
     
     print("🎉 COMPREHENSIVE TEST COMPLETED SUCCESSFULLY!")
