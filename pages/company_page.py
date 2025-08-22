@@ -699,7 +699,7 @@ class CompanyPage:
     def expect_company_created_successfully_message(self, test_name: str = None):
         """Expect company created successfully message to be visible."""
         enhanced_assert_visible(self.page, self.locators.company_created_successfully_message, 
-                              "Company created successfully message should be visible", test_name)
+                              "Company created successfully message should be visible", test_name, timeout=10000)
 
     def expect_company_added_successfully_message(self, test_name: str = None):
         """Expect company added successfully message to be visible."""

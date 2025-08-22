@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from playwright.sync_api import Page
 
-def enhanced_assert_visible(page: Page, locator, error_message: str, test_name: str = None):
+def enhanced_assert_visible(page: Page, locator, error_message: str, test_name: str = None, timeout: int = 3000):
     """
     Enhanced assert that captures screenshot immediately if assertion fails.
     
@@ -17,6 +17,7 @@ def enhanced_assert_visible(page: Page, locator, error_message: str, test_name: 
         locator: The locator to check for visibility
         error_message: Error message to display
         test_name: Name of the test (auto-detected if not provided)
+        timeout: Timeout in milliseconds (default: 3000)
     """
     # Auto-detect test name if not provided
     if test_name is None:
@@ -34,7 +35,7 @@ def enhanced_assert_visible(page: Page, locator, error_message: str, test_name: 
     
     try:
         # Check if the expected element is visible
-        locator.wait_for(state="visible", timeout=3000)  # Wait 3 seconds
+        locator.wait_for(state="visible", timeout=timeout)  # Use provided timeout
         # Success - element appeared
         assert True
     except:
