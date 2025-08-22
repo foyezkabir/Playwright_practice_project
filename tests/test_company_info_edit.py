@@ -209,13 +209,13 @@ def test_TC_05_employees_business_info_tab_editing(page: Page):
     }
     
     # Test Total Employees JPN (assert TC_01 value first, then update to new value, then assert again)
-    # ComprehensiveCompanyTestHelper.edit_and_assert_total_employees_jpn_field(page, company_page, current_values, employees_business_updated_values)
+    ComprehensiveCompanyTestHelper.edit_and_assert_total_employees_jpn_field(page, company_page, current_values, employees_business_updated_values)
     
-    # # Test Business Contents and Key Products (new field)
-    # ComprehensiveCompanyTestHelper.edit_and_assert_business_contents_field(page, company_page, employees_business_updated_values)
+    # Test Business Contents and Key Products (new field)
+    ComprehensiveCompanyTestHelper.edit_and_assert_business_contents_field(page, company_page, employees_business_updated_values)
     
-    # # Test Job Opening (assert TC_01 value first, then update to new value, then assert again)
-    # ComprehensiveCompanyTestHelper.edit_and_assert_job_opening_field(page, company_page, current_values, employees_business_updated_values)
+    # Test Job Opening (assert TC_01 value first, then update to new value, then assert again)
+    ComprehensiveCompanyTestHelper.edit_and_assert_job_opening_field(page, company_page, current_values, employees_business_updated_values)
     
     # Test Quick notes (assert initial value "No quick notes available." then update to new value)
     ComprehensiveCompanyTestHelper.edit_and_assert_quick_notes_field(page, company_page, employees_business_updated_values)
