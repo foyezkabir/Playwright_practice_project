@@ -27,29 +27,13 @@ def test_TC_01_navigate_to_talent_section_from_dashboard(page: Page):
     """Verify that Agency Personnel can successfully navigate to the 'Talent' section from the main dashboard and view available talent management options."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-    
-    # Verify talent section is accessible
-    enhanced_assert_visible(page, talent_page.locators.talent_main_link, "Talent main link should be visible")
-    enhanced_assert_visible(page, talent_page.locators.talent_list_link, "Talent list link should be visible")
-    enhanced_assert_visible(page, talent_page.locators.group_list_link, "Group list link should be visible")
+    helper.validate_talent_navigation_accessibility()
 
 def test_TC_02_add_new_talent_button_opens_form(page: Page):
-    """Ensure that clicking the '+ New Talent' button opens a well-structured form for creating a new talent profile."""
+    """Verify that clicking the '+ New Talent' button opens a well-structured form for creating a new talent profile."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-    
-    # Click Add New Talent button
-    talent_page.click_add_new_talent()
-    
-    # Verify form is opened and well-structured
-    talent_page.expect_modal_title()
-    enhanced_assert_visible(page, talent_page.locators.first_name_input, "First name input should be visible")
-    enhanced_assert_visible(page, talent_page.locators.last_name_input, "Last name input should be visible")
-    enhanced_assert_visible(page, talent_page.locators.save_button, "Save button should be visible")
-    enhanced_assert_visible(page, talent_page.locators.cancel_button, "Cancel button should be visible")
-    
-    # Close modal
-    talent_page.click_cancel_button()
+    helper.validate_add_new_talent_form_structure()
 
 def test_TC_03_form_responsiveness_mobile(page: Page):
     """Verify that the "Create and Update Talent Profile" form is fully responsive and functional on mobile devices."""
@@ -72,7 +56,7 @@ def test_TC_03_form_responsiveness_mobile(page: Page):
     talent_page.click_cancel_button()
 
 def test_TC_04_cancel_button_discards_changes(page: Page):
-    """Ensure that clicking the "Cancel" button on the talent creation/edit form discards changes and redirects to the talent list without saving any input."""
+    """Verify that clicking the "Cancel" button on the talent creation/edit form discards changes and redirects to the talent list without saving any input."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
     
@@ -101,7 +85,7 @@ def test_TC_04_cancel_button_discards_changes(page: Page):
 # =============================================================================
 
 def test_TC_05_mandatory_fields_validation_empty_form(page: Page):
-    """Validate that all mandatory fields in the new talent form are enforced by the system and appropriate warnings are shown if skipped."""
+    """Verify that all mandatory fields in the new talent form are enforced by the system and appropriate warnings are shown if skipped."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
     
@@ -114,49 +98,7 @@ def test_TC_05_mandatory_fields_validation_empty_form(page: Page):
 def test_TC_06_First_and_last_name_character_limit_validation(page: Page):
     """Validate that the Full Name field accepts only 2 to 50 characters and displays an error otherwise."""
     helper = TalentHelper(page)
-    talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-    
-    talent_page.click_add_new_talent()
-
-    # --- FIRST NAME FIELD VALIDATIONS ---
-    # Min length (less than 3 chars)
-    talent_page.fill_first_name("A")
-    talent_page.click_save_button()
-    min_length_error_fn = page.get_by_text("First name must be at least 3 characters")
-    enhanced_assert_visible(page, min_length_error_fn, "First name min length error should be visible")
-
-    # Special characters
-    talent_page.fill_first_name("John@#$%")
-    talent_page.click_save_button()
-    special_char_error_fn = page.get_by_text("First name can't accept special characters")
-    enhanced_assert_visible(page, special_char_error_fn, "First name special character error should be visible")
-
-    # Max length (should not allow more than 30 chars)
-    long_first_name = "A" * 35
-    talent_page.fill_first_name(long_first_name)
-    actual_fn_value = talent_page.locators.first_name_input.input_value()
-    assert len(actual_fn_value) <= 30, "First name field should not allow more than 30 characters"
-
-    # --- LAST NAME FIELD VALIDATIONS ---
-    # Min length (less than 3 chars)
-    talent_page.fill_last_name("B")
-    talent_page.click_save_button()
-    min_length_error_ln = page.get_by_text("Last name must be at least 3 characters")
-    enhanced_assert_visible(page, min_length_error_ln, "Last name min length error should be visible")
-
-    # Special characters
-    talent_page.fill_last_name("Doe@#$%")
-    talent_page.click_save_button()
-    special_char_error_ln = page.get_by_text("Last name can't accept special characters")
-    enhanced_assert_visible(page, special_char_error_ln, "Last name special character error should be visible")
-
-    # Max length (should not allow more than 30 chars)
-    long_last_name = "B" * 35
-    talent_page.fill_last_name(long_last_name)
-    actual_ln_value = talent_page.locators.last_name_input.input_value()
-    assert len(actual_ln_value) <= 30, "Last name field should not allow more than 30 characters"
-
-    talent_page.click_cancel_button()
+    helper.do_name_fields_character_limit_validation()
 
 def test_TC_07_estimated_age_validation_invalid_range_minimum(page: Page):
     """Confirm that age below 18 shows validation error."""
@@ -199,30 +141,11 @@ def test_TC_08_estimated_age_validation_invalid_range_maximum(page: Page):
     talent_page.click_cancel_button()
 
 def test_TC_09_estimated_age_valid_range(page: Page):
-    """Ensure that a valid Estimated Age value (within 18–70) is accepted and saved correctly."""
+    """Ensure that a valid Estimated Age value (within 18-70) is accepted and saved correctly."""
     helper = TalentHelper(page)
-    talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-    
-    talent_page.click_add_new_talent()
-    
-    # Test valid age by filling date of birth
-    talent_page.fill_date_of_birth("01/01/1990")  # Valid age ~35 years
-    
-    # Verify no age validation error appears
-    time.sleep(2)
-    age_error_1 = page.get_by_text("Age must be between 18 and 70")
-    age_error_2 = page.get_by_text("age must be between 18 and 70") 
-    age_error_3 = page.get_by_text("Invalid age")
-    age_error_4 = page.get_by_text("Date of birth is invalid")
-    
-    # Verify no age errors are visible for valid age
-    age_errors_visible = (age_error_1.is_visible() or age_error_2.is_visible() or age_error_3.is_visible() or age_error_4.is_visible())
-    
-    assert not age_errors_visible, "No age validation error should be visible for valid age"
-    
-    talent_page.click_cancel_button()
+    helper.do_valid_age_range_validation()
 
-def test_TC_10_comprehensive_talent_creation_with_dropdowns_and_files(page: Page):
+def test_TC_10_comprehensive_talent_creation_with_all_fields_and_files(page: Page):
     """Create talent with specified dropdown values and verify in list
     Test Steps:
     1. Login and navigate to talent list page

@@ -47,6 +47,28 @@ class TalentHelper:
         self.talent_page.wait_for_talent_list_load()
         return self.talent_page
     
+    def validate_talent_navigation_accessibility(self):
+        """Validate that talent section navigation links are accessible and visible."""
+        # Verify talent section is accessible
+        enhanced_assert_visible(self.page, self.talent_page.locators.talent_main_link, "Talent main link should be visible")
+        enhanced_assert_visible(self.page, self.talent_page.locators.talent_list_link, "Talent list link should be visible")
+        enhanced_assert_visible(self.page, self.talent_page.locators.group_list_link, "Group list link should be visible")
+    
+    def validate_add_new_talent_form_structure(self):
+        """Validate that add new talent form is well-structured with all required elements."""
+        # Click Add New Talent button
+        self.talent_page.click_add_new_talent()
+        
+        # Verify form is opened and well-structured
+        self.talent_page.expect_modal_title()
+        enhanced_assert_visible(self.page, self.talent_page.locators.first_name_input, "First name input should be visible")
+        enhanced_assert_visible(self.page, self.talent_page.locators.last_name_input, "Last name input should be visible")
+        enhanced_assert_visible(self.page, self.talent_page.locators.save_button, "Save button should be visible")
+        enhanced_assert_visible(self.page, self.talent_page.locators.cancel_button, "Cancel button should be visible")
+        
+        # Close modal
+        self.talent_page.click_cancel_button()
+    
     def do_create_talent(self, talent_data: dict):
         """Create a new talent with provided data."""
         # Open create talent modal
@@ -517,3 +539,112 @@ class TalentHelper:
             print("⚠️ Could not verify profile picture in talent list")
         
         print(f"✅ TC_10 PASSED: Talent '{talent_data['full_name']}' created successfully with all values verified in list")
+
+    def validate_name_field_character_limits(self, field_type: str):
+        """
+        Validate character limits for first name or last name fields.
+        
+        Args:
+            field_type (str): 'first_name' or 'last_name'
+        """
+        field_name = field_type.replace('_', ' ').title()
+        
+        # Test data based on field type
+        test_char = "A" if field_type == "first_name" else "B"
+        special_name = "John@#$%" if field_type == "first_name" else "Doe@#$%"
+        
+        # Min length validation (less than 3 chars)
+        if field_type == "first_name":
+            self.talent_page.fill_first_name(test_char)
+        else:
+            self.talent_page.fill_last_name(test_char)
+            
+        # Click on date of birth field to trigger validation instead of save button
+        self.talent_page.locators.date_of_birth_input.click()
+        time.sleep(1)
+        
+        min_length_error = self.page.get_by_text(f"{field_name} must be at least 3 characters")
+        enhanced_assert_visible(self.page, min_length_error, f"{field_name} min length error should be visible")
+        
+        # Special characters validation
+        if field_type == "first_name":
+            self.talent_page.fill_first_name(special_name)
+        else:
+            self.talent_page.fill_last_name(special_name)
+            
+        # Click on date of birth field to trigger validation
+        self.talent_page.locators.date_of_birth_input.click()
+        time.sleep(1)
+        
+        special_char_error = self.page.get_by_text(f"{field_name} can't accept special characters")
+        enhanced_assert_visible(self.page, special_char_error, f"{field_name} special character error should be visible")
+        
+        # Max length validation (should not allow more than 30 chars)
+        long_name = test_char * 35
+        if field_type == "first_name":
+            self.talent_page.fill_first_name(long_name)
+            actual_value = self.talent_page.locators.first_name_input.input_value()
+        else:
+            self.talent_page.fill_last_name(long_name)
+            actual_value = self.talent_page.locators.last_name_input.input_value()
+            
+        # Click on date of birth field to trigger validation  
+        self.talent_page.locators.date_of_birth_input.click()
+        time.sleep(1)
+            
+        assert len(actual_value) <= 30, f"{field_name} field should not allow more than 30 characters"
+        print(f"✅ {field_name} character limit validations passed")
+
+    def do_name_fields_character_limit_validation(self):
+        """
+        Complete validation workflow for both first name and last name character limits.
+        """
+        # Navigate and open form
+        self.talent_page = self.do_talent_login("nua26i@onemail.host", "Kabir123#")
+        self.talent_page.click_add_new_talent()
+        
+        # Validate first name field
+        self.validate_name_field_character_limits("first_name")
+        
+        # Validate last name field  
+        self.validate_name_field_character_limits("last_name")
+        
+        # Close form
+        self.talent_page.click_cancel_button()
+        print("✅ TC_06: All name field character limit validations completed successfully")
+
+    def do_valid_age_range_validation(self):
+        """
+        Complete validation workflow for valid age range (18-70).
+        """
+        # Navigate and open form
+        self.talent_page = self.do_talent_login("nua26i@onemail.host", "Kabir123#")
+        self.talent_page.click_add_new_talent()
+        
+        # Test valid age by filling date of birth
+        self.talent_page.fill_date_of_birth("01/01/1990")  # Valid age ~35 years
+        
+        # Click on first name field to trigger validation if needed
+        self.talent_page.locators.first_name_input.click()
+        time.sleep(2)
+        
+        # Verify no age validation error appears
+        age_error_messages = [
+            "Age must be between 18 and 70",
+            "age must be between 18 and 70", 
+            "Invalid age",
+            "Date of birth is invalid"
+        ]
+        
+        age_errors_visible = False
+        for error_msg in age_error_messages:
+            error_element = self.page.get_by_text(error_msg)
+            if error_element.is_visible():
+                age_errors_visible = True
+                break
+        
+        assert not age_errors_visible, "No age validation error should be visible for valid age"
+        
+        # Close form
+        self.talent_page.click_cancel_button()
+        print("✅ TC_09: Valid age range validation completed successfully")

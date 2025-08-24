@@ -30,7 +30,7 @@ class TalentLocators:
         self.delete_buttons = page.get_by_role("button", name="Delete")
         
         # Modal Elements
-        self.modal_title = page.get_by_text("Add New Talent")
+        self.modal_title = page.get_by_role("heading", name="Add New Talent")
         self.close_modal_button = page.get_by_role("button", name="Close modal")
         
         # Form Fields - Updated with working locators from recorded script
