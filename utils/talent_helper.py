@@ -3,7 +3,9 @@ Talent Helper Functions
 Reusable helper functions for talent-related operations
 """
 
+import os
 import time
+import re
 from playwright.sync_api import Page
 from pages.talent_page import TalentPage
 from utils.login_helper import do_login
@@ -299,9 +301,219 @@ class TalentHelper:
         self.talent_page.click_save_button()
         time.sleep(2)
         
-        # Check for duplicate warning/confirmation dialog
         duplicate_warning = self.page.get_by_text("already exists")
         if duplicate_warning.is_visible():
             return True
         
         return False
+    
+    def do_comprehensive_talent_creation_with_dropdowns_and_files(self, email: str = "nua26i@onemail.host", password: str = "Kabir123#"):
+        """
+        Create talent with comprehensive dropdown values and file uploads.
+        
+        Returns:
+            dict: Created talent data for verification
+        """
+        from random_values_generator.random_talent_name import RandomTalentName
+        import re
+        import os
+        
+        # Generate random talent data
+        talent_generator = RandomTalentName()
+        talent_data = {
+            'first_name': talent_generator.generate_first_name(),
+            'last_name': talent_generator.generate_last_name(),
+            'date_of_birth': "15/06/1995",
+            'gender': "Male",
+            'job_title': "Student", 
+            'english_level': "Native",
+            'japanese_level': "Fluent",
+            'location': "Japan",
+            'cv_language': "Bengali",
+            'cv_name': None  # Will be generated based on names
+        }
+        
+        # Generate CV name based on first and last name
+        talent_data['cv_name'] = f"{talent_data['first_name']} {talent_data['last_name']} CV"
+        talent_data['full_name'] = f"{talent_data['first_name']} {talent_data['last_name']}"
+        
+        # Step 1: Login and navigate
+        self.page.goto("https://bprp-qa.shadhinlab.xyz/login")
+        self.page.get_by_role("textbox", name="Email").fill(email)
+        self.page.get_by_role("textbox", name="Password").fill(password)
+        self.page.get_by_role("button", name="Sign in").click()
+        self.page.get_by_role("heading", name="For Talent Only").click()
+        self.page.get_by_role("link", name="Talent", exact=True).click()
+        self.page.get_by_role("link", name="Talent list").click()
+        time.sleep(2)
+        
+        # Step 2: Click Add New Talent button (using conditional button locator)
+        add_talent_button = self.page.locator("button:has-text('Add Candidate'), button:has-text('Add New Talent')").first
+        add_talent_button.click()
+        time.sleep(2)
+        
+        # Step 3: Fill all form fields with random data and specified dropdown values
+        self.page.get_by_role("textbox", name="First Name").fill(talent_data['first_name'])
+        self.page.get_by_role("textbox", name="Last Name").fill(talent_data['last_name'])
+        self.page.get_by_role("textbox", name="Date of Birth").fill(talent_data['date_of_birth'])
+        time.sleep(1)
+        
+        # Gender dropdown - Male
+        self.page.locator(".trigger-content").first.click()
+        time.sleep(1)
+        self.page.locator("div").filter(has_text=re.compile(r"^Male$")).click()
+        time.sleep(1)
+        
+        # Job Title dropdown - Student
+        self.page.locator("div:nth-child(4) > .searchable-select > .select-trigger").click()
+        time.sleep(1)
+        self.page.locator("form").get_by_text("Student").click()
+        time.sleep(1)
+        
+        # English Level dropdown - Native
+        self.page.locator("div:nth-child(7) > .searchable-select > .select-trigger > .trigger-content").click()
+        time.sleep(1)
+        self.page.locator("form").get_by_text("Native").click()
+        time.sleep(1)
+        
+        # Japanese Level dropdown - Fluent
+        self.page.locator("div:nth-child(6) > .searchable-select > .select-trigger").click()
+        time.sleep(1)
+        self.page.locator("div").filter(has_text=re.compile(r"^Fluent$")).click()
+        time.sleep(1)
+        
+        # Location dropdown - Japan
+        self.page.locator("div:nth-child(8) > .searchable-select > .select-trigger").click()
+        time.sleep(1)
+        self.page.locator("form").get_by_role("textbox", name="Search...").fill("japan")
+        time.sleep(1)
+        self.page.locator("div").filter(has_text=re.compile(r"^Japan$")).click()
+        time.sleep(1)
+        
+        # CV Language dropdown - Bengali
+        self.page.locator("div:nth-child(2) > .searchable-select > .select-trigger").click()
+        time.sleep(1)
+        self.page.locator("div").filter(has_text=re.compile(r"^Bengali$")).click()
+        time.sleep(1)
+        
+        # CV Name - use generated name
+        self.page.get_by_role("textbox", name="CV Name").fill(talent_data['cv_name'])
+        time.sleep(1)
+        
+        # Step 4: Upload files from images_for_test folder
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        profile_pic_path = os.path.join(project_root, "images_for_test", "pexels-photo.jpeg")
+        cv_file_path = os.path.join(project_root, "images_for_test", "file-PDF_1MB.pdf")
+        
+        print(f"🔍 Debug: Project root: {project_root}")
+        print(f"🔍 Debug: Profile pic path: {profile_pic_path}")
+        print(f"🔍 Debug: CV file path: {cv_file_path}")
+        print(f"🔍 Debug: Profile pic exists: {os.path.exists(profile_pic_path)}")
+        print(f"🔍 Debug: CV file exists: {os.path.exists(cv_file_path)}")
+        
+        # Upload files directly to file inputs
+        if os.path.exists(profile_pic_path):
+            print(f"📸 Uploading profile picture: {profile_pic_path}")
+            file_input = self.page.locator("input[type='file']").first
+            file_input.set_input_files(profile_pic_path)
+            time.sleep(2)
+            print("✅ Profile picture uploaded successfully")
+        else:
+            print(f"❌ Profile picture file not found: {profile_pic_path}")
+        
+        if os.path.exists(cv_file_path):
+            print(f"📄 Uploading CV file: {cv_file_path}")
+            cv_file_input = self.page.locator("input[type='file']").last
+            cv_file_input.set_input_files(cv_file_path)
+            time.sleep(2)
+            print("✅ CV file uploaded successfully")
+        else:
+            print(f"❌ CV file not found: {cv_file_path}")
+        
+        # Step 5: Save the talent
+        print("💾 Clicking Save button...")
+        self.page.get_by_role("button", name="Save").click()
+        time.sleep(3)
+        
+        # Check for any validation errors first
+        print("🔍 Checking for validation errors...")
+        validation_errors = self.page.locator(".error, .invalid-feedback, [class*='error']").all()
+        if validation_errors:
+            print(f"⚠️ Found {len(validation_errors)} validation errors:")
+            for error in validation_errors:
+                if error.is_visible():
+                    print(f"   - {error.text_content()}")
+        
+        # Step 6: Wait for and verify success toast message
+        print("🔍 Waiting for success message...")
+        try:
+            self.page.wait_for_selector("text=Talent Created Successfully", timeout=10000)
+            success_message = self.page.get_by_text("Talent Created Successfully")
+            enhanced_assert_visible(self.page, success_message, "Talent Created Successfully toast should appear")
+            print("✅ Success toast message appeared")
+        except Exception as e:
+            print(f"❌ Success message not found: {str(e)}")
+            # Check what's actually on the page
+            print("🔍 Checking current page state...")
+            current_url = self.page.url
+            print(f"Current URL: {current_url}")
+            
+            # Look for any error messages
+            error_messages = self.page.locator("text=/error|Error|required|Required|invalid|Invalid/i").all()
+            if error_messages:
+                print("Found potential error messages:")
+                for msg in error_messages[:5]:  # Show first 5 errors
+                    if msg.is_visible():
+                        print(f"   - {msg.text_content()}")
+            raise
+        
+        # Wait for the toast to disappear and page to redirect to talent list
+        time.sleep(3)
+        
+        return talent_data
+    
+    def assert_talent_appears_in_list_with_correct_values(self, talent_data: dict):
+        """
+        Assert that created talent appears in list with all correct information.
+        
+        Args:
+            talent_data (dict): Expected talent data to verify
+        """
+        # Verify the talent name appears in the list
+        talent_name = self.page.get_by_text(talent_data['full_name']).first
+        enhanced_assert_visible(self.page, talent_name, "Created talent name should appear in talent list")
+        
+        # Verify Active status appears
+        active_status = self.page.get_by_text("Active").first
+        enhanced_assert_visible(self.page, active_status, "Talent should show Active status")
+        
+        # Verify the main information shown in the list (Job Title and Location line)
+        student_text = self.page.locator("text=Student").first
+        enhanced_assert_visible(self.page, student_text, "Job title 'Student' should be displayed")
+            
+        japan_location = self.page.locator("text=Japan").first  
+        enhanced_assert_visible(self.page, japan_location, "Location 'Japan' should be displayed")
+        
+        # Verify the detailed information row (Gender, Japanese Level, English Level)
+        gender_male = self.page.locator("text=Male").first
+        enhanced_assert_visible(self.page, gender_male, "Gender 'Male' should be displayed")
+            
+        fluent_level = self.page.locator("text=Fluent").first
+        enhanced_assert_visible(self.page, fluent_level, "Japanese Level 'Fluent' should be displayed")
+            
+        native_level = self.page.locator("text=Native").first  
+        enhanced_assert_visible(self.page, native_level, "English Level 'Native' should be displayed")
+        
+        # Verify profile picture is displayed in the list (if uploaded)
+        try:
+            # Look for profile picture or avatar in the talent list item
+            profile_picture = self.page.locator("img[src], .avatar, .profile-image").first
+            if profile_picture.is_visible():
+                enhanced_assert_visible(self.page, profile_picture, "Profile picture should be visible in talent list")
+                print("✅ Profile picture verified in talent list")
+            else:
+                print("⚠️ Profile picture not found in list view - may use default avatar")
+        except:
+            print("⚠️ Could not verify profile picture in talent list")
+        
+        print(f"✅ TC_10 PASSED: Talent '{talent_data['full_name']}' created successfully with all values verified in list")

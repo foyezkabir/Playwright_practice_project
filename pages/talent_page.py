@@ -220,8 +220,8 @@ class TalentPage:
         # Click the upload CV file area to trigger file input  
         self.locators.upload_cv_file.click()
         time.sleep(1)
-        # Find and use the file input element for CV (usually the second file input)
-        file_input = self.page.locator("input[type='file']").nth(1)
+        # Find and use the file input element for CV (use last file input)
+        file_input = self.page.locator("input[type='file']").last
         file_input.set_input_files(file_path)
         time.sleep(2)
     
