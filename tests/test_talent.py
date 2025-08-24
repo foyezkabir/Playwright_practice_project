@@ -39,47 +39,13 @@ def test_TC_03_form_responsiveness_mobile(page: Page):
     """Verify that the "Create and Update Talent Profile" form is fully responsive and functional on mobile devices."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-    
-    # Resize to mobile dimensions
-    page.set_viewport_size({"width": 375, "height": 667})
-    time.sleep(1)
-    
-    # Open form and verify responsiveness
-    talent_page.click_add_new_talent()
-    
-    # Verify form elements are still accessible and properly sized
-    enhanced_assert_visible(page, talent_page.locators.first_name_input, "First name input should be visible on mobile")
-    enhanced_assert_visible(page, talent_page.locators.save_button, "Save button should be visible on mobile")
-    
-    # Reset viewport
-    page.set_viewport_size({"width": 1280, "height": 720})
-    talent_page.click_cancel_button()
+    helper.validate_form_responsiveness_mobile()
 
 def test_TC_04_cancel_button_discards_changes(page: Page):
     """Verify that clicking the "Cancel" button on the talent creation/edit form discards changes and redirects to the talent list without saving any input."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-    
-    # Open form and add data
-    talent_page.click_add_new_talent()
-    talent_page.fill_first_name("TestUser")
-    talent_page.fill_last_name("ToCancel")
-    
-    # Click cancel
-    talent_page.click_cancel_button()
-    
-    # Verify we're back to list and data wasn't saved
-    enhanced_assert_visible(page, talent_page.locators.add_new_talent_button, "Add talent button should be visible after cancel")
-    
-    # Reopen form and verify fields are empty
-    talent_page.click_add_new_talent()
-    first_name_value = talent_page.locators.first_name_input.input_value()
-    last_name_value = talent_page.locators.last_name_input.input_value()
-    
-    enhanced_assert_visible(page, talent_page.locators.first_name_input, "First name field should be empty after cancel")
-    enhanced_assert_visible(page, talent_page.locators.last_name_input, "Last name field should be empty after cancel")
-    
-    talent_page.click_cancel_button()
+    helper.validate_cancel_button_discards_changes()
 
 # FORM VALIDATION TESTS
 # =============================================================================
@@ -88,61 +54,31 @@ def test_TC_05_mandatory_fields_validation_empty_form(page: Page):
     """Verify that all mandatory fields in the new talent form are enforced by the system and appropriate warnings are shown if skipped."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-    
-    # Use helper method for validation
-    helper.validate_required_fields_empty_form()
-    
-    # Close modal
-    talent_page.click_cancel_button()
+    helper.validate_required_fields_empty_form()  # Use helper method for validation
+    talent_page.click_cancel_button()  # Close modal
 
 def test_TC_06_First_and_last_name_character_limit_validation(page: Page):
     """Validate that the Full Name field accepts only 2 to 50 characters and displays an error otherwise."""
     helper = TalentHelper(page)
+    talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
     helper.do_name_fields_character_limit_validation()
 
 def test_TC_07_estimated_age_validation_invalid_range_minimum(page: Page):
     """Confirm that age below 18 shows validation error."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-
-    talent_page.click_add_new_talent()
-    
-    # Test age below 18 (using date of birth from 2010 - makes person ~15 years old)
-    talent_page.fill_date_of_birth("01/01/2010")
-    
-    # Click on first name field to trigger date validation
-    talent_page.locators.first_name_input.click()
-    time.sleep(1)
-    
-    # Check for minimum age validation error - this should fail because validation is not implemented
-    min_age_error = page.get_by_text("Age must be between 18 and 70")
-    enhanced_assert_visible(page, min_age_error, "Minimum age validation error should be visible")
-    
-    talent_page.click_cancel_button()
+    helper.validate_age_minimum_range_error()
 
 def test_TC_08_estimated_age_validation_invalid_range_maximum(page: Page):
     """Confirm that age above 70 shows validation error."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-
-    talent_page.click_add_new_talent()
-    
-    # Test age above 70 (using date of birth from 1940 - makes person ~85 years old)
-    talent_page.fill_date_of_birth("01/01/1940")
-    
-    # Click on first name field to trigger date validation
-    talent_page.locators.first_name_input.click()
-    time.sleep(1)
-    
-    # Check for maximum age validation error - this should fail because validation is not implemented
-    max_age_error = page.get_by_text("Age must be between 18 and 70")
-    enhanced_assert_visible(page, max_age_error, "Maximum age validation error should be visible")
-    
-    talent_page.click_cancel_button()
+    helper.validate_age_maximum_range_error()
 
 def test_TC_09_estimated_age_valid_range(page: Page):
     """Ensure that a valid Estimated Age value (within 18-70) is accepted and saved correctly."""
     helper = TalentHelper(page)
+    talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
     helper.do_valid_age_range_validation()
 
 def test_TC_10_comprehensive_talent_creation_with_all_fields_and_files(page: Page):
@@ -158,7 +94,6 @@ def test_TC_10_comprehensive_talent_creation_with_all_fields_and_files(page: Pag
     
     # Step 2: Verify talent appears in list with all correct values
     helper.assert_talent_appears_in_list_with_correct_values(talent_data)
-
 
 #Not tested yet.
 def test_TC_11_email_format_validation(page: Page):

@@ -69,6 +69,80 @@ class TalentHelper:
         # Close modal
         self.talent_page.click_cancel_button()
     
+    def validate_form_responsiveness_mobile(self):
+        """Validate that the form is fully responsive and functional on mobile devices."""
+        # Resize to mobile dimensions
+        self.page.set_viewport_size({"width": 375, "height": 667})
+        time.sleep(1)
+        
+        # Open form and verify responsiveness
+        self.talent_page.click_add_new_talent()
+        
+        # Verify form elements are still accessible and properly sized
+        enhanced_assert_visible(self.page, self.talent_page.locators.first_name_input, "First name input should be visible on mobile")
+        enhanced_assert_visible(self.page, self.talent_page.locators.save_button, "Save button should be visible on mobile")
+        
+        # Reset viewport
+        self.page.set_viewport_size({"width": 1280, "height": 720})
+        self.talent_page.click_cancel_button()
+    
+    def validate_cancel_button_discards_changes(self):
+        """Validate that clicking Cancel button discards changes and redirects to talent list without saving input."""
+        # Open form and add data
+        self.talent_page.click_add_new_talent()
+        self.talent_page.fill_first_name("TestUser")
+        self.talent_page.fill_last_name("ToCancel")
+        
+        # Click cancel
+        self.talent_page.click_cancel_button()
+        
+        # Verify we're back to list and data wasn't saved
+        enhanced_assert_visible(self.page, self.talent_page.locators.add_new_talent_button, "Add talent button should be visible after cancel")
+        
+        # Reopen form and verify fields are empty
+        self.talent_page.click_add_new_talent()
+        first_name_value = self.talent_page.locators.first_name_input.input_value()
+        last_name_value = self.talent_page.locators.last_name_input.input_value()
+        
+        enhanced_assert_visible(self.page, self.talent_page.locators.first_name_input, "First name field should be empty after cancel")
+        enhanced_assert_visible(self.page, self.talent_page.locators.last_name_input, "Last name field should be empty after cancel")
+        
+        self.talent_page.click_cancel_button()
+    
+    def validate_age_maximum_range_error(self):
+        """Validate that age above 70 shows validation error."""
+        self.talent_page.click_add_new_talent()
+        
+        # Test age above 70 (using date of birth from 1940 - makes person ~85 years old)
+        self.talent_page.fill_date_of_birth("01/01/1940")
+        
+        # Click on first name field to trigger date validation
+        self.talent_page.locators.first_name_input.click()
+        time.sleep(1)
+        
+        # Check for maximum age validation error - this should fail because validation is not implemented
+        max_age_error = self.page.get_by_text("Age must be between 18 and 70")
+        enhanced_assert_visible(self.page, max_age_error, "Maximum age validation error should be visible")
+        
+        self.talent_page.click_cancel_button()
+    
+    def validate_age_minimum_range_error(self):
+        """Validate that age below 18 shows validation error."""
+        self.talent_page.click_add_new_talent()
+        
+        # Test age below 18 (using date of birth from 2010 - makes person ~15 years old)
+        self.talent_page.fill_date_of_birth("01/01/2010")
+        
+        # Click on first name field to trigger date validation
+        self.talent_page.locators.first_name_input.click()
+        time.sleep(1)
+        
+        # Check for minimum age validation error - this should fail because validation is not implemented
+        min_age_error = self.page.get_by_text("Age must be between 18 and 70")
+        enhanced_assert_visible(self.page, min_age_error, "Minimum age validation error should be visible")
+        
+        self.talent_page.click_cancel_button()
+    
     def do_create_talent(self, talent_data: dict):
         """Create a new talent with provided data."""
         # Open create talent modal
