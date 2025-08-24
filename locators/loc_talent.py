@@ -3,6 +3,7 @@ Talent Module Locators
 Centralized location for all talent-related element selectors
 """
 
+import re
 from playwright.sync_api import Page
 
 class TalentLocators:
@@ -32,43 +33,37 @@ class TalentLocators:
         self.modal_title = page.get_by_text("Add New Talent")
         self.close_modal_button = page.get_by_role("button", name="Close modal")
         
-        # Form Fields - Required (based on exact MCP exploration structure)
+        # Form Fields - Updated with working locators from recorded script
         self.first_name_input = page.get_by_role("textbox", name="First Name")
         self.last_name_input = page.get_by_role("textbox", name="Last Name")
-        # Dropdown arrows - click these first to open the dropdowns
-        self.gender_dropdown = page.locator("form div").filter(has_text="Gender").locator("img").first
-        self.job_title_dropdown = page.locator("form div").filter(has_text="Job Title").locator("img").first
+        # Working dropdown selectors from actual application
+        self.gender_dropdown = page.locator(".trigger-content").first
+        self.job_title_dropdown = page.locator("div:nth-child(4) > .searchable-select > .select-trigger")
         self.date_of_birth_input = page.get_by_role("textbox", name="Date of Birth")
-        self.japanese_level_dropdown = page.locator("form div").filter(has_text="Japanese Level").locator("img").first
-        self.english_level_dropdown = page.locator("form div").filter(has_text="English Level").locator("img").first
-        self.location_dropdown = page.locator("form div").filter(has_text="Location").locator("img").first
+        self.japanese_level_dropdown = page.locator("div:nth-child(6) > .searchable-select > .select-trigger")
+        self.english_level_dropdown = page.locator("div:nth-child(7) > .searchable-select > .select-trigger > .trigger-content")
+        self.location_dropdown = page.locator("div:nth-child(8) > .searchable-select > .select-trigger")
+        self.cv_language_dropdown = page.locator("div:nth-child(2) > .searchable-select > .select-trigger")
+        self.cv_name_input = page.get_by_role("textbox", name="CV Name")
+        self.location_search_input = page.get_by_role("textbox", name="Search...")
         
-        # Dropdown Options
+        # Dropdown Options - Updated with working selectors
         # Gender options
-        self.gender_male_option = page.get_by_text("Male", exact=True)
-        self.gender_female_option = page.get_by_text("Female", exact=True)
-        self.gender_other_option = page.get_by_text("Other", exact=True)
-        self.gender_prefer_not_to_say_option = page.get_by_text("Prefer not to say", exact=True)
+        self.male_option = page.locator("div").filter(has_text=re.compile(r"^Male$"))
+        self.female_option = page.locator("div").filter(has_text=re.compile(r"^Female$"))
         
-        # Job Title options (commonly used ones)
-        self.job_title_student_option = page.get_by_text("Student", exact=True)
-        self.job_title_assistant_option = page.get_by_text("Assistant", exact=True)
-        self.job_title_associate_option = page.get_by_text("Associate", exact=True)
+        # Job Title options
+        self.student_option = page.get_by_text("Student")
         
-        # Japanese Level options
-        self.japanese_level_basic_option = page.get_by_text("Basic", exact=True)
-        self.japanese_level_conversational_option = page.get_by_text("Conversational", exact=True)
-        self.japanese_level_fluent_option = page.get_by_text("Fluent", exact=True)
-        self.japanese_level_native_option = page.get_by_text("Native", exact=True)
-        
-        # English Level options
-        self.english_level_basic_option = page.get_by_text("Basic", exact=True)
-        self.english_level_conversational_option = page.get_by_text("Conversational", exact=True)
-        self.english_level_fluent_option = page.get_by_text("Fluent", exact=True)
-        self.english_level_native_option = page.get_by_text("Native", exact=True)
+        # Language Level options
+        self.fluent_option = page.locator("div").filter(has_text=re.compile(r"^Fluent$"))
+        self.native_option = page.get_by_text("Native")
         
         # Location options
-        self.location_japan_option = page.get_by_text("Japan", exact=True)
+        self.japan_option = page.locator("div").filter(has_text=re.compile(r"^Japan$"))
+        
+        # CV Language options  
+        self.bengali_option = page.locator("div").filter(has_text=re.compile(r"^Bengali$"))
         
         # CV Section
         self.cv_name_input = page.get_by_role("textbox", name="CV Name")

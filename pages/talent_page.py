@@ -80,40 +80,73 @@ class TalentPage:
         self.locators.last_name_input.fill(last_name)
     
     def select_gender(self, gender: str):
-        """Select gender from dropdown."""
-        # Try different approaches to click the dropdown
-        try:
-            self.locators.gender_dropdown.click()
-        except:
-            # If normal click fails, try force click
-            self.locators.gender_dropdown.click(force=True)
-        time.sleep(2)
-        
-        # Wait for options to appear and click the specified gender option
-        if gender.lower() == "male":
-            self.locators.gender_male_option.click()
-        elif gender.lower() == "female":
-            self.locators.gender_female_option.click()
-        elif gender.lower() == "other":
-            self.locators.gender_other_option.click()
-        elif gender.lower() == "prefer not to say":
-            self.locators.gender_prefer_not_to_say_option.click()
+        """Select gender from dropdown using working locators."""
+        self.locators.gender_dropdown.click()
         time.sleep(1)
-    
+        if gender.lower() == "male":
+            self.locators.male_option.click()
+        elif gender.lower() == "female":
+            self.locators.female_option.click()
+        time.sleep(1)
+
     def select_job_title(self, job_title: str):
-        """Select job title from dropdown."""
+        """Select job title from dropdown using working locators."""
         self.locators.job_title_dropdown.click()
         time.sleep(1)
-        # Wait for options to appear and select the specified job title
         if job_title.lower() == "student":
-            self.locators.job_title_student_option.click()
-        elif job_title.lower() == "assistant":
-            self.locators.job_title_assistant_option.click()
-        elif job_title.lower() == "associate":
-            self.locators.job_title_associate_option.click()
+            self.locators.student_option.click()
         else:
             # Fallback for other job titles
-            self.page.get_by_text(job_title, exact=True).click()
+            self.page.get_by_text(job_title).click()
+        time.sleep(1)
+
+    def select_japanese_level(self, level: str):
+        """Select Japanese language level using working locators."""
+        self.locators.japanese_level_dropdown.click()
+        time.sleep(1)
+        if level.lower() == "fluent":
+            self.locators.fluent_option.click()
+        else:
+            # Fallback for other levels
+            self.page.get_by_text(level).click()
+        time.sleep(1)
+
+    def select_english_level(self, level: str):
+        """Select English language level using working locators."""
+        self.locators.english_level_dropdown.click()
+        time.sleep(1)
+        if level.lower() == "native":
+            self.locators.native_option.click()
+        else:
+            # Fallback for other levels
+            self.page.get_by_text(level).click()
+        time.sleep(1)
+
+    def select_location(self, location: str):
+        """Select location from dropdown using working locators."""
+        self.locators.location_dropdown.click()
+        time.sleep(1)
+        if location.lower() == "japan":
+            # Type in search box first
+            self.locators.location_search_input.fill("japan")
+            time.sleep(1)
+            self.locators.japan_option.click()
+        else:
+            # Fallback for other locations
+            self.locators.location_search_input.fill(location)
+            time.sleep(1)
+            self.page.get_by_text(location).click()
+        time.sleep(1)
+        
+    def select_cv_language(self, language: str):
+        """Select CV language from dropdown using working locators."""
+        self.locators.cv_language_dropdown.click()
+        time.sleep(1)
+        if language.lower() == "bengali":
+            self.locators.bengali_option.click()
+        else:
+            # Fallback for other languages
+            self.page.get_by_text(language).click()
         time.sleep(1)
     
     def fill_date_of_birth(self, date: str):
