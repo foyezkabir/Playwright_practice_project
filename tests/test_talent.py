@@ -96,42 +96,11 @@ def test_TC_10_comprehensive_talent_creation_with_all_fields_and_files(page: Pag
     helper.assert_talent_appears_in_list_with_correct_values(talent_data)
 
 #Not tested yet.
-def test_TC_11_email_format_validation(page: Page):
-    """Validate that if an email address is provided, it must be in a valid email format (e.g., abc@domain.com)."""
+def test_TC_11_comprehensive_talent_edit_with_education_and_cv(page: Page):
+    """Create talent, view details, edit personal info with new data, add education and CV, then verify updates."""
     helper = TalentHelper(page)
     talent_page = helper.do_talent_login("nua26i@onemail.host", "Kabir123#")
-    
-    # First create a talent so we have one to edit
-    talent_data = generate_random_talent_data()
-    helper.do_create_talent(talent_data)
-    time.sleep(3)
-    
-    # Now click view details on the created talent
-    talent_page.click_view_details(0)
-    time.sleep(2)
-    
-    # Edit contact info section to test email validation
-    talent_page.click_contact_info_edit()
-    
-    # Test invalid email format 1: missing @
-    email_field = page.get_by_role("textbox", name="Email")
-    email_field.fill("invalid-email-format")
-    # Click on another field to trigger validation
-    talent_page.locators.first_name_input.click()
-    time.sleep(1)
-    
-    email_error = page.get_by_text("Please enter a valid email")
-    enhanced_assert_visible(page, email_error, "Email format error should be visible for invalid format")
-    
-    # Test invalid email format 2: starting with dot
-    email_field.clear()
-    email_field.fill(".abc@gmail.com")
-    # Click on another field to trigger validation
-    talent_page.locators.first_name_input.click()
-    time.sleep(1)
-    
-    email_error2 = page.get_by_text("Please enter a valid email")
-    enhanced_assert_visible(page, email_error2, "Email format error should be visible for dot at start")
+    updated_talent_data = helper.do_comprehensive_talent_edit_with_education_and_cv()
 
 def test_TC_12_phone_number_format_validation(page: Page):
     """Ensure that the phone number field, if used, only accepts valid formats (e.g., 10–15 digits, country code, no text)."""

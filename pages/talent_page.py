@@ -159,13 +159,13 @@ class TalentPage:
         self.locators.japanese_level_dropdown.click()
         time.sleep(1)
         if level.lower() == "basic":
-            self.locators.japanese_level_basic_option.click()
+            self.locators.basic_level.click()
         elif level.lower() == "conversational":
-            self.locators.japanese_level_conversational_option.click()
+            self.locators.conversational_level.click()
         elif level.lower() == "fluent":
-            self.locators.japanese_level_fluent_option.click()
+            self.locators.fluent_level.click()
         elif level.lower() == "native":
-            self.locators.japanese_level_native_option.click()
+            self.locators.native_level.click()
         time.sleep(1)
     
     def select_english_level(self, level: str):
@@ -173,13 +173,13 @@ class TalentPage:
         self.locators.english_level_dropdown.click()
         time.sleep(1)
         if level.lower() == "basic":
-            self.locators.english_level_basic_option.click()
+            self.locators.basic_level.click()
         elif level.lower() == "conversational":
-            self.locators.english_level_conversational_option.click()
+            self.locators.conversational_level.click()
         elif level.lower() == "fluent":
-            self.locators.english_level_fluent_option.click()
+            self.locators.fluent_level.click()
         elif level.lower() == "native":
-            self.locators.english_level_native_option.click()
+            self.locators.native_level.click()
         time.sleep(1)
     
     def select_location(self, location: str):
