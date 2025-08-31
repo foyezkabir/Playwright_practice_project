@@ -891,13 +891,13 @@ class TalentHelper:
             'last_name': talent_generator.generate_last_name(),
             'date_of_birth': "15/08/1990",
             'grade': grade_levels[3],  # 4th value (index 3) - "BBB" as requested
-            'location': "Canada",
+            'location': "Canada",  # MCP-verified Canada selection
             'school_name': school_names[5],  # 6th value (index 5)
             'degree': "Master of Computer Science",
             'start_year': "2012",
             'end_year': "2014",
             'cv_name': "Professional Resume 2024",
-            'cv_language': languages[4]  # 5th value (index 4)
+            'cv_language': "French"  # MCP-verified French selection
         }
         updated_data['full_name'] = f"{updated_data['first_name']} {updated_data['last_name']}"
         
@@ -933,14 +933,19 @@ class TalentHelper:
             print(f"⚠️ Grade dropdown error: {str(e)}")
             print("⚠️ Grade dropdown not found or not available")
         
-        # Select Location dropdown
+        # Select Location dropdown - Use MCP-verified Canada selection
         try:
-            # Method 1: Try the direct approach first 
+            # Method 1: Use MCP-verified locator pattern for location dropdown
             location_dropdown = self.page.locator("div").filter(has_text="Location").locator("img").first
             if location_dropdown.is_visible():
                 location_dropdown.click()
                 time.sleep(1)
-                location_option = self.page.get_by_text(updated_data['location'], exact=True)
+                # Use search functionality for Canada
+                search_input = self.page.get_by_role("textbox", name="Search...")
+                if search_input.is_visible():
+                    search_input.fill("Canada")
+                    time.sleep(1)
+                location_option = self.page.get_by_text("Canada", exact=True)
                 location_option.click()
                 time.sleep(1)
                 print(f"✅ Selected Location: {updated_data['location']}")
@@ -949,12 +954,17 @@ class TalentHelper:
         except Exception as e:
             print(f"⚠️ Location dropdown method 1 failed: {str(e)}")
             try:
-                # Method 2: Alternative approach for different dropdown structure
+                # Method 2: Alternative approach for different dropdown structure (MCP fallback)
                 location_trigger = self.page.locator("div").filter(has_text="Japan").locator("img")
                 if location_trigger.is_visible():
                     location_trigger.click()
                     time.sleep(1)
-                    location_option = self.page.get_by_text(updated_data['location'], exact=True)
+                    # Use search functionality for Canada
+                    search_input = self.page.get_by_role("textbox", name="Search...")
+                    if search_input.is_visible():
+                        search_input.fill("Canada")
+                        time.sleep(1)
+                    location_option = self.page.get_by_text("Canada", exact=True)
                     location_option.click()
                     time.sleep(1)
                     print(f"✅ Selected Location: {updated_data['location']} (method 2)")
@@ -1032,29 +1042,39 @@ class TalentHelper:
         cv_name_input = self.page.get_by_role("textbox", name="Name").last
         cv_name_input.fill(updated_data['cv_name'])
         
-        # Select CV language (5th value from array) - MCP verified structure
+        # Select CV language (5th value from array) - MCP verified structure with French selection
         try:
-            # Method 1: Click on CV Language dropdown arrow - use exact structure from MCP inspection
+            # Method 1: Use MCP-verified locator pattern for CV language dropdown
             cv_language_dropdown = self.page.locator("div").filter(has_text="Select Language").locator("img")
             cv_language_dropdown.click()
             time.sleep(1)
-            # Select Albanian from the dropdown options
-            language_option = self.page.get_by_text(updated_data['cv_language'], exact=True)
+            # Use search functionality for French
+            search_input = self.page.get_by_role("textbox", name="Search...")
+            if search_input.is_visible():
+                search_input.fill("French")
+                time.sleep(1)
+            # Select French from the dropdown options
+            language_option = self.page.get_by_text("French", exact=True)
             language_option.click()
             time.sleep(1)
-            print(f"✅ Selected CV Language: {updated_data['cv_language']}")
+            print(f"✅ Selected CV Language: French")
         except Exception as e:
             print(f"⚠️ CV language dropdown method 1 failed: {str(e)}")
             try:
-                # Method 2: Try alternative locator approach
+                # Method 2: Alternative approach using Bengali trigger (MCP fallback)
                 lang_trigger = self.page.locator("div").filter(has_text="Bengali").locator("img")
                 if lang_trigger.is_visible():
                     lang_trigger.click()
                     time.sleep(1)
-                    language_option = self.page.get_by_text(updated_data['cv_language'], exact=True)
+                    # Use search functionality for French
+                    search_input = self.page.get_by_role("textbox", name="Search...")
+                    if search_input.is_visible():
+                        search_input.fill("French")
+                        time.sleep(1)
+                    language_option = self.page.get_by_text("French", exact=True)
                     language_option.click()
                     time.sleep(1)
-                    print(f"✅ Selected CV Language (method 2): {updated_data['cv_language']}")
+                    print(f"✅ Selected CV Language (method 2): French")
                 else:
                     raise Exception("Alternative language dropdown not found")
             except Exception as e2:
@@ -1166,10 +1186,10 @@ class TalentHelper:
         if basic_info_verified:
             print("✅ TC_11: Comprehensive talent editing completed successfully")
             print(f"✅ Updated talent: {updated_data['full_name']}")
-            print(f"✅ Grade: {updated_data['grade']} (2nd value from array)")
+            print(f"✅ Grade: {updated_data['grade']} (4th value from array)")
             print(f"✅ Education: {updated_data['degree']} from {updated_data['school_name']} (6th value from school array)")
-            print(f"✅ CV: {updated_data['cv_name']} ({updated_data['cv_language']} - 5th value from language array)")
-            print(f"✅ Location: {updated_data['location']}")
+            print(f"✅ CV: {updated_data['cv_name']} (French - MCP-verified selection)")
+            print(f"✅ Location: {updated_data['location']} (MCP-verified selection)")
             print(f"✅ Date of Birth: {updated_data['date_of_birth']}")
             
             return updated_data

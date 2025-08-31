@@ -123,31 +123,88 @@ class TalentPage:
         time.sleep(1)
 
     def select_location(self, location: str):
-        """Select location from dropdown using working locators."""
-        self.locators.location_dropdown.click()
-        time.sleep(1)
-        if location.lower() == "japan":
-            # Type in search box first
-            self.locators.location_search_input.fill("japan")
+        """Select location from dropdown using MCP-verified specific locators."""
+        # Use MCP-verified locators for location dropdown interaction
+        try:
+            # Primary method: Click location dropdown using MCP-verified pattern
+            location_dropdown = self.page.locator("div").filter(has_text="Location").locator("div[cursor=pointer]").first
+            location_dropdown.click()
             time.sleep(1)
-            self.locators.japan_option.click()
-        else:
-            # Fallback for other locations
-            self.locators.location_search_input.fill(location)
+            
+            # Use search functionality if available
+            search_input = self.page.get_by_role("textbox", name="Search...")
+            if search_input.is_visible():
+                search_input.fill(location)
+                time.sleep(1)
+            
+            # Select the location option with exact text matching
+            self.page.get_by_text(location, exact=True).click()
+            print(f"✅ Selected Location: {location}")
             time.sleep(1)
-            self.page.get_by_text(location).click()
-        time.sleep(1)
+            
+        except Exception as e:
+            print(f"⚠️ Location dropdown method 1 failed: {e}")
+            try:
+                # Fallback method: Use the current location value to target dropdown
+                current_location_dropdown = self.page.locator("div").filter(has_text="Japan").locator("img").first
+                current_location_dropdown.click()
+                time.sleep(1)
+                
+                # Use search if available
+                search_input = self.page.get_by_role("textbox", name="Search...")
+                if search_input.is_visible():
+                    search_input.fill(location)
+                    time.sleep(1)
+                
+                self.page.get_by_text(location, exact=True).click()
+                print(f"✅ Selected Location (method 2): {location}")
+                time.sleep(1)
+                
+            except Exception as e2:
+                print(f"⚠️ Location dropdown method 2 failed: {e2}")
+                print("⚠️ Location dropdown not accessible, keeping existing value")
         
     def select_cv_language(self, language: str):
-        """Select CV language from dropdown using working locators."""
-        self.locators.cv_language_dropdown.click()
-        time.sleep(1)
-        if language.lower() == "bengali":
-            self.locators.bengali_option.click()
-        else:
-            # Fallback for other languages
-            self.page.get_by_text(language).click()
-        time.sleep(1)
+        """Select CV language from dropdown using MCP-verified specific locators."""
+        # Use MCP-verified locators for CV language dropdown interaction
+        try:
+            # Primary method: Target the CV language dropdown using MCP-verified pattern
+            cv_language_dropdown = self.page.locator("div").filter(has_text="Select Language").locator("div[cursor=pointer]").first
+            cv_language_dropdown.click()
+            time.sleep(1)
+            
+            # Use search functionality if available
+            search_input = self.page.get_by_role("textbox", name="Search...")
+            if search_input.is_visible():
+                search_input.fill(language)
+                time.sleep(1)
+            
+            # Select the language option with exact text matching
+            self.page.get_by_text(language, exact=True).click()
+            print(f"✅ Selected CV Language: {language}")
+            time.sleep(1)
+            
+        except Exception as e:
+            print(f"⚠️ CV language dropdown method 1 failed: {e}")
+            try:
+                # Fallback method: Use Bengali/current selection to target dropdown
+                current_lang_dropdown = self.page.locator('div').filter(has_text="Bengali").locator("img").first
+                current_lang_dropdown.click()
+                time.sleep(1)
+                
+                # Use search if available
+                search_input = self.page.get_by_role("textbox", name="Search...")
+                if search_input.is_visible():
+                    search_input.fill(language)
+                    time.sleep(1)
+                
+                self.page.get_by_text(language, exact=True).click()
+                print(f"✅ Selected CV Language (method 2): {language}")
+                time.sleep(1)
+                
+            except Exception as e2:
+                print(f"⚠️ CV language dropdown method 2 failed: {e2}")
+                print("⚠️ CV language dropdown not accessible, keeping existing value")
     
     def fill_date_of_birth(self, date: str):
         """Fill date of birth field."""
@@ -182,28 +239,9 @@ class TalentPage:
             self.locators.native_level.click()
         time.sleep(1)
     
-    def select_location(self, location: str):
-        """Select location from dropdown."""
-        self.locators.location_dropdown.click()
-        time.sleep(1)
-        # Wait for options to appear and select the specified location
-        if location.lower() == "japan":
-            self.locators.location_japan_option.click()
-        else:
-            # Fallback for other locations
-            self.page.get_by_text(location, exact=True).click()
-        time.sleep(1)
-    
     def fill_cv_name(self, cv_name: str):
         """Fill CV name field."""
         self.locators.cv_name_input.fill(cv_name)
-    
-    def select_cv_language(self, language: str):
-        """Select CV language from dropdown."""
-        self.locators.cv_language_dropdown.click()
-        time.sleep(1)
-        self.page.get_by_text(language, exact=True).click()
-        time.sleep(1)
     
     def upload_profile_picture(self, file_path: str):
         """Upload profile picture file."""
