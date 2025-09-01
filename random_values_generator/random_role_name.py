@@ -48,24 +48,24 @@ def generate_role_name():
         "Design"
     ]
     
-    # Generate timestamp for uniqueness
+    # Generate timestamp for uniqueness (but we'll use it differently)
     timestamp = str(int(time.time()))[-4:]
     
-    # Create role name with various patterns
+    # Create role name with various patterns (without timestamp numbers)
     pattern = random.choice([1, 2, 3, 4])
     
     if pattern == 1:
-        # Pattern: Department + Prefix + Suffix + Timestamp
-        role_name = f"{random.choice(departments)} {random.choice(role_prefixes)} {random.choice(role_suffixes)} {timestamp}"
+        # Pattern: Department + Prefix + Suffix  
+        role_name = f"{random.choice(departments)} {random.choice(role_prefixes)} {random.choice(role_suffixes)}"
     elif pattern == 2:
-        # Pattern: Prefix + Department + Suffix + Timestamp  
-        role_name = f"{random.choice(role_prefixes)} {random.choice(departments)} {random.choice(role_suffixes)} {timestamp}"
+        # Pattern: Prefix + Department + Suffix
+        role_name = f"{random.choice(role_prefixes)} {random.choice(departments)} {random.choice(role_suffixes)}"
     elif pattern == 3:
-        # Pattern: Test + Prefix + Timestamp
-        role_name = f"Test {random.choice(role_prefixes)} {timestamp}"
+        # Pattern: Test + Prefix
+        role_name = f"Test {random.choice(role_prefixes)}"
     else:
-        # Pattern: Auto + Department + Prefix + Timestamp
-        role_name = f"Auto {random.choice(departments)} {random.choice(role_prefixes)} {timestamp}"
+        # Pattern: Auto + Department + Prefix
+        role_name = f"Auto {random.choice(departments)} {random.choice(role_prefixes)}"
     
     return role_name
 
@@ -152,11 +152,10 @@ def generate_role_hierarchy():
     Returns:
         dict: Dictionary with role hierarchy
     """
-    timestamp = str(int(time.time()))[-4:]
     
     return {
         'admin_role': {
-            'role_name': f"Test Admin Role {timestamp}",
+            'role_name': "Test Admin Role",
             'permissions': [
                 "Dashboard",
                 "Talent Read", "Talent Create", "Talent Update", "Talent Delete",
@@ -168,7 +167,7 @@ def generate_role_hierarchy():
             ]
         },
         'manager_role': {
-            'role_name': f"Test Manager Role {timestamp}",
+            'role_name': "Test Manager Role",
             'permissions': [
                 "Dashboard",
                 "Talent Read", "Talent Create", "Talent Update",
@@ -178,7 +177,7 @@ def generate_role_hierarchy():
             ]
         },
         'user_role': {
-            'role_name': f"Test User Role {timestamp}", 
+            'role_name': "Test User Role", 
             'permissions': [
                 "Dashboard",
                 "Talent Read",

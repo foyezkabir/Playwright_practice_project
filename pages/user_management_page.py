@@ -22,13 +22,41 @@ class UserManagementPage:
 
     def click_roles_access_tab(self):
         """Switch to Roles & Access tab"""
-        self.locators.roles_access_tab.click()
-        time.sleep(1)
+        # Direct navigation to avoid click interception issues
+        current_url = self.page.url
+        if "/agency/" in current_url:
+            agency_id = current_url.split("/agency/")[1].split("/")[0]
+            role_list_url = f"https://bprp-qa.shadhinlab.xyz/agency/{agency_id}/role-list?page=1"
+            self.page.goto(role_list_url)
+            self.page.wait_for_load_state("networkidle")
+            time.sleep(2)
+        else:
+            # Fallback to click with force
+            try:
+                self.locators.roles_access_tab.click(force=True)
+                time.sleep(2)
+            except:
+                self.locators.roles_access_tab.click()
+                time.sleep(2)
 
     def click_user_list_tab(self):
         """Switch to User List tab"""
-        self.locators.user_list_tab.click()
-        time.sleep(1)
+        # Direct navigation to avoid click interception issues  
+        current_url = self.page.url
+        if "/agency/" in current_url:
+            agency_id = current_url.split("/agency/")[1].split("/")[0]
+            user_list_url = f"https://bprp-qa.shadhinlab.xyz/agency/{agency_id}/user-list?page=1"
+            self.page.goto(user_list_url)
+            self.page.wait_for_load_state("networkidle")
+            time.sleep(2)
+        else:
+            # Fallback to click with force
+            try:
+                self.locators.user_list_tab.click(force=True)
+                time.sleep(2)
+            except:
+                self.locators.user_list_tab.click()
+                time.sleep(2)
 
     def select_demo_agency(self, agency_name: str = "demo 06"):
         """Select a specific demo agency"""
@@ -45,6 +73,11 @@ class UserManagementPage:
         """Fill the role name input field"""
         self.locators.role_name_input.wait_for(state="visible")
         self.locators.role_name_input.fill(role_name)
+    
+    def fill_role_description(self, description: str):
+        """Fill the role description input field"""
+        self.locators.role_description_input.wait_for(state="visible") 
+        self.locators.role_description_input.fill(description)
 
     def select_permission(self, permission_name: str):
         """Select a specific permission checkbox"""

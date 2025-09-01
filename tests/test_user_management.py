@@ -6,7 +6,7 @@ Follows POM architecture with centralized locators, page objects, helpers, and e
 
 import pytest
 import time
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 from utils.user_management_helper import (
     setup_demo_agency_access, create_test_role, invite_test_user,
     perform_role_crud_operations, perform_user_crud_operations,
@@ -88,42 +88,50 @@ def test_TC_02_create_role_with_permissions(page: Page, admin_credentials, test_
         admin_credentials['password']
     )
     
-    # Navigate to roles & access tab
+    # Navigate to roles & access tab first
     user_mgmt_page.click_roles_access_tab()
-    time.sleep(1)
+    time.sleep(2)
     
     # Create role with permissions
     role_name = test_role_data['role_name']
-    permissions = test_role_data['permissions']
     
     print(f"🔧 Creating role: {role_name}")
-    print(f"📝 Permissions: {', '.join(permissions)}")
     
     user_mgmt_page.click_create_role_button()
-    
-    # Verify create role modal is open
-    enhanced_assert_visible(
-        page,
-        user_mgmt_page.locators.role_modal_heading,
-        "Create Role modal heading should be visible",
-        "test_TC_02_modal"
-    )
-    
-    # Fill role details
-    user_mgmt_page.fill_role_name(role_name)
-    user_mgmt_page.select_multiple_permissions(permissions)
-    user_mgmt_page.click_save_role_button()
-    
-    # Wait for creation to complete
-    wait_for_action_completion(page, "save")
     time.sleep(2)
     
-    # Verify success message or role appears in list
+    # Verify modal opened
+    modal_heading = page.get_by_role("heading", name="Add Role")
+    expect(modal_heading).to_be_visible()
+    print("✅ Add Role modal opened successfully")
+    
+    # Fill role details - just name and description as requested
+    user_mgmt_page.fill_role_name(role_name)
+    user_mgmt_page.fill_role_description(f"Test role: {role_name}")
+    
+    # Click save/add role button
+    user_mgmt_page.click_save_role_button()
+    print("✅ Clicked Add Role button")
+    
+    # Immediately check for toast message (appears right after button click)
     try:
-        assert_role_created_successfully(page, role_name, "test_TC_02_success")
-    except:
-        # Alternative verification - check if role exists in list
-        assert_role_exists_in_list(page, role_name, "test_TC_02_verification")
+        # Check for the toast with short timeout since it's immediate
+        toast_visible = user_mgmt_page.locators.role_created_success_message.is_visible(timeout=3000)
+        if toast_visible:
+            print("✅ Toast message 'Role added successfully' appeared")
+        else:
+            print("⚠️ Toast message not visible")
+    except Exception as toast_error:
+        print("⚠️ Toast message detection failed, continuing with role verification")
+    
+    # Wait for page to automatically load with updated role data
+    print("⏳ Waiting for page to auto-load with updated role data...")
+    time.sleep(4)  # Give time for the page to refresh/update
+    
+    # Primary verification: Check if role appears in the roles list after auto-refresh  
+    role_in_list = page.get_by_text(role_name, exact=True)
+    expect(role_in_list).to_be_visible(timeout=10000)
+    print(f"✅ Role '{role_name}' appears in roles list after page auto-load")
     
     print(f"✅ Successfully created role: {role_name}")
 

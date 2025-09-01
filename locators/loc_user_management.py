@@ -1,5 +1,9 @@
 """
-User Management Locators for BPRP Web Application
+User Management Loc        # Create Role Modal
+        self.create_role_button = page.get_by_role("button", name="Add Role")
+        self.role_modal_heading = page.get_by_role("heading", name="Add Role")
+        self.role_name_input = page.locator("input[name='name']")
+        self.role_description_input = page.locator("input[name='description']") for BPRP Web Application
 Contains all locators for user management features including roles & access and user list functionality
 """
 
@@ -12,10 +16,10 @@ class UserManagementLocators:
         self.page = page
         
         # ===== NAVIGATION & MAIN PAGE ELEMENTS =====
-        self.user_management_menu = page.get_by_role("link", name="User Management")
-        self.user_management_heading = page.get_by_role("heading", name="User Management")
-        self.roles_access_tab = page.get_by_role("tab", name="Roles & Access")
-        self.user_list_tab = page.get_by_role("tab", name="User List")
+        self.user_management_menu = page.get_by_text("User Management")
+        self.user_management_heading = page.get_by_text("User Management")
+        self.roles_access_tab = page.locator("a[href*='role-list']")
+        self.user_list_tab = page.locator("a[href*='user-list']")
         
         # Demo agency selection
         self.demo_06_agency = page.get_by_text("demo 06")
@@ -23,10 +27,10 @@ class UserManagementLocators:
         
         # ===== ROLES & ACCESS TAB LOCATORS =====
         # Create Role Modal
-        self.create_role_button = page.get_by_role("button", name="Create Role")
-        self.role_modal_heading = page.get_by_role("heading", name="Create Role")
-        self.role_name_input = page.locator("input[name='roleName'], input[placeholder*='role name'], input[placeholder*='Role Name']")
-        self.role_name_field = page.locator("label:has-text('Role Name') + input, input[name='roleName']")
+        self.create_role_button = page.get_by_text("Add Role")
+        self.role_modal_heading = page.get_by_role("heading", name="Add Role")
+        self.role_name_input = page.locator("input[name='name']")
+        self.role_description_input = page.locator("input[name='description']")
         
         # Permissions section
         self.permissions_heading = page.get_by_role("heading", name="Permissions")
@@ -50,7 +54,7 @@ class UserManagementLocators:
         self.all_permission_checkboxes = page.locator("input[type='checkbox'][name*='permission'], .permission-checkbox input")
         
         # Role modal buttons
-        self.save_role_button = page.get_by_role("button", name="Save")
+        self.save_role_button = page.locator("form button[type='submit']:has-text('Add Role')")
         self.cancel_role_button = page.get_by_role("button", name="Cancel")
         self.close_role_modal = page.get_by_role("button", name="×")
         
@@ -145,7 +149,7 @@ class UserManagementLocators:
         self.host_email_protection_error = page.get_by_text("Cannot invite host email")
         
         # ===== SUCCESS MESSAGES =====
-        self.role_created_successfully = page.get_by_text("Role created successfully")
+        self.role_created_success_message = page.get_by_text("Role added successfully")
         self.role_updated_successfully = page.get_by_text("Role updated successfully") 
         self.role_deleted_successfully = page.get_by_text("Role deleted successfully")
         self.user_invited_successfully = page.get_by_text("User invited successfully")

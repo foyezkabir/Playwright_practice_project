@@ -27,9 +27,15 @@ def do_user_management_login(page: Page, email: str, password: str):
     
     # Login first
     do_login(page, email, password)
-    time.sleep(2)
+    time.sleep(3)
     
-    # Navigate to user management
+    # First select demo agency to access user management
+    demo_agency = page.get_by_text("demo 06")
+    if demo_agency.count() > 0:
+        demo_agency.click()
+        time.sleep(3)
+    
+    # Now navigate to user management
     user_mgmt_page = UserManagementPage(page)
     user_mgmt_page.navigate_to_user_management()
     
@@ -52,12 +58,11 @@ def setup_demo_agency_access(page: Page, email: str = "mi003b@onemail.host", pas
     """
     from pages.user_management_page import UserManagementPage
     
-    # Login and navigate
+    # Login and navigate - this now includes agency selection
     user_mgmt_page = do_user_management_login(page, email, password)
     
-    # Select demo agency
-    user_mgmt_page.select_demo_agency(agency_name)
-    
+    # Agency is already selected in do_user_management_login
+    # Just return the user management page
     return user_mgmt_page
 
 
