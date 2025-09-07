@@ -1,7 +1,25 @@
 """
 User Management Test Suite
 Comprehensive test cases for user management functionality including roles & access and user list operations
-Follows POM architecture with centralized locators, page objects, helpers, and enhanced assertions
+Follows POM architecture with centr    user_    user_mgmt_page.click_roles_access_tab()
+    time.sleep(2)
+    
+    target_role_name = "Test Supervisor"
+    print(f"🔍 Looking for role: {target_role_name}")
+    print("📄 Navigating through pages to find the role...")
+    
+    max_pages = 20  # Set a reasonable limit to prevent infinite loops
+    current_page = 1
+    role_found = Falseage.click_roles_access_tab()
+    time.sleep(2)
+    
+    target_role_name = "Test Supervisor"
+    print(f"🔍 Looking for role: {target_role_name}")
+    print("📄 Navigating through pages to find the role...")
+    
+    max_pages = 20  # Set a reasonable limit to prevent infinite loops
+    current_page = 1
+    role_found = False locators, page objects, helpers, and enhanced assertions
 """
 
 import pytest
@@ -80,8 +98,8 @@ def test_TC_01_navigate_to_user_management_and_select_agency(page: Page, admin_c
     )
 
 
-def test_TC_02_create_role_with_permissions(page: Page, admin_credentials, test_role_data):
-    """Verify successful creation of role with specific permissions."""
+def test_TC_02_create_and_search_role(page: Page, admin_credentials, test_role_data):
+    """Verify successful creation of role with permissions and then search for it."""
     user_mgmt_page = setup_demo_agency_access(
         page,
         admin_credentials['email'],
@@ -92,7 +110,7 @@ def test_TC_02_create_role_with_permissions(page: Page, admin_credentials, test_
     user_mgmt_page.click_roles_access_tab()
     time.sleep(2)
     
-    # Create role with permissions
+    # ===== PART 1: CREATE ROLE WITH PERMISSIONS =====
     role_name = test_role_data['role_name']
     
     print(f"🔧 Creating role: {role_name}")
@@ -134,10 +152,47 @@ def test_TC_02_create_role_with_permissions(page: Page, admin_credentials, test_
     print(f"✅ Role '{role_name}' appears in roles list after page auto-load")
     
     print(f"✅ Successfully created role: {role_name}")
+    
+    # ===== PART 2: SEARCH FOR THE CREATED ROLE =====
+    print(f"\n🔍 Now searching for the created role: {role_name}")
+    
+    # Perform search with the full role name
+    user_mgmt_page.search_role(role_name)
+    time.sleep(2)
+    
+    # Verify the role is found in search results
+    found = user_mgmt_page.find_role_by_name(role_name)
+    assert found, f"Role '{role_name}' should be found in search results"
+    
+    # Visual verification with enhanced assertion
+    enhanced_assert_visible(
+        page,
+        user_mgmt_page.locators.role_item_by_name(role_name),
+        f"Role '{role_name}' should be visible in search results",
+        "test_TC_02_search_verification"
+    )
+    
+    print(f"✅ Successfully found role '{role_name}' in search results")
+    
+    # Clear search to show all roles again
+    user_mgmt_page.clear_role_search()
+    time.sleep(1)
+    
+    # Final verification - ensure the role still exists after clearing search
+    final_verification = page.get_by_text(role_name, exact=True)
+    expect(final_verification).to_be_visible(timeout=5000)
+    print(f"✅ Role '{role_name}' still visible after clearing search")
+    
+    print(f"🎉 Successfully completed create and search workflow for role: {role_name}")
 
 
-def test_TC_03_search_existing_role(page: Page, admin_credentials, test_role_data):
-    """Verify role search functionality works correctly."""
+def test_TC_03_find_role_through_pagination(page: Page):
+    """Verify finding a specific role by navigating through paginated results without search."""
+    admin_credentials = {
+        'email': 'mi003b@onemail.host',
+        'password': 'Kabir123#'
+    }
+    
     user_mgmt_page = setup_demo_agency_access(
         page,
         admin_credentials['email'], 
@@ -145,32 +200,76 @@ def test_TC_03_search_existing_role(page: Page, admin_credentials, test_role_dat
     )
     
     user_mgmt_page.click_roles_access_tab()
-    time.sleep(1)
-    
-    # Search for the role created in previous test
-    role_name = test_role_data['role_name']
-    print(f"🔍 Searching for role: {role_name}")
-    
-    user_mgmt_page.search_role(role_name)
     time.sleep(2)
     
-    # Verify role is found
-    found = user_mgmt_page.find_role_by_name(role_name)
-    assert found, f"Role '{role_name}' should be found in search results"
+    target_role_name = "Test Supervisor"  # Searching for Test Supervisor role
+    print(f"🔍 Looking for role: {target_role_name}")
+    print("📄 Navigating through pages to find the role...")
     
-    # Visual verification
-    enhanced_assert_visible(
-        page,
-        user_mgmt_page.locators.role_item_by_name(role_name),
-        f"Role '{role_name}' should be visible in search results",
-        "test_TC_03_search_results"
-    )
+    max_pages = 20  # Set a reasonable limit to prevent infinite loops
+    current_page = 1
+    role_found = False
     
-    # Clear search
-    user_mgmt_page.clear_role_search()
-    time.sleep(1)
+    while current_page <= max_pages and not role_found:
+        print(f"📖 Checking page {current_page}...")
+        
+        # Get roles on current page
+        current_page_roles = user_mgmt_page.get_roles_list()
+        print(f"   Found {len(current_page_roles)} roles on page {current_page}")
+        
+        # Check if target role is on this page
+        for role in current_page_roles:
+            if target_role_name.lower() in role.lower():  # More flexible matching
+                print(f"✅ Found target role '{target_role_name}' in '{role}' on page {current_page}!")
+                role_found = True
+                
+                # Visual verification with enhanced assertion
+                enhanced_assert_visible(
+                    page,
+                    page.get_by_text(role, exact=True),
+                    f"Role containing '{target_role_name}' should be visible on page {current_page}",
+                    f"test_TC_03_role_found_page_{current_page}"
+                )
+                
+                print(f"🎉 SUCCESS: Found and verified role '{target_role_name}' on page {current_page}")
+                print(f"🏁 TEST COMPLETED - Role found, ending pagination search!")
+                break
+        
+        # If role is found, break out of the main loop immediately
+        if role_found:
+            break
+        
+        if not role_found:
+            # Check if we can navigate to the next page
+            next_page_num = current_page + 1
+            pagination_success = False
+            
+            # Method 1: Check if next page number exists and is clickable
+            try:
+                next_page_link = page.locator(f"text='{next_page_num}'")
+                if next_page_link.count() > 0 and next_page_link.is_visible():
+                    next_page_link.click()
+                    time.sleep(3)
+                    pagination_success = True
+                    current_page = next_page_num
+                    print(f"✅ Navigated to page {current_page} using page number click")
+                else:
+                    print(f"❌ Page {next_page_num} link not found or not visible - reached end of pagination")
+            except Exception as e:
+                print(f"Page number click failed: {e}")
+            
+            # If page number doesn't work, that means we've reached the end
+            if not pagination_success:
+                print(f"📄 No more pages available after page {current_page}. Stopping pagination.")
+                break
     
-    print(f"✅ Successfully found role: {role_name}")
+    # Final assertion
+    assert role_found, f"Role '{target_role_name}' should be found in the paginated role list within {max_pages} pages"
+    
+    if role_found:
+        print(f"✅ Test completed successfully: Role '{target_role_name}' found on page {current_page}")
+    else:
+        print(f"❌ Role '{target_role_name}' not found after searching {current_page} pages")
 
 
 def test_TC_04_edit_existing_role(page: Page, admin_credentials, test_role_data):
