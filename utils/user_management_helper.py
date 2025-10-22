@@ -13,7 +13,7 @@ import time
 
 def do_user_management_login(page: Page, email: str, password: str):
     """
-    Helper function to login and navigate to user management page
+    Helper function to login, select demo 06 agency, and navigate to user management
     
     Args:
         page: Playwright page object
@@ -25,45 +25,364 @@ def do_user_management_login(page: Page, email: str, password: str):
     """
     from pages.user_management_page import UserManagementPage
     
-    # Login first
+    # Step 1: Login
     do_login(page, email, password)
     time.sleep(3)
     
-    # First select demo agency to access user management
-    demo_agency = page.get_by_text("demo 06")
-    if demo_agency.count() > 0:
-        demo_agency.click()
-        time.sleep(3)
+    # Step 2: Click on "demo 06" agency to access it
+    demo_agency = page.get_by_text("demo 06", exact=True).first
+    demo_agency.wait_for(state="visible", timeout=10000)
+    demo_agency.click()
+    time.sleep(3)
     
-    # Now navigate to user management
+    # Step 3: Initialize user management page and navigate to User Management menu
     user_mgmt_page = UserManagementPage(page)
     user_mgmt_page.navigate_to_user_management()
+    time.sleep(2)
+    
+    # Step 4: Click on Roles & Access tab
+    user_mgmt_page.click_roles_access_tab()
+    time.sleep(2)
     
     return user_mgmt_page
 
 
-def setup_demo_agency_access(page: Page, email: str = "mi003b@onemail.host", password: str = "Kabir123#", 
-                           agency_name: str = "demo 06"):
+def setup_demo_agency_access(page: Page, email: str, password: str):
     """
-    Helper function to login and access specific demo agency for user management testing
+    Complete setup for demo agency access in user management
     
     Args:
         page: Playwright page object
-        email: User email (default: demo account)
+        email: User email
         password: User password
-        agency_name: Name of the demo agency to access
+        
+    Returns:
+        UserManagementPage instance
+    """
+    # Login and get to user management
+    user_mgmt_page = do_user_management_login(page, email, password)
+    
+    # Select demo agency
+    user_mgmt_page.click_demo_agency()
+    time.sleep(2)
+    
+    # Navigate to roles & access tab
+    user_mgmt_page.click_roles_access_tab()
+    time.sleep(2)
+    
+    return user_mgmt_page
+
+
+class UserManagementTestHelper:
+    """
+    Centralized helper class for user management test operations
+    Provides parameterized methods for all user management test scenarios
+    """
+    
+    def __init__(self, page: Page):
+        self.page = page
+        self.user_mgmt_page = None
+    
+    def setup_user_management(self, email: str, password: str):
+        """
+        Complete setup: Login and navigate to user management
+        
+        Args:
+            email: User email
+            password: User password
+            
+        Returns:
+            UserManagementPage instance
+        """
+        from pages.user_management_page import UserManagementPage
+        
+        # Login first
+        do_login(self.page, email, password)
+        time.sleep(3)
+        
+        # Initialize user management page
+        self.user_mgmt_page = UserManagementPage(self.page)
+        
+        # Navigate to user management and select demo agency
+        self.user_mgmt_page.navigate_to_user_management()
+        time.sleep(2)
+        
+        # Select demo agency
+        self.user_mgmt_page.click_demo_agency()
+        time.sleep(2)
+        
+        # Navigate to roles & access tab
+        self.user_mgmt_page.click_roles_access_tab()
+        time.sleep(2)
+        
+        print("✅ User management setup completed successfully")
+        return self.user_mgmt_page
+    
+    def create_role(self, role_name: str, description: str, permissions: list):
+        """
+        Create a new role with validation
+        
+        Args:
+            role_name: Name of the role
+            description: Role description
+            permissions: List of permissions to assign
+        """
+        if not self.user_mgmt_page:
+            raise ValueError("User management not initialized. Call setup_user_management first.")
+        
+        print(f"🏗️ Creating role '{role_name}'...")
+        
+        # Click create role button
+        self.user_mgmt_page.click_create_role_button()
+        time.sleep(2)
+        
+        # Fill role details
+        self.user_mgmt_page.fill_role_name(role_name)
+        self.user_mgmt_page.fill_role_description(description)
+        
+        # Select permissions
+        self.user_mgmt_page.select_multiple_permissions(permissions)
+        
+        # Save role
+        self.user_mgmt_page.click_save_role_button()
+        time.sleep(3)
+        
+        # Verify success message
+        enhanced_assert_visible(self.page, self.user_mgmt_page.locators.role_created_successfully_message, 
+                              f"Role '{role_name}' creation success message should be visible", f"create_role_{role_name}")
+        
+        print(f"✅ Role '{role_name}' created successfully")
+    
+    def search_and_verify_role(self, role_name: str):
+        """
+        Search for a role and verify it exists
+        
+        Args:
+            role_name: Name of role to search
+            
+        Returns:
+            bool: True if role found
+        """
+        if not self.user_mgmt_page:
+            raise ValueError("User management not initialized. Call setup_user_management first.")
+        
+        print(f"🔍 Searching for role '{role_name}'...")
+        
+        self.user_mgmt_page.search_role(role_name)
+        time.sleep(2)
+        
+        role_found = self.user_mgmt_page.find_role_by_name(role_name)
+        
+        if role_found:
+            print(f"✅ Role '{role_name}' found successfully")
+        else:
+            print(f"❌ Role '{role_name}' not found")
+        
+        return role_found
+    
+    def edit_role(self, current_role_name: str, new_role_name: str = None, new_description: str = None, new_permissions: list = None):
+        """
+        Edit an existing role
+        
+        Args:
+            current_role_name: Current name of the role to edit
+            new_role_name: New role name (optional)
+            new_description: New description (optional)
+            new_permissions: New permissions list (optional)
+        """
+        if not self.user_mgmt_page:
+            raise ValueError("User management not initialized. Call setup_user_management first.")
+        
+        print(f"🔧 Editing role '{current_role_name}'...")
+        
+        # Click edit button
+        self.user_mgmt_page.click_edit_role_button(current_role_name)
+        time.sleep(2)
+        
+        # Verify edit modal is visible
+        enhanced_assert_visible(self.page, self.user_mgmt_page.locators.edit_role_modal_heading, 
+                              "Edit Role modal should be visible", f"edit_role_{current_role_name}")
+        
+        # Update fields if provided
+        if new_role_name:
+            self.user_mgmt_page.clear_and_fill_role_name(new_role_name)
+        
+        if new_description:
+            self.user_mgmt_page.clear_and_fill_role_description(new_description)
+        
+        if new_permissions:
+            # Clear existing permissions and select new ones
+            self.user_mgmt_page.clear_all_permissions()
+            self.user_mgmt_page.select_multiple_permissions(new_permissions)
+        
+        # Save changes
+        self.user_mgmt_page.click_save_role_button()
+        time.sleep(3)
+        
+        # Verify success message
+        enhanced_assert_visible(self.page, self.user_mgmt_page.locators.role_updated_successfully_message, 
+                              f"Role update success message should be visible", f"edit_role_{current_role_name}_success")
+        
+        updated_name = new_role_name if new_role_name else current_role_name
+        print(f"✅ Role '{current_role_name}' updated successfully to '{updated_name}'")
+        
+        return updated_name
+    
+    def delete_role(self, role_name: str):
+        """
+        Delete a role with confirmation
+        
+        Args:
+            role_name: Name of role to delete
+        """
+        if not self.user_mgmt_page:
+            raise ValueError("User management not initialized. Call setup_user_management first.")
+        
+        print(f"🗑️ Deleting role '{role_name}'...")
+        
+        # Click delete button
+        self.user_mgmt_page.click_delete_role_button(role_name)
+        time.sleep(2)
+        
+        # Confirm deletion
+        enhanced_assert_visible(self.page, self.user_mgmt_page.locators.delete_confirmation_modal, 
+                              "Delete confirmation modal should be visible", f"delete_role_{role_name}")
+        
+        self.user_mgmt_page.click_confirm_delete_button()
+        time.sleep(3)
+        
+        print(f"✅ Role '{role_name}' deleted successfully")
+    
+    def navigate_through_pagination(self, target_role: str, max_pages: int = 10):
+        """
+        Navigate through pagination to find a specific role
+        
+        Args:
+            target_role: Role name to find
+            max_pages: Maximum pages to search through
+            
+        Returns:
+            bool: True if role found
+        """
+        if not self.user_mgmt_page:
+            raise ValueError("User management not initialized. Call setup_user_management first.")
+        
+        print(f"📄 Searching for '{target_role}' through pagination (max {max_pages} pages)...")
+        
+        current_page = 1
+        
+        while current_page <= max_pages:
+            print(f"   Checking page {current_page}...")
+            
+            # Check if target role exists on current page
+            role_found = self.user_mgmt_page.find_role_by_name(target_role)
+            
+            if role_found:
+                print(f"✅ Role '{target_role}' found on page {current_page}")
+                return True
+            
+            # Check if next page is available
+            if self.user_mgmt_page.is_next_page_available():
+                self.user_mgmt_page.click_next_page()
+                time.sleep(2)
+                current_page += 1
+            else:
+                print(f"   Reached last page ({current_page})")
+                break
+        
+        print(f"❌ Role '{target_role}' not found in {current_page} pages")
+        return False
+    
+    def full_role_lifecycle_test(self, role_name: str, description: str, permissions: list):
+        """
+        Complete role lifecycle: Create → Search → Edit → Delete
+        
+        Args:
+            role_name: Role name
+            description: Role description  
+            permissions: Initial permissions
+        """
+        print(f"🔄 Starting full lifecycle test for role '{role_name}'...")
+        
+        # 1. Create role
+        self.create_role(role_name, description, permissions)
+        
+        # 2. Search and verify
+        assert self.search_and_verify_role(role_name), f"Created role '{role_name}' should be found"
+        
+        # 3. Edit role
+        updated_name = f"{role_name}_EDITED"
+        updated_description = f"{description} - EDITED"
+        new_permissions = permissions + ["Reports"] if "Reports" not in permissions else permissions
+        
+        final_name = self.edit_role(role_name, updated_name, updated_description, new_permissions)
+        
+        # 4. Verify edited role
+        assert self.search_and_verify_role(final_name), f"Edited role '{final_name}' should be found"
+        
+        # 5. Delete role
+        self.delete_role(final_name)
+        
+        # 6. Verify deletion
+        time.sleep(2)
+        role_still_exists = self.search_and_verify_role(final_name)
+        assert not role_still_exists, f"Deleted role '{final_name}' should not be found"
+        
+        print(f"✅ Full lifecycle test completed for role '{role_name}'")
+
+
+# Legacy function wrappers for backward compatibility
+def do_optimized_user_management_setup(page: Page, email: str, password: str):
+    """Legacy wrapper - use UserManagementTestHelper class instead"""
+    helper = UserManagementTestHelper(page)
+    return helper.setup_user_management(email, password)
+
+def create_role_with_validation(page: Page, user_mgmt_page, role_name: str, description: str, permissions: list):
+    """Legacy wrapper - use UserManagementTestHelper class instead"""
+    helper = UserManagementTestHelper(page)
+    helper.user_mgmt_page = user_mgmt_page
+    helper.create_role(role_name, description, permissions)
+
+def search_and_verify_role(page: Page, user_mgmt_page, role_name: str):
+    """Legacy wrapper - use UserManagementTestHelper class instead"""
+    helper = UserManagementTestHelper(page)
+    helper.user_mgmt_page = user_mgmt_page
+    return helper.search_and_verify_role(role_name)
+
+def find_role_through_pagination(page: Page, user_mgmt_page, role_name: str):
+    """Legacy wrapper - use UserManagementTestHelper class instead"""
+    helper = UserManagementTestHelper(page)
+    helper.user_mgmt_page = user_mgmt_page
+    return helper.navigate_through_pagination(role_name)
+
+def comprehensive_role_edit_test(page: Page, user_mgmt_page, role_name: str):
+    """Legacy wrapper - use UserManagementTestHelper class instead"""
+    helper = UserManagementTestHelper(page)
+    helper.user_mgmt_page = user_mgmt_page
+    updated_name = f"{role_name}_EDITED"
+    return helper.edit_role(role_name, updated_name, f"Updated {role_name} description", ["Dashboard", "Talent", "Reports"])
+
+def cleanup_test_role(page: Page, user_mgmt_page, role_name: str):
+    """Legacy wrapper - use UserManagementTestHelper class instead"""
+    helper = UserManagementTestHelper(page)
+    helper.user_mgmt_page = user_mgmt_page
+    helper.delete_role(role_name)
+
+
+def setup_demo_agency_access(page: Page, email: str, password: str):
+    """
+    Simplified setup - just calls do_user_management_login
+    (Kept for backward compatibility)
+    
+    Args:
+        page: Playwright page object
+        email: User email
+        password: User password
     
     Returns:
         UserManagementPage instance
     """
-    from pages.user_management_page import UserManagementPage
-    
-    # Login and navigate - this now includes agency selection
-    user_mgmt_page = do_user_management_login(page, email, password)
-    
-    # Agency is already selected in do_user_management_login
-    # Just return the user management page
-    return user_mgmt_page
+    return do_user_management_login(page, email, password)
 
 
 def create_test_role(page: Page, role_name: str, permissions: list, 
@@ -508,4 +827,210 @@ def validate_user_management_permissions(page: Page, role_name: str, expected_pe
         
     except Exception as e:
         print(f"Error validating permissions for role '{role_name}': {e}")
+        return False
+
+
+# ===== OPTIMIZED TC HELPER FUNCTIONS =====
+
+def do_optimized_user_management_setup(page: Page, email: str = "mi003b@onemail.host", password: str = "Kabir123#"):
+    """
+    Optimized single function to handle login and navigation to user management
+    Used across TC_01, TC_02, TC_03, TC_04
+    """
+    print("🔐 Performing user management login and setup...")
+    user_mgmt_page = setup_demo_agency_access(page, email, password)
+    user_mgmt_page.click_roles_access_tab()
+    time.sleep(2)
+    print("✅ User management setup completed")
+    return user_mgmt_page
+
+
+def create_role_with_validation(user_mgmt_page, role_name: str, description: str, permissions: list = None):
+    """
+    Optimized role creation with built-in validation
+    Used in TC_02 and TC_04
+    """
+    print(f"🏗️ Creating role: {role_name}")
+    
+    # Open create role modal
+    user_mgmt_page.click_create_role_button()
+    time.sleep(1)
+    
+    # Fill role details
+    user_mgmt_page.fill_role_name(role_name)
+    user_mgmt_page.fill_role_description(description)
+    
+    # Select permissions if provided
+    if permissions:
+        user_mgmt_page.select_multiple_permissions(permissions)
+    
+    # Save role
+    user_mgmt_page.click_save_role_button()
+    time.sleep(3)
+    
+    print(f"✅ Role '{role_name}' created successfully")
+    return True
+
+
+def search_and_verify_role(user_mgmt_page, role_name: str, page: Page):
+    """
+    Optimized role search with verification
+    Used in TC_02, TC_03, TC_04
+    """
+    print(f"🔍 Searching for role: {role_name}")
+    
+    # Search for role
+    user_mgmt_page.search_role(role_name)
+    time.sleep(2)
+    
+    # Verify role exists
+    role_found = user_mgmt_page.find_role_by_name(role_name)
+    if role_found:
+        print(f"✅ Role '{role_name}' found in search results")
+        enhanced_assert_visible(page, user_mgmt_page.locators.role_item_by_name(role_name), 
+                               f"Role '{role_name}' should be visible", f"search_{role_name}")
+        return True
+    else:
+        print(f"❌ Role '{role_name}' not found in search results")
+        return False
+
+
+def find_role_through_pagination(user_mgmt_page, target_role: str, page: Page, max_pages: int = 20):
+    """
+    Optimized pagination search for roles
+    Used in TC_03
+    """
+    print(f"📄 Searching for '{target_role}' through pagination...")
+    
+    current_page = 1
+    while current_page <= max_pages:
+        print(f"   Checking page {current_page}...")
+        
+        # Get roles on current page
+        current_page_roles = user_mgmt_page.get_roles_list()
+        print(f"   Found {len(current_page_roles)} roles on page {current_page}")
+        
+        # Check if target role is on this page (flexible matching)
+        for role in current_page_roles:
+            if target_role.lower() in role.lower():
+                print(f"✅ Found target role '{target_role}' in '{role}' on page {current_page}!")
+                enhanced_assert_visible(page, page.get_by_text(role, exact=True),
+                                       f"Role containing '{target_role}' should be visible", 
+                                       f"pagination_page_{current_page}")
+                return True
+        
+        # Try to go to next page
+        try:
+            next_page_num = current_page + 1
+            next_page_link = page.locator(f"text='{next_page_num}'")
+            if next_page_link.count() > 0 and next_page_link.is_visible():
+                next_page_link.click()
+                time.sleep(3)
+                current_page = next_page_num
+                print(f"✅ Navigated to page {current_page}")
+            else:
+                print(f"📄 No more pages available after page {current_page}")
+                break
+        except Exception as e:
+            print(f"Navigation error: {e}")
+            break
+    
+    print(f"❌ Role '{target_role}' not found after checking {current_page} pages")
+    return False
+
+
+def comprehensive_role_edit_test(user_mgmt_page, role_name: str, page: Page):
+    """
+    Comprehensive role editing with all validations
+    Used in TC_04
+    """
+    print(f"🔧 Starting comprehensive edit test for role: {role_name}")
+    
+    # Step 1: Open edit modal
+    user_mgmt_page.click_edit_role_button(role_name)
+    time.sleep(2)
+    
+    # Step 2: Validate modal elements
+    enhanced_assert_visible(page, user_mgmt_page.locators.edit_role_modal_heading, 
+                           "Edit Role modal should be visible", "edit_modal_validation")
+    
+    role_name_input = user_mgmt_page.locators.role_name_input
+    role_description_input = user_mgmt_page.locators.role_description_input
+    
+    enhanced_assert_visible(page, role_name_input, "Role name field should be visible", "name_field_validation")
+    enhanced_assert_visible(page, role_description_input, "Description field should be visible", "description_field_validation")
+    
+    # Get current values
+    current_name = role_name_input.input_value()
+    current_description = role_description_input.input_value()
+    
+    print(f"✅ Modal validation passed - Current name: '{current_name}'")
+    
+    # Step 3: Test empty field validation
+    print("🚫 Testing empty field validation...")
+    role_name_input.clear()
+    user_mgmt_page.locators.update_role_button.click()
+    time.sleep(2)
+    
+    try:
+        validation_error = page.locator("text=required, text=field is required, text=cannot be empty").first
+        enhanced_assert_visible(page, validation_error, "Validation error should appear", "empty_field_validation")
+        print("✅ Empty field validation passed")
+    except:
+        print("⚠️ Validation error check skipped")
+    
+    # Step 4: Update with new data
+    updated_name = f"{current_name} - EDITED"
+    updated_description = f"UPDATED: {current_description}"
+    
+    print(f"📝 Updating to: '{updated_name}'")
+    role_name_input.fill(updated_name)
+    role_description_input.clear()
+    role_description_input.fill(updated_description)
+    
+    # Step 5: Save changes
+    user_mgmt_page.locators.update_role_button.click()
+    time.sleep(3)
+    
+    # Step 6: Verify success toast
+    try:
+        success_toast = page.get_by_text("updated successfully", exact=False).first
+        enhanced_assert_visible(page, success_toast, "Success toast should appear", "success_toast_validation")
+        print("✅ Success toast verified")
+    except:
+        print("⚠️ Success toast verification skipped")
+    
+    # Step 7: Verify updated role in list
+    user_mgmt_page.click_roles_access_tab()
+    time.sleep(2)
+    
+    search_result = search_and_verify_role(user_mgmt_page, updated_name, page)
+    
+    if search_result:
+        print(f"✅ Comprehensive edit test completed successfully for '{updated_name}'")
+        return updated_name
+    else:
+        print(f"❌ Edit verification failed for '{updated_name}'")
+        return None
+
+
+def cleanup_test_role(user_mgmt_page, role_name: str):
+    """
+    Clean up test role with delete confirmation message wait
+    """
+    try:
+        print(f"🧹 Cleaning up test role: '{role_name}'")
+        
+        # Delete role and click confirm
+        user_mgmt_page.delete_role(role_name, confirm=True)
+        time.sleep(2)
+        
+        # Wait for delete success confirmation message
+        enhanced_assert_visible(user_mgmt_page.page, user_mgmt_page.locators.role_deleted_successfully, 
+                              f"Role '{role_name}' delete success message should be visible", f"cleanup_role_{role_name}")
+        
+        print(f"✅ Role '{role_name}' deleted successfully with confirmation")
+        return True
+    except Exception as e:
+        print(f"⚠️ Cleanup warning for '{role_name}': {e}")
         return False

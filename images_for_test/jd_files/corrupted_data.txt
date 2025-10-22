@@ -1,0 +1,16 @@
+Corrupted JD File for Testing Error Handling
+
+Position: ���Invalid Characters���
+Company: Test��Corp��
+Location: ���������
+
+This file contains corrupted or invalid characters: ���������������
+Special characters that might cause parsing issues: ���������������
+Binary data mixed with text: ������������������������
+
+Invalid data formats:
+- Salary: ���Not a number���
+- Age: ���Invalid age���
+- Date: ���Not a date���
+
+This file is designed to test error handling for corrupted or malformed data during file processing.

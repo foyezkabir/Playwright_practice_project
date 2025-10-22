@@ -1,0 +1,28 @@
+{
+  "job_description": {
+    "position_title": "Senior JavaScript Developer",
+    "company": "JSON Tech Solutions",
+    "work_style": "Remote",
+    "workplace": "Global Remote",
+    "salary": {
+      "min": 75000,
+      "max": 115000,
+      "currency": "USD"
+    },
+    "requirements": [
+      "5+ years JavaScript experience",
+      "React/Vue.js proficiency",
+      "Node.js backend experience",
+      "Database knowledge (SQL/NoSQL)"
+    ],
+    "benefits": [
+      "Health insurance",
+      "Flexible working hours",
+      "Professional development budget",
+      "Remote work equipment"
+    ],
+    "department": "Engineering",
+    "employment_type": "Full-time",
+    "hiring_status": "Open"
+  }
+}

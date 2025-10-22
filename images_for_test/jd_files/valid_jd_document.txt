@@ -1,0 +1,44 @@
+Job Description - Software Engineer
+
+Position: Senior Software Engineer
+Company: Tech Solutions Inc.
+Department: Engineering
+Location: Tokyo, Japan
+
+Job Summary:
+We are seeking a skilled Senior Software Engineer to join our dynamic development team. The successful candidate will be responsible for designing, developing, and maintaining high-quality software applications.
+
+Key Responsibilities:
+- Design and develop scalable software solutions
+- Collaborate with cross-functional teams
+- Code review and mentoring junior developers
+- Participate in architectural decisions
+- Ensure code quality and best practices
+
+Required Skills:
+- 5+ years of software development experience
+- Proficiency in Java, Python, or JavaScript
+- Experience with cloud platforms (AWS, Azure)
+- Strong problem-solving skills
+- Excellent communication abilities
+
+Preferred Qualifications:
+- Bachelor's degree in Computer Science or related field
+- Experience with microservices architecture
+- Knowledge of DevOps practices
+- Agile/Scrum methodology experience
+
+Compensation:
+- Competitive salary: $80,000 - $120,000
+- Health insurance
+- Flexible working arrangements
+- Professional development opportunities
+
+Application Process:
+Please submit your resume and cover letter through our online portal.
+
+Contact Information:
+HR Department: hr@techsolutions.com
+Phone: +81-3-1234-5678
+
+This is a valid JD document for testing file upload functionality.

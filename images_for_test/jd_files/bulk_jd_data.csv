@@ -1,0 +1,11 @@
+position_title,company,work_style,workplace,min_salary,max_salary,currency,department,employment_type,hiring_status
+"Senior Software Engineer","Tech Solutions Inc","Remote","Tokyo Office",80000,120000,"USD","Engineering","Full-time","Open"
+"Product Manager","Innovation Corp","Hybrid","Osaka Branch",90000,130000,"USD","Product","Full-time","Open"
+"UX Designer","Design Studio Ltd","On-site","Kyoto Studio",60000,90000,"USD","Design","Full-time","In Progress"
+"Data Scientist","Analytics Pro","Remote","Remote Office",100000,150000,"USD","Data Science","Full-time","Open"
+"DevOps Engineer","Cloud Systems","Hybrid","Tokyo HQ",85000,125000,"USD","Operations","Full-time","Open"
+"Frontend Developer","Web Solutions","Remote","Flexible Location",65000,95000,"USD","Engineering","Full-time","Open"
+"Backend Developer","Server Tech","On-site","Nagoya Office",70000,100000,"USD","Engineering","Full-time","In Progress"
+"QA Engineer","Quality First","Hybrid","Sapporo Branch",55000,80000,"USD","Quality Assurance","Full-time","Open"
+"Business Analyst","Strategy Corp","Remote","Remote Work",75000,105000,"USD","Business","Full-time","Open"
+"Mobile Developer","App Innovations","On-site","Fukuoka Office",70000,110000,"USD","Mobile","Full-time","Open"

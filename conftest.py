@@ -68,6 +68,8 @@ def get_dynamic_test_data(test_name: str, test_file: str) -> dict:
         return get_password_reset_test_data(test_name)
     elif "agency" in test_name.lower():
         return get_agency_test_data(test_name)
+    elif "jd" in test_name.lower() or "job" in test_name.lower():
+        return get_jd_test_data(test_name)
     else:
         return get_generic_test_data(test_name, module_name)
 
@@ -396,6 +398,8 @@ def capture_immediate_screenshot(page: Page, test_name: str, description: str = 
             folder = "email_verify_screenshots"
         elif "test_reset" in test_file:
             folder = "reset_pass_screenshots"
+        elif "test_jd.py" in test_file:
+            folder = "jd_screenshots"
         else:
             folder = "general_screenshots"
         
@@ -463,5 +467,242 @@ def pytest_sessionfinish(session, exitstatus):
     # Clear the results for next run
     test_results.clear()
     test_files_executed.clear()
+
+# JD TEST FIXTURES AND DATA MANAGEMENT
+# ============================================================================
+
+@pytest.fixture(scope="module")
+def jd_test_data():
+    """
+    Module-scoped fixture providing JD test data for all tests in a module.
+    Creates fresh data for each test module to ensure isolation.
+    """
+    from random_values_generator.random_jd_data import (
+        generate_complete_jd_data, 
+        generate_minimal_jd_data,
+        generate_multiple_jd_data,
+        generate_search_test_data,
+        generate_filter_test_data,
+        generate_invalid_jd_data_cases
+    )
+    
+    return {
+        'complete_jd': generate_complete_jd_data(),
+        'minimal_jd': generate_minimal_jd_data(),
+        'multiple_jds': generate_multiple_jd_data(5),
+        'search_data': generate_search_test_data(),
+        'filter_data': generate_filter_test_data(),
+        'invalid_cases': generate_invalid_jd_data_cases()
+    }
+
+@pytest.fixture(scope="function")
+def fresh_jd_data():
+    """
+    Function-scoped fixture providing fresh JD data for each test.
+    Use this when tests need unique data that won't conflict.
+    """
+    from random_values_generator.random_jd_data import generate_complete_jd_data
+    return generate_complete_jd_data()
+
+@pytest.fixture(scope="function")
+def jd_bulk_data():
+    """
+    Function-scoped fixture providing bulk JD data for performance testing.
+    """
+    from random_values_generator.random_jd_data import generate_bulk_jd_data
+    return generate_bulk_jd_data(20)
+
+@pytest.fixture(scope="function")
+def jd_validation_data():
+    """
+    Function-scoped fixture providing validation test cases for JD testing.
+    """
+    from random_values_generator.random_jd_data import (
+        generate_invalid_jd_data_cases,
+        generate_edge_case_jd_data
+    )
+    
+    return {
+        'invalid_cases': generate_invalid_jd_data_cases(),
+        'edge_cases': generate_edge_case_jd_data()
+    }
+
+@pytest.fixture(scope="session")
+def jd_cleanup_tracker():
+    """
+    Session-scoped fixture to track created JDs for cleanup.
+    Maintains a list of JD IDs that need to be cleaned up after tests.
+    """
+    created_jds = []
+    yield created_jds
+    
+    # Cleanup logic would go here if we had API access
+    # For now, we'll just log what needs cleanup
+    if created_jds:
+        print(f"\n🧹 JDs created during testing (for manual cleanup): {len(created_jds)}")
+        for jd_id in created_jds:
+            print(f"   - JD ID: {jd_id}")
+
+@pytest.fixture(scope="function")
+def jd_test_context(page, jd_cleanup_tracker):
+    """
+    Function-scoped fixture providing JD test context with cleanup tracking.
+    Use this fixture when you need to track JDs created during testing.
+    """
+    context = {
+        'page': page,
+        'created_jds': [],
+        'cleanup_tracker': jd_cleanup_tracker
+    }
+    
+    yield context
+    
+    # Add created JDs to session cleanup tracker
+    jd_cleanup_tracker.extend(context['created_jds'])
+
+@pytest.fixture(scope="function")
+def jd_search_context():
+    """
+    Function-scoped fixture providing search-specific test context.
+    """
+    from random_values_generator.random_jd_data import generate_search_test_data
+    
+    search_data = generate_search_test_data()
+    return {
+        'search_terms': [
+            search_data['searchable_jd'].position_title.split()[0],
+            search_data['searchable_jd'].company.split()[0],
+            search_data['unique_jd'].department,
+            "NonExistentTerm12345"  # For no results testing
+        ],
+        'expected_results': {
+            'searchable': search_data['searchable_jd'],
+            'unique': search_data['unique_jd'],
+            'common': search_data['common_jd']
+        }
+    }
+
+@pytest.fixture(scope="function")
+def jd_filter_context():
+    """
+    Function-scoped fixture providing filter-specific test context.
+    """
+    from random_values_generator.random_jd_data import generate_filter_test_data
+    
+    filter_data = generate_filter_test_data()
+    return {
+        'filter_combinations': [
+            {'work_style': 'Remote'},
+            {'hiring_status': 'Open'},
+            {'employment_type': 'Full-time'},
+            {'work_style': 'Remote', 'hiring_status': 'Open'},
+            {'work_style': 'Hybrid', 'employment_type': 'Part-time'}
+        ],
+        'test_jds': filter_data
+    }
+
+@pytest.fixture(scope="function")
+def jd_pagination_context():
+    """
+    Function-scoped fixture providing pagination test context.
+    """
+    return {
+        'page_sizes': [5, 10, 20, 50],
+        'navigation_patterns': [
+            'first_to_last',
+            'last_to_first', 
+            'random_pages',
+            'sequential_forward',
+            'sequential_backward'
+        ]
+    }
+
+# JD DATA MANAGEMENT UTILITIES
+# ============================================================================
+
+def get_jd_test_data(test_name: str) -> dict:
+    """
+    Returns JD-specific test data based on test name patterns.
+    """
+    if "create" in test_name.lower() or "add" in test_name.lower():
+        return {
+            "pre_conditions": "User is logged in and on JD management page",
+            "test_data": "Valid JD creation data with all required fields",
+            "test_steps": "1. Click Add JD button\n2. Fill required fields\n3. Save JD",
+            "expected_result": "JD should be created successfully with success message",
+            "actual_result": "JD created successfully"
+        }
+    elif "edit" in test_name.lower() or "update" in test_name.lower():
+        return {
+            "pre_conditions": "User is logged in and JD exists in the system",
+            "test_data": "Updated JD information",
+            "test_steps": "1. Navigate to JD list\n2. Click edit on existing JD\n3. Modify fields\n4. Save changes",
+            "expected_result": "JD should be updated successfully",
+            "actual_result": "JD updated successfully"
+        }
+    elif "delete" in test_name.lower():
+        return {
+            "pre_conditions": "User is logged in and JD exists in the system",
+            "test_data": "Existing JD to delete",
+            "test_steps": "1. Navigate to JD list\n2. Click delete on JD\n3. Confirm deletion",
+            "expected_result": "JD should be deleted successfully",
+            "actual_result": "JD deleted successfully"
+        }
+    elif "search" in test_name.lower():
+        return {
+            "pre_conditions": "User is logged in and JDs exist in the system",
+            "test_data": "Search terms for JD lookup",
+            "test_steps": "1. Navigate to JD list\n2. Enter search term\n3. Execute search",
+            "expected_result": "Relevant JDs should be displayed in search results",
+            "actual_result": "Search results displayed correctly"
+        }
+    elif "filter" in test_name.lower():
+        return {
+            "pre_conditions": "User is logged in and JDs exist with different attributes",
+            "test_data": "Filter criteria (work style, status, etc.)",
+            "test_steps": "1. Navigate to JD list\n2. Open filters\n3. Apply filter criteria",
+            "expected_result": "JDs matching filter criteria should be displayed",
+            "actual_result": "Filtered results displayed correctly"
+        }
+    elif "validation" in test_name.lower() or "required" in test_name.lower():
+        return {
+            "pre_conditions": "User is on JD creation/edit form",
+            "test_data": "Invalid or missing field data",
+            "test_steps": "1. Open JD form\n2. Leave required fields empty or enter invalid data\n3. Attempt to save",
+            "expected_result": "Appropriate validation error messages should be displayed",
+            "actual_result": "Validation errors displayed correctly"
+        }
+    elif "upload" in test_name.lower() or "file" in test_name.lower():
+        return {
+            "pre_conditions": "User is on JD page with file upload capability",
+            "test_data": "Test files (valid and invalid formats)",
+            "test_steps": "1. Click upload file button\n2. Select test file\n3. Upload file",
+            "expected_result": "File should be processed according to format validation rules",
+            "actual_result": "File upload processed correctly"
+        }
+    elif "pagination" in test_name.lower():
+        return {
+            "pre_conditions": "User is logged in and multiple JDs exist (more than page size)",
+            "test_data": "Large dataset of JDs",
+            "test_steps": "1. Navigate to JD list\n2. Navigate through pages\n3. Verify pagination controls",
+            "expected_result": "Pagination should work correctly with proper navigation",
+            "actual_result": "Pagination functionality verified"
+        }
+    elif "bulk" in test_name.lower():
+        return {
+            "pre_conditions": "User is logged in and multiple JDs exist",
+            "test_data": "Multiple JDs for bulk operations",
+            "test_steps": "1. Navigate to JD list\n2. Select multiple JDs\n3. Perform bulk operation",
+            "expected_result": "Bulk operation should be applied to all selected JDs",
+            "actual_result": "Bulk operation completed successfully"
+        }
+    else:
+        return {
+            "pre_conditions": "User is logged in and on JD management page",
+            "test_data": "JD test data",
+            "test_steps": "1. Navigate to JD page\n2. Perform JD operations\n3. Verify results",
+            "expected_result": "JD functionality should work as expected",
+            "actual_result": "JD functionality verified"
+        }
 
 # Note: Screenshots are automatically captured for failed tests in pytest_runtest_makereport hook above

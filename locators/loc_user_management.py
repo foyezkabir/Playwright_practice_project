@@ -18,8 +18,8 @@ class UserManagementLocators:
         # ===== NAVIGATION & MAIN PAGE ELEMENTS =====
         self.user_management_menu = page.get_by_text("User Management")
         self.user_management_heading = page.get_by_text("User Management")
-        self.roles_access_tab = page.locator("a[href*='role-list']")
-        self.user_list_tab = page.locator("a[href*='user-list']")
+        self.roles_access_tab = page.get_by_role("link", name="Roles & Access")
+        self.user_list_tab = page.get_by_role("link", name="User list")
         
         # Demo agency selection
         self.demo_06_agency = page.get_by_text("demo 06")
@@ -64,16 +64,16 @@ class UserManagementLocators:
         self.role_row = lambda role_name: page.locator(f"tr:has-text('{role_name}'), .role-item:has-text('{role_name}')")
         self.role_item_by_name = lambda role_name: page.get_by_text(role_name, exact=True)
         
-        # Role actions
-        self.role_actions_dropdown = lambda role_name: page.locator(f"tr:has-text('{role_name}') .dropdown, .role-item:has-text('{role_name}') .actions")
-        self.three_dots_menu = lambda role_name: page.locator(f"tr:has-text('{role_name}') button[aria-label*='menu'], tr:has-text('{role_name}') .dropdown-toggle")
+        # Role actions - Direct access to Edit/Delete buttons (no dropdown)
+        self.edit_role_button_by_name = lambda role_name: page.get_by_role("row", name=f"{role_name} View Policies").get_by_role("button", name="Edit")
+        self.delete_role_button_by_name = lambda role_name: page.get_by_role("row", name=f"{role_name} View Policies").get_by_role("button", name="Delete")
         
-        # Edit role
+        # Edit role modal elements
         self.edit_role_button = page.get_by_role("button", name="Edit")
         self.edit_role_modal_heading = page.get_by_role("heading", name="Edit Role")
-        self.update_role_button = page.get_by_role("button", name="Update")
+        self.update_role_button = page.get_by_role("button", name="Update Role")
         
-        # Delete role
+        # Delete role confirmation
         self.delete_role_button = page.get_by_role("button", name="Delete")
         self.delete_confirmation_modal = page.get_by_role("dialog")
         self.delete_confirmation_heading = page.get_by_role("heading", name="Delete Role")
@@ -162,9 +162,9 @@ class UserManagementLocators:
         self.toast_message = page.locator(".toast, .alert, [class*='toast'], [class*='alert']")
         
         # ===== PAGINATION & LOADING =====
-        self.pagination_container = page.locator(".pagination, [class*='pagination']")
-        self.next_page_button = page.get_by_role("button", name="Next")
-        self.previous_page_button = page.get_by_role("button", name="Previous")
+        self.pagination_container = page.locator("ul.pagination-container")
+        self.next_page_button = page.locator("ul.pagination-container > li:last-child:not(.disabled)")
+        self.previous_page_button = page.locator("ul.pagination-container > li:first-child:not(.disabled)")
         self.page_number = lambda page_num: page.get_by_role("button", name=str(page_num))
         
         self.loading_spinner = page.locator(".loading, .spinner, [class*='loading']")
@@ -175,6 +175,11 @@ class UserManagementLocators:
         self.required_field_indicator = page.locator(".required, [class*='required'], .mandatory")
         self.form_validation_error = page.locator(".error, .validation-error, [class*='error']")
         self.modal_overlay = page.locator(".modal-overlay, .backdrop")
+        
+        # Specific validation error messages
+        self.role_name_required_error = page.get_by_text("Role name is required")
+        self.role_name_validation_error = page.locator("[data-testid='role-name-error'], .role-name-error")
+        self.description_validation_error = page.locator("[data-testid='description-error'], .description-error")
         
         # Table headers for sorting
         self.role_name_header = page.get_by_role("columnheader", name="Role Name")

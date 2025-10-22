@@ -1,0 +1,27 @@
+Job Description with Special Characters
+
+Position: Senior Software Engineer (Full-Stack) - 2024/2025
+Company: Tech Solutions & Associates Ltd.
+Location: Tokyo, Japan 🇯🇵
+
+Salary Range: ¥8,000,000 - ¥12,000,000 per year
+Benefits: Health insurance + bonus (up to 20%)
+
+Requirements:
+• 5+ years of experience
+• Proficiency in JavaScript/TypeScript
+• Knowledge of React.js & Node.js
+• Database skills (MySQL/PostgreSQL)
+• Cloud experience (AWS/Azure)
+
+Special Characters Test:
+- Accented characters: café, résumé, naïve
+- Currency symbols: $, €, £, ¥, ₹
+- Mathematical symbols: ±, ≤, ≥, ≠, ∞
+- Punctuation: "quotes", 'apostrophes', (parentheses), [brackets]
+- Symbols: @, #, %, &, *, +, =, |, \, /, ~, `
+
+Contact: hr@tech-solutions.co.jp
+Phone: +81-3-1234-5678
+
+This file tests handling of various special characters and Unicode symbols.

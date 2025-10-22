@@ -134,20 +134,19 @@ class UserManagementPage:
         """Check if a role exists in the current view"""
         return self.locators.role_item_by_name(role_name).count() > 0
 
-    def click_role_actions_menu(self, role_name: str):
-        """Click the actions menu (three dots) for a specific role"""
-        try:
-            self.locators.three_dots_menu(role_name).click()
-            time.sleep(1)
-        except:
-            # Fallback to row-level actions
-            self.locators.role_actions_dropdown(role_name).click()
-            time.sleep(1)
+    def click_edit_role_button(self, role_name: str):
+        """Click the Edit button for a specific role directly"""
+        self.locators.edit_role_button_by_name(role_name).click()
+        time.sleep(1)
+
+    def click_delete_role_button(self, role_name: str):
+        """Click the Delete button for a specific role directly"""
+        self.locators.delete_role_button_by_name(role_name).click()
+        time.sleep(1)
 
     def edit_role(self, role_name: str, new_role_name: str = None, new_permissions: list = None):
         """Edit an existing role"""
-        self.click_role_actions_menu(role_name)
-        self.locators.edit_role_button.click()
+        self.click_edit_role_button(role_name)
         time.sleep(1)
         
         if new_role_name:
@@ -161,8 +160,7 @@ class UserManagementPage:
 
     def delete_role(self, role_name: str, confirm: bool = True):
         """Delete a specific role"""
-        self.click_role_actions_menu(role_name)
-        self.locators.delete_role_button.click()
+        self.click_delete_role_button(role_name)
         time.sleep(1)
         
         if confirm:
@@ -230,9 +228,10 @@ class UserManagementPage:
         return self.locators.user_item_by_email(user_email).count() > 0
 
     def click_user_actions_menu(self, user_email: str):
-        """Click the actions menu (three dots) for a specific user"""
+        """Click the actions menu for a specific user"""
         try:
-            self.locators.user_three_dots_menu(user_email).click()
+            # Try direct button approach first
+            self.page.get_by_role("row").filter(has_text=user_email).get_by_role("button").first.click()
             time.sleep(1)
         except:
             # Fallback to row-level actions
@@ -365,11 +364,28 @@ class UserManagementPage:
     # ===== PAGINATION HELPER METHODS =====
     def navigate_to_next_page(self) -> bool:
         """Navigate to next page if available"""
-        if self.locators.next_page_button.count() > 0 and self.locators.next_page_button.is_enabled():
-            self.locators.next_page_button.click()
-            time.sleep(2)
-            return True
-        return False
+        try:
+            # Check if next button exists and is not disabled
+            if self.locators.next_page_button.count() > 0:
+                print(f"-> Next button found, clicking to navigate to next page...")
+                self.locators.next_page_button.click()
+                # Wait 2 seconds for page content to reload
+                print(f"-> Waiting 2 seconds for page to load...")
+                time.sleep(2)
+                # Wait for pagination to reappear after DOM update
+                try:
+                    self.page.locator("ul.pagination-container").wait_for(state="visible", timeout=5000)
+                    print(f"-> Pagination reappeared, continuing search...")
+                except:
+                    print(f"-> Warning: Pagination did not reappear, but continuing anyway...")
+                time.sleep(1)  # Extra buffer for stability
+                return True
+            else:
+                print(f"-> No more pages available (next button is disabled or not found)")
+                return False
+        except Exception as e:
+            print(f"Error navigating to next page: {e}")
+            return False
 
     def navigate_to_previous_page(self) -> bool:
         """Navigate to previous page if available"""
@@ -382,6 +398,7 @@ class UserManagementPage:
     def find_item_in_paginated_list(self, item_name: str, search_type: str = "role") -> bool:
         """
         Find an item (role or user) across paginated results
+        Simple approach: Search current page -> if not found, click next -> repeat
         
         Args:
             item_name: Name of the role or email of the user to find
@@ -390,27 +407,45 @@ class UserManagementPage:
         Returns:
             True if item found, False otherwise
         """
-        max_pages = 10
+        print(f"🔍 Starting search for {search_type}: '{item_name}'")
+        
+        max_pages = 100  # Allow up to 100 pages
         current_page = 0
         
         while current_page < max_pages:
             current_page += 1
+            print(f"🔍 Searching page {current_page}...")
             
-            # Search in current page
+            # Check if item exists on current page
             if search_type == "role":
-                found = self.find_role_by_name(item_name)
+                role_element = self.page.get_by_text(item_name, exact=True)
+                if role_element.count() > 0:
+                    print(f"✅ Found role '{item_name}' on page {current_page}")
+                    return True
             else:
-                found = self.find_user_by_email(item_name)
-                
-            if found:
-                print(f"✅ Found {search_type} '{item_name}' on page {current_page}")
-                return True
+                user_element = self.page.get_by_text(item_name, exact=True)
+                if user_element.count() > 0:
+                    print(f"✅ Found user '{item_name}' on page {current_page}")
+                    return True
             
-            # Try to go to next page
-            if not self.navigate_to_next_page():
-                break
+            print(f"   Not found on page {current_page}, trying next page...")
+            
+            # Click next button if available
+            next_button = self.page.locator("ul.pagination-container > li:last-child:not(.disabled)")
+            pagination_count = self.page.locator("ul.pagination-container").count()
+            next_count = next_button.count()
+            
+            print(f"   DEBUG: pagination containers: {pagination_count}, next buttons: {next_count}")
+            
+            if next_count > 0:
+                print(f"   -> Clicking next button...")
+                next_button.click()
+                time.sleep(2)  # Wait for page to load
+            else:
+                print(f"❌ No more pages available. '{item_name}' not found after {current_page} pages.")
+                return False
                 
-        print(f"❌ {search_type.title()} '{item_name}' not found after searching {current_page} pages")
+        print(f"❌ Reached maximum pages ({max_pages}). '{item_name}' not found.")
         return False
 
     # ===== CLEANUP METHODS =====

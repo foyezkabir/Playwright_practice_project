@@ -1,0 +1,6 @@
+This is a file with an invalid extension (.xyz) for testing format validation.
+
+Position: Test Position
+Company: Test Company
+
+This file should be rejected by the upload system due to invalid format.
