@@ -252,100 +252,114 @@ class JDPage:
         self.locators.japanese_level_dropdown.click()
         time.sleep(2)  # Give more time for dropdown options to load
         level_lower = level.lower()
+        
         try:
+            # Click the first visible .option-text element with the matching text
             if level_lower == "native":
-                self.locators.native_level_option.click()
+                self.page.locator(".option-text:has-text('Native')").first.click()
             elif level_lower == "fluent":
-                self.locators.fluent_level_option.click()
+                self.page.locator(".option-text:has-text('Fluent')").first.click()
             elif level_lower == "conversational":
-                self.locators.conversational_level_option.click()
+                self.page.locator(".option-text:has-text('Conversational')").first.click()
             elif level_lower == "basic":
-                self.locators.basic_level_option.click()
+                self.page.locator(".option-text:has-text('Basic')").first.click()
             else:
-                # Default to Basic if level not recognized
-                self.locators.basic_level_option.click()
-        except:
-            # If clicking fails, try Basic as fallback
-            try:
-                self.locators.basic_level_option.click()
-            except:
-                print(f"⚠️ Could not select Japanese level: {level}")
+                self.page.locator(".option-text:has-text('Basic')").first.click()
+        except Exception as e:
+            print(f"⚠️ Could not select Japanese level: {level}, error: {e}")
 
     def select_english_level(self, level: str):
         """Select English language level from dropdown"""
         self.locators.english_level_dropdown.click()
-        time.sleep(1)
+        time.sleep(2)  # Wait for dropdown to open
         level_lower = level.lower()
+        
+        # Click the first visible .option-text element with the matching text
         if level_lower == "native":
-            self.locators.native_level_option.click()
+            self.page.locator(".option-text:has-text('Native')").first.click()
         elif level_lower == "fluent":
-            self.locators.fluent_level_option.click()
+            self.page.locator(".option-text:has-text('Fluent')").first.click()
         elif level_lower == "conversational":
-            self.locators.conversational_level_option.click()
+            self.page.locator(".option-text:has-text('Conversational')").first.click()
         elif level_lower == "basic":
-            self.locators.basic_level_option.click()
+            self.page.locator(".option-text:has-text('Basic')").first.click()
         else:
-            # Default to Basic if level not recognized
-            self.locators.basic_level_option.click()
+            self.page.locator(".option-text:has-text('Basic')").first.click()
 
     def select_priority_grade(self, priority: str):
         """Select priority grade from dropdown"""
-        self.locators.priority_grade_dropdown.click()
+        # Scroll to priority grade field to ensure it's visible
+        self.locators.priority_grade_dropdown.scroll_into_view_if_needed()
         time.sleep(1)
+        
+        self.locators.priority_grade_dropdown.click()
+        time.sleep(2)  # Increased wait time for dropdown to load
+        
         priority_upper = priority.upper()
+        
         if priority_upper == "AAA":
-            self.locators.aaa_priority_option.click()
+            self.page.locator(".option-text").filter(has_text="AAA").first.click()
         elif priority_upper == "AA":
-            self.locators.aa_priority_option.click()
+            self.page.locator(".option-text").filter(has_text="AA").first.click()
         elif priority_upper == "A":
-            self.locators.a_priority_option.click()
+            self.page.locator(".option-text").filter(has_text="A").first.click()
         elif priority_upper == "BBB":
-            self.locators.bbb_priority_option.click()
+            self.page.locator(".option-text").filter(has_text="BBB").first.click()
         elif priority_upper == "BB":
-            self.locators.bb_priority_option.click()
+            self.page.locator(".option-text").filter(has_text="BB").first.click()
         else:
             # Default to A if not recognized
-            self.locators.a_priority_option.click()
+            self.page.locator(".option-text").filter(has_text="A").first.click()
 
     def select_hiring_status(self, status: str):
         """Select hiring status from dropdown"""
-        self.locators.hiring_status_dropdown.click()
+        self.locators.hiring_status_dropdown.scroll_into_view_if_needed()
         time.sleep(1)
+        
+        self.locators.hiring_status_dropdown.click()
+        time.sleep(2)
+        
         status_lower = status.lower()
+        
         if status_lower == "open":
-            self.locators.open_status_option.click()
+            self.page.locator(".option-text").filter(has_text="Open").first.click()
         elif status_lower == "urgent":
-            self.locators.urgent_status_option.click()
+            self.page.locator(".option-text").filter(has_text="Urgent").first.click()
         elif status_lower == "closed":
-            self.locators.closed_status_option.click()
+            self.page.locator(".option-text").filter(has_text="Closed").first.click()
         else:
             # Default to Open if not recognized
-            self.locators.open_status_option.click()
+            self.page.locator(".option-text").filter(has_text="Open").first.click()
 
     def select_employment_type(self, employment_type: str):
         """Select employment type from dropdown"""
-        self.locators.employment_type_dropdown.click()
+        self.locators.employment_type_dropdown.scroll_into_view_if_needed()
         time.sleep(1)
+        
+        self.locators.employment_type_dropdown.click()
+        time.sleep(2)
+        
         type_lower = employment_type.lower()
+        
         if type_lower == "part-time" or type_lower == "parttime":
-            self.locators.part_time_option.click()
+            self.page.locator(".option-text").filter(has_text="Part-time").first.click()
         elif type_lower == "permanent":
-            self.locators.permanent_option.click()
+            self.page.locator(".option-text").filter(has_text="Permanent").first.click()
         elif type_lower == "self-employed":
-            self.locators.self_employed_option.click()
+            self.page.locator(".option-text").filter(has_text="Self-employed").first.click()
         elif type_lower == "freelance":
-            self.locators.freelance_option.click()
+            self.page.locator(".option-text").filter(has_text="Freelance").first.click()
         elif type_lower == "contract":
-            self.locators.contract_option.click()
+            self.page.locator(".option-text").filter(has_text="Contract").first.click()
         elif type_lower == "internship":
-            self.locators.internship_option.click()
+            self.page.locator(".option-text").filter(has_text="Internship").first.click()
         elif type_lower == "apprenticeship":
-            self.locators.apprenticeship_option.click()
+            self.page.locator(".option-text").filter(has_text="Apprenticeship").first.click()
         elif type_lower == "indirect contract":
-            self.locators.indirect_contract_option.click()
+            self.page.locator(".option-text").filter(has_text="Indirect Contract").first.click()
         else:
             # Default to Permanent if not recognized
-            self.locators.permanent_option.click()
+            self.page.locator(".option-text").filter(has_text="Permanent").first.click()
 
     def select_client(self, client_name: str):
         """Select client from dropdown (conditional based on company selection)"""

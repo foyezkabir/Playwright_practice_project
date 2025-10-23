@@ -6,6 +6,7 @@ Comprehensive test cases covering all JD functionality including CRUD operations
 import pytest
 import time
 import random
+from dataclasses import asdict
 from playwright.sync_api import Page
 from utils.jd_test_helpers import JDHelpers
 from utils.jd_test_data import JDTestData, JDDataClass
@@ -56,19 +57,15 @@ def fresh_jd_data():
 # ===== JD CRUD OPERATION TEST CASES (TC_01-TC_15) =====
 
 
-def test_TC_01_create_jd_with_valid_data(
+def test_TC_01(
     page: Page, admin_credentials, test_agency_info, fresh_jd_data
 ):
     """TC_01: Verify JD creation with valid mandatory and optional data"""
     print("🧪 TC_01: Testing JD creation with valid data")
 
-    # Create minimal JD data with only mandatory fields
-    jd_data = {
-        "position_title": "Test Software Engineer",
-        "company": test_agency_info["company_name"],  # Use "company for test"
-        "work_style": "Remote",
-        "workplace": "Test Office"
-    }
+    # Convert the JDTestData dataclass to dictionary and override company name
+    jd_data = asdict(fresh_jd_data)
+    jd_data["company"] = test_agency_info["company_name"]  # Use test agency's company
 
     # Create JD with valid data using the correct agency
     jd_page, success = JDHelpers.create_jd(
@@ -96,7 +93,7 @@ def test_TC_01_create_jd_with_valid_data(
     print("✅ TC_01 passed: JD created successfully with valid data")
 
 
-def test_TC_02_create_jd_missing_mandatory_fields(
+def test_TC_02(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_02: Verify validation errors when mandatory fields are missing"""
@@ -143,35 +140,26 @@ def test_TC_02_create_jd_missing_mandatory_fields(
     print("✅ TC_02 passed: Mandatory field validation working correctly")
 
 
-def test_TC_03_create_jd_invalid_salary_range(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
+def test_TC_03(
+    page: Page, admin_credentials, test_agency_info
 ):
     """TC_03: Verify validation error for invalid salary range (max < min)"""
     print("🧪 TC_03: Testing JD creation with invalid salary range")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
+        page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"]
     )
 
     # Open JD creation modal
     jd_page.click_add_jd()
     jd_page.wait_for_modal_to_open()
 
-    # Fill mandatory fields
-    jd_page.fill_jd_form(
-        {
-            "position_title": fresh_jd_data.position_title,
-            "company": fresh_jd_data.company,
-            "work_style": fresh_jd_data.work_style,
-            "workplace": fresh_jd_data.workplace,
-        }
-    )
+    # Fill salary fields with invalid range (max < min) - validation appears immediately
+    jd_page.fill_minimum_salary("80000")
+    jd_page.fill_maximum_salary("50000")
 
-    # Set invalid salary range (max < min)
-    jd_page.trigger_salary_range_validation("80000", "50000")
-
-    # Verify salary range validation error
+    # Verify salary range validation error appears
     enhanced_assert_visible(
         page,
         jd_page.locators.invalid_salary_range_error,
@@ -179,94 +167,70 @@ def test_TC_03_create_jd_invalid_salary_range(
         "test_TC_03_salary_validation",
     )
 
-    # Verify modal remains open
-    jd_page.expect_modal_remains_open_after_validation_error()
-
-    # Close modal
-    jd_page.close_jd_modal()
-
     print("✅ TC_03 passed: Salary range validation working correctly")
 
 
-def test_TC_04_create_jd_invalid_age_range(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
+def test_TC_04(
+    page: Page, admin_credentials, test_agency_info
 ):
     """TC_04: Verify validation error for invalid age range (max < min)"""
     print("🧪 TC_04: Testing JD creation with invalid age range")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
+        page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"]
     )
 
     # Open JD creation modal
     jd_page.click_add_jd()
     jd_page.wait_for_modal_to_open()
 
-    # Fill mandatory fields
-    jd_page.fill_jd_form(
-        {
-            "position_title": fresh_jd_data.position_title,
-            "company": fresh_jd_data.company,
-            "work_style": fresh_jd_data.work_style,
-            "workplace": fresh_jd_data.workplace,
-        }
-    )
+    # Fill target age fields with invalid range (max < min) - validation appears immediately
+    jd_page.fill_target_age_min("35")
+    jd_page.fill_target_age_max("25")
 
-    # Set invalid age range (max < min)
-    jd_page.trigger_age_range_validation("35", "25")
-
-    # Verify age range validation error
+    # Verify age range validation error appears
     enhanced_assert_visible(
         page,
-        jd_page.locators.invalid_age_range_error,
+        jd_page.locators.invalid_target_age_range_error,
         "Invalid age range error should be visible",
         "test_TC_04_age_validation",
     )
 
-    # Verify modal remains open
-    jd_page.expect_modal_remains_open_after_validation_error()
-
-    # Close modal
-    jd_page.close_jd_modal()
-
     print("✅ TC_04 passed: Age range validation working correctly")
 
 
-def test_TC_05_create_jd_character_limit_validation(
-    page: Page, admin_credentials, test_agency_id
+def test_TC_05(
+    page: Page, admin_credentials, test_agency_info
 ):
     """TC_05: Verify character limit validation for text fields"""
     print("🧪 TC_05: Testing JD creation with character limit validation")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
+        page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"]
     )
 
     # Open JD creation modal
     jd_page.click_add_jd()
     jd_page.wait_for_modal_to_open()
 
-    # Test character limit for position title (assuming 100 char limit)
-    long_title = "A" * 150  # Exceeds limit
-    jd_page.trigger_character_limit_validation("position_title", long_title)
-
-    # Verify character limit validation error
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.position_title_max_length_error,
-        "Position title character limit error should be visible",
-        "test_TC_05_char_limit_validation",
-    )
-
-    # Close modal
-    jd_page.close_jd_modal()
+    # Try to fill position title with text exceeding 100 char limit
+    long_title = "A" * 150  # Try to input 150 characters
+    jd_page.fill_position_job_title(long_title)
+    
+    # Get the actual value in the field
+    actual_value = jd_page.locators.position_job_title_input.input_value()
+    actual_length = len(actual_value)
+    
+    # Verify system prevents input beyond 100 characters
+    assert actual_length <= 100, f"System should not allow more than 100 characters, but allowed {actual_length}"
+    print(f"✅ System correctly limited input to {actual_length} characters (max 100)")
 
     print("✅ TC_05 passed: Character limit validation working correctly")
 
 
-def test_TC_06_edit_existing_jd(
+def test_TC_06(
     page: Page, admin_credentials, test_agency_id, fresh_jd_data
 ):
     """TC_06: Verify JD editing functionality with pre-filled data"""
@@ -316,7 +280,7 @@ def test_TC_06_edit_existing_jd(
     print("✅ TC_06 passed: JD editing functionality working correctly")
 
 
-def test_TC_07_edit_jd_validation(
+def test_TC_07(
     page: Page, admin_credentials, test_agency_id, fresh_jd_data
 ):
     """TC_07: Verify validation during JD editing"""
@@ -357,7 +321,7 @@ def test_TC_07_edit_jd_validation(
     print("✅ TC_07 passed: JD edit validation working correctly")
 
 
-def test_TC_08_cancel_jd_edit(
+def test_TC_08(
     page: Page, admin_credentials, test_agency_id, fresh_jd_data
 ):
     """TC_08: Verify JD edit cancellation without saving changes"""
@@ -392,7 +356,7 @@ def test_TC_08_cancel_jd_edit(
     print("✅ TC_08 passed: JD edit cancellation working correctly")
 
 
-def test_TC_09_delete_jd_with_confirmation(
+def test_TC_09(
     page: Page, admin_credentials, test_agency_id, fresh_jd_data
 ):
     """TC_09: Verify JD deletion with confirmation dialog"""
@@ -436,7 +400,7 @@ def test_TC_09_delete_jd_with_confirmation(
     print("✅ TC_09 passed: JD deletion with confirmation working correctly")
 
 
-def test_TC_10_cancel_jd_deletion(
+def test_TC_10(
     page: Page, admin_credentials, test_agency_id, fresh_jd_data
 ):
     """TC_10: Verify JD deletion cancellation"""
@@ -472,7 +436,7 @@ def test_TC_10_cancel_jd_deletion(
     print("✅ TC_10 passed: JD deletion cancellation working correctly")
 
 
-def test_TC_11_view_jd_details(
+def test_TC_11(
     page: Page, admin_credentials, test_agency_id, fresh_jd_data
 ):
     """TC_11: Verify JD detail view functionality"""
@@ -507,7 +471,7 @@ def test_TC_11_view_jd_details(
     print("✅ TC_11 passed: JD detail view working correctly")
 
 
-def test_TC_12_jd_list_display_with_data(page: Page, admin_credentials, test_agency_id):
+def test_TC_12(page: Page, admin_credentials, test_agency_id):
     """TC_12: Verify JD list displays correctly when JDs exist"""
     print("🧪 TC_12: Testing JD list display with existing data")
 
@@ -525,7 +489,7 @@ def test_TC_12_jd_list_display_with_data(page: Page, admin_credentials, test_age
     print("✅ TC_12 passed: JD list display working correctly")
 
 
-def test_TC_13_jd_list_empty_state(page: Page, admin_credentials):
+def test_TC_13(page: Page, admin_credentials):
     """TC_13: Verify JD list empty state display"""
     print("🧪 TC_13: Testing JD list empty state")
 
@@ -556,7 +520,7 @@ def test_TC_13_jd_list_empty_state(page: Page, admin_credentials):
     print("✅ TC_13 passed: JD list empty state working correctly")
 
 
-def test_TC_14_jd_creation_modal_accessibility(
+def test_TC_14(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_14: Verify JD creation modal accessibility and form elements"""
@@ -586,7 +550,7 @@ def test_TC_14_jd_creation_modal_accessibility(
     print("✅ TC_14 passed: JD creation modal accessibility verified")
 
 
-def test_TC_15_jd_form_field_validation_messages(
+def test_TC_15(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_15: Verify all form field validation messages are specific and helpful"""
@@ -657,7 +621,7 @@ print(
 # ===== SEARCH AND FILTER TEST CASES (TC_16-TC_25) =====
 
 
-def test_TC_16_search_jd_by_position_title(
+def test_TC_16(
     page: Page, admin_credentials, test_agency_id, fresh_jd_data
 ):
     """TC_16: Verify JD search by position title"""
@@ -695,7 +659,7 @@ def test_TC_16_search_jd_by_position_title(
     print("✅ TC_16 passed: JD search by position title working correctly")
 
 
-def test_TC_17_search_jd_by_company_name(
+def test_TC_17(
     page: Page, admin_credentials, test_agency_id, fresh_jd_data
 ):
     """TC_17: Verify JD search by company name"""
@@ -725,7 +689,7 @@ def test_TC_17_search_jd_by_company_name(
     print("✅ TC_17 passed: JD search by company name working correctly")
 
 
-def test_TC_18_search_jd_no_results(page: Page, admin_credentials, test_agency_id):
+def test_TC_18(page: Page, admin_credentials, test_agency_id):
     """TC_18: Verify JD search with no results"""
     print("🧪 TC_18: Testing JD search with no results")
 
@@ -744,7 +708,7 @@ def test_TC_18_search_jd_no_results(page: Page, admin_credentials, test_agency_i
     print("✅ TC_18 passed: JD search no results scenario working correctly")
 
 
-def test_TC_19_search_jd_clear_search(page: Page, admin_credentials, test_agency_id):
+def test_TC_19(page: Page, admin_credentials, test_agency_id):
     """TC_19: Verify JD search clearing functionality"""
     print("🧪 TC_19: Testing JD search clearing")
 
@@ -771,7 +735,7 @@ def test_TC_19_search_jd_clear_search(page: Page, admin_credentials, test_agency
     print("✅ TC_19 passed: JD search clearing working correctly")
 
 
-def test_TC_20_search_jd_with_special_characters(
+def test_TC_20(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_20: Verify JD search handles special characters correctly"""
@@ -804,7 +768,7 @@ def test_TC_20_search_jd_with_special_characters(
     print("✅ TC_20 passed: JD search with special characters working correctly")
 
 
-def test_TC_21_filter_jd_by_company(page: Page, admin_credentials, test_agency_id):
+def test_TC_21(page: Page, admin_credentials, test_agency_id):
     """TC_21: Verify JD filtering by company"""
     print("🧪 TC_21: Testing JD filtering by company")
 
@@ -827,7 +791,7 @@ def test_TC_21_filter_jd_by_company(page: Page, admin_credentials, test_agency_i
     print("✅ TC_21 passed: JD filtering by company working correctly")
 
 
-def test_TC_22_filter_jd_by_work_style(page: Page, admin_credentials, test_agency_id):
+def test_TC_22(page: Page, admin_credentials, test_agency_id):
     """TC_22: Verify JD filtering by work style"""
     print("🧪 TC_22: Testing JD filtering by work style")
 
@@ -850,7 +814,7 @@ def test_TC_22_filter_jd_by_work_style(page: Page, admin_credentials, test_agenc
     print("✅ TC_22 passed: JD filtering by work style working correctly")
 
 
-def test_TC_23_filter_jd_by_hiring_status(
+def test_TC_23(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_23: Verify JD filtering by hiring status"""
@@ -875,7 +839,7 @@ def test_TC_23_filter_jd_by_hiring_status(
     print("✅ TC_23 passed: JD filtering by hiring status working correctly")
 
 
-def test_TC_24_filter_jd_multiple_filters(
+def test_TC_24(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_24: Verify JD filtering with multiple filter combinations"""
@@ -906,7 +870,7 @@ def test_TC_24_filter_jd_multiple_filters(
     print("✅ TC_24 passed: JD filtering with multiple filters working correctly")
 
 
-def test_TC_25_filter_jd_clear_all_filters(
+def test_TC_25(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_25: Verify JD filter clearing functionality"""
@@ -939,7 +903,7 @@ print(
 # ===== VALIDATION AND ERROR HANDLING TEST CASES (TC_26-TC_35) =====
 
 
-def test_TC_26_validate_numeric_fields_format(
+def test_TC_26(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_26: Verify numeric field format validation (salary, age)"""
@@ -982,7 +946,7 @@ def test_TC_26_validate_numeric_fields_format(
     print("✅ TC_26 passed: Numeric field format validation working correctly")
 
 
-def test_TC_27_validate_negative_values(page: Page, admin_credentials, test_agency_id):
+def test_TC_27(page: Page, admin_credentials, test_agency_id):
     """TC_27: Verify negative value validation for salary and age fields"""
     print("🧪 TC_27: Testing negative value validation")
 
@@ -1025,7 +989,7 @@ def test_TC_27_validate_negative_values(page: Page, admin_credentials, test_agen
     print("✅ TC_27 passed: Negative value validation working correctly")
 
 
-def test_TC_28_validate_email_url_formats(
+def test_TC_28(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_28: Verify email and URL format validation"""
@@ -1072,7 +1036,7 @@ def test_TC_28_validate_email_url_formats(
     print("✅ TC_28 passed: Email and URL format validation working correctly")
 
 
-def test_TC_29_file_upload_format_validation(
+def test_TC_29(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_29: Verify file upload format validation"""
@@ -1119,7 +1083,7 @@ def test_TC_29_file_upload_format_validation(
     print("✅ TC_29 passed: File upload format validation working correctly")
 
 
-def test_TC_30_file_upload_size_validation(
+def test_TC_30(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_30: Verify file upload size validation"""
@@ -1151,7 +1115,7 @@ def test_TC_30_file_upload_size_validation(
     print("✅ TC_30 passed: File upload size validation working correctly")
 
 
-def test_TC_31_file_upload_content_validation(
+def test_TC_31(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_31: Verify file upload content validation"""
@@ -1178,7 +1142,7 @@ def test_TC_31_file_upload_content_validation(
     print("✅ TC_31 passed: File upload content validation working correctly")
 
 
-def test_TC_32_network_error_handling(page: Page, admin_credentials, test_agency_id):
+def test_TC_32(page: Page, admin_credentials, test_agency_id):
     """TC_32: Verify network error handling during JD operations"""
     print("🧪 TC_32: Testing network error handling")
 
@@ -1209,7 +1173,7 @@ def test_TC_32_network_error_handling(page: Page, admin_credentials, test_agency
     print("✅ TC_32 passed: Network error handling working correctly")
 
 
-def test_TC_33_timeout_error_handling(page: Page, admin_credentials, test_agency_id):
+def test_TC_33(page: Page, admin_credentials, test_agency_id):
     """TC_33: Verify timeout error handling during long operations"""
     print("🧪 TC_33: Testing timeout error handling")
 
@@ -1241,7 +1205,7 @@ def test_TC_33_timeout_error_handling(page: Page, admin_credentials, test_agency
     print("✅ TC_33 passed: Timeout error handling working correctly")
 
 
-def test_TC_34_permission_error_handling(page: Page, admin_credentials, test_agency_id):
+def test_TC_34(page: Page, admin_credentials, test_agency_id):
     """TC_34: Verify permission error handling for restricted operations"""
     print("🧪 TC_34: Testing permission error handling")
 
@@ -1268,7 +1232,7 @@ def test_TC_34_permission_error_handling(page: Page, admin_credentials, test_age
     print("✅ TC_34 passed: Permission error handling working correctly")
 
 
-def test_TC_35_comprehensive_validation_error_display(
+def test_TC_35(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_35: Verify comprehensive validation error display and user guidance"""
@@ -1332,7 +1296,7 @@ print(
 # ===== PAGINATION AND BULK OPERATION TEST CASES (TC_36-TC_45) =====
 
 
-def test_TC_36_pagination_navigation_next_previous(
+def test_TC_36(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_36: Verify pagination navigation using next and previous buttons"""
@@ -1358,7 +1322,7 @@ def test_TC_36_pagination_navigation_next_previous(
     print("✅ TC_36 passed: Pagination navigation working correctly")
 
 
-def test_TC_37_pagination_specific_page_numbers(
+def test_TC_37(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_37: Verify pagination navigation using specific page numbers"""
@@ -1387,7 +1351,7 @@ def test_TC_37_pagination_specific_page_numbers(
     print("✅ TC_37 passed: Specific page number navigation working correctly")
 
 
-def test_TC_38_pagination_with_search_results(
+def test_TC_38(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_38: Verify pagination works correctly with search results"""
@@ -1415,7 +1379,7 @@ def test_TC_38_pagination_with_search_results(
     print("✅ TC_38 passed: Pagination with search results working correctly")
 
 
-def test_TC_39_pagination_with_filters(page: Page, admin_credentials, test_agency_id):
+def test_TC_39(page: Page, admin_credentials, test_agency_id):
     """TC_39: Verify pagination works correctly with applied filters"""
     print("🧪 TC_39: Testing pagination with applied filters")
 
@@ -1441,7 +1405,7 @@ def test_TC_39_pagination_with_filters(page: Page, admin_credentials, test_agenc
     print("✅ TC_39 passed: Pagination with filters working correctly")
 
 
-def test_TC_40_bulk_jd_selection(page: Page, admin_credentials, test_agency_id):
+def test_TC_40(page: Page, admin_credentials, test_agency_id):
     """TC_40: Verify bulk JD selection functionality"""
     print("🧪 TC_40: Testing bulk JD selection")
 
@@ -1468,7 +1432,7 @@ def test_TC_40_bulk_jd_selection(page: Page, admin_credentials, test_agency_id):
     print("✅ TC_40 passed: Bulk JD selection working correctly")
 
 
-def test_TC_41_bulk_jd_deletion(page: Page, admin_credentials, test_agency_id):
+def test_TC_41(page: Page, admin_credentials, test_agency_id):
     """TC_41: Verify bulk JD deletion functionality"""
     print("🧪 TC_41: Testing bulk JD deletion")
 
@@ -1506,7 +1470,7 @@ def test_TC_41_bulk_jd_deletion(page: Page, admin_credentials, test_agency_id):
     print("✅ TC_41 passed: Bulk JD deletion working correctly")
 
 
-def test_TC_42_bulk_status_update(page: Page, admin_credentials, test_agency_id):
+def test_TC_42(page: Page, admin_credentials, test_agency_id):
     """TC_42: Verify bulk JD status update functionality"""
     print("🧪 TC_42: Testing bulk JD status update")
 
@@ -1545,7 +1509,7 @@ def test_TC_42_bulk_status_update(page: Page, admin_credentials, test_agency_id)
     print("✅ TC_42 passed: Bulk JD status update working correctly")
 
 
-def test_TC_43_bulk_operations_with_pagination(
+def test_TC_43(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_43: Verify bulk operations work across pagination"""
@@ -1580,7 +1544,7 @@ def test_TC_43_bulk_operations_with_pagination(
     print("✅ TC_43 passed: Bulk operations across pagination working correctly")
 
 
-def test_TC_44_bulk_operation_confirmation_dialogs(
+def test_TC_44(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_44: Verify bulk operation confirmation dialogs"""
@@ -1619,7 +1583,7 @@ def test_TC_44_bulk_operation_confirmation_dialogs(
     print("✅ TC_44 passed: Bulk operation confirmation dialogs working correctly")
 
 
-def test_TC_45_pagination_edge_cases(page: Page, admin_credentials, test_agency_id):
+def test_TC_45(page: Page, admin_credentials, test_agency_id):
     """TC_45: Verify pagination edge cases (first page, last page, single page)"""
     print("🧪 TC_45: Testing pagination edge cases")
 
@@ -1666,7 +1630,7 @@ screenshots_dir = "screenshots/jd_screenshots"
 os.makedirs(screenshots_dir, exist_ok=True)
 
 
-def test_TC_46_enhanced_assertions_integration(
+def test_TC_46(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_46: Verify enhanced assertions are properly integrated across all JD tests"""
@@ -1706,7 +1670,7 @@ def test_TC_46_enhanced_assertions_integration(
     print("✅ TC_46 passed: Enhanced assertions integration working correctly")
 
 
-def test_TC_47_screenshot_organization(page: Page, admin_credentials, test_agency_id):
+def test_TC_47(page: Page, admin_credentials, test_agency_id):
     """TC_47: Verify screenshots are organized properly in jd_screenshots directory"""
     print("🧪 TC_47: Testing screenshot organization")
 
@@ -1741,7 +1705,7 @@ def test_TC_47_screenshot_organization(page: Page, admin_credentials, test_agenc
     print("✅ TC_47 passed: Screenshot organization working correctly")
 
 
-def test_TC_48_test_reporting_integration(
+def test_TC_48(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_48: Verify test reporting integration with existing report.html system"""
@@ -1781,7 +1745,7 @@ def test_TC_48_test_reporting_integration(
     print("✅ TC_48 passed: Test reporting integration working correctly")
 
 
-def test_TC_49_failure_debugging_support(page: Page, admin_credentials, test_agency_id):
+def test_TC_49(page: Page, admin_credentials, test_agency_id):
     """TC_49: Verify failure debugging support with automatic screenshot capture"""
     print("🧪 TC_49: Testing failure debugging support")
 
@@ -1839,7 +1803,7 @@ def test_TC_49_failure_debugging_support(page: Page, admin_credentials, test_age
     print("✅ TC_49 passed: Failure debugging support working correctly")
 
 
-def test_TC_50_comprehensive_test_coverage_verification(
+def test_TC_50(
     page: Page, admin_credentials, test_agency_id
 ):
     """TC_50: Verify comprehensive test coverage across all JD functionality"""

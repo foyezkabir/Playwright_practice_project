@@ -82,19 +82,48 @@ def do_create_jd(
     # Check for success or validation errors
     success = False
     try:
-        # Check for success message
+        # Check for success message first
         if jd_page.locators.jd_created_successfully_message.count() > 0:
             print("✅ JD created successfully!")
             success = True
         else:
-            # Check for validation errors
+            # Check for validation errors (8 mandatory fields)
             print("⚠️ Checking for validation errors...")
-            if jd_page.check_validation_errors():
+            validation_found = False
+            
+            # Check for all mandatory field validation errors
+            if jd_page.locators.position_title_required_error.count() > 0:
+                print("❌ Job title is required error found")
+                validation_found = True
+            if jd_page.locators.company_required_error.count() > 0:
+                print("❌ Company is required error found")
+                validation_found = True
+            if jd_page.locators.work_style_required_error.count() > 0:
+                print("❌ Work style is required error found")
+                validation_found = True
+            if jd_page.locators.salary_required_error.count() > 0:
+                print("❌ Salary is required error found")
+                validation_found = True
+            if jd_page.locators.target_age_min_required_error.count() > 0:
+                print("❌ Target age min is required error found")
+                validation_found = True
+            if jd_page.locators.target_age_max_required_error.count() > 0:
+                print("❌ Target age max is required error found")
+                validation_found = True
+            if jd_page.locators.client_required_error.count() > 0:
+                print("❌ Client is required error found")
+                validation_found = True
+            if jd_page.locators.hiring_status_required_error.count() > 0:
+                print("❌ Hiring status is required error found")
+                validation_found = True
+            
+            if validation_found:
                 print("❌ Validation errors found during JD creation")
                 success = False
             else:
-                print("✅ No validation errors, assuming success")
+                print("✅ No validation errors found, assuming success")
                 success = True
+                
     except Exception as e:
         print(f"⚠️ Error checking JD creation status: {e}")
         success = False

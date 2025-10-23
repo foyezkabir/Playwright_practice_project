@@ -128,10 +128,11 @@ class JDLocators:
         self.client_new_option = page.get_by_text("client new")
 
         # Language level options (actual options from the system)
-        self.native_level_option = page.get_by_text("Native")
-        self.fluent_level_option = page.get_by_text("Fluent")
-        self.conversational_level_option = page.get_by_text("Conversational")
-        self.basic_level_option = page.get_by_text("Basic")
+        # Using .first to handle duplicate text between Japanese and English dropdowns
+        self.native_level_option = page.get_by_text("Native").first
+        self.fluent_level_option = page.get_by_text("Fluent").first
+        self.conversational_level_option = page.get_by_text("Conversational").first
+        self.basic_level_option = page.get_by_text("Basic").first
 
         # Priority grade options (actual system values)
         self.aaa_priority_option = page.get_by_text("AAA")
@@ -168,13 +169,13 @@ class JDLocators:
 
         # Format validation errors
         self.invalid_salary_range_error = page.get_by_text(
-            "Maximum salary must be greater than minimum salary"
+            "Minimum salary must be lesser than maximum salary."
         )
         self.invalid_age_range_error = page.get_by_text(
             "Maximum age must be greater than minimum age"
         )
         self.invalid_target_age_range_error = page.get_by_text(
-            "Target maximum age must be greater than target minimum age"
+            "Minimum target age must be lesser than maximum age."
         )
         self.invalid_email_format_error = page.get_by_text(
             "Please enter a valid email address"
