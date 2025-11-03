@@ -237,54 +237,84 @@ class JDPage:
             raise
 
     def select_currency(self, currency: str):
-        """Select currency from dropdown"""
+        """Select currency from dropdown
+        Available options: USD ($), EUR (€), GBP (£), JPY (¥)
+        """
         self.locators.currency_dropdown.click()
-        time.sleep(1)
-        if currency.upper() == "JPY":
-            self.locators.jpy_currency_option.click()
-        elif currency.upper() == "USD":
-            self.locators.usd_currency_option.click()
-        elif currency.upper() == "EUR":
-            self.locators.eur_currency_option.click()
+        time.sleep(2)  # Wait for dropdown to open
+        
+        currency_upper = currency.upper()
+        
+        try:
+            # Dropdowns close after selection, so use .first for the visible option
+            if currency_upper == "USD":
+                self.page.get_by_text("USD ($)", exact=True).first.click(timeout=10000)
+            elif currency_upper == "EUR":
+                self.page.get_by_text("EUR (€)", exact=True).first.click(timeout=10000)
+            elif currency_upper == "GBP":
+                self.page.get_by_text("GBP (£)", exact=True).first.click(timeout=10000)
+            elif currency_upper == "JPY":
+                self.page.get_by_text("JPY (¥)", exact=True).first.click(timeout=10000)
+            else:
+                # Default to USD if not recognized
+                self.page.get_by_text("USD ($)", exact=True).first.click(timeout=10000)
+            time.sleep(0.5)  # Wait for selection to register
+        except Exception as e:
+            print(f"⚠️ Could not select currency: {currency}, error: {e}")
 
     def select_japanese_level(self, level: str):
-        """Select Japanese language level from dropdown"""
+        """Select Japanese language level from dropdown
+        Available options: Elementary, Limited Working, Professional Working, Full Professional, Native or Bilingual
+        """
         self.locators.japanese_level_dropdown.click()
-        time.sleep(2)  # Give more time for dropdown options to load
+        time.sleep(2)  # Wait for dropdown to open
         level_lower = level.lower()
         
         try:
-            # Click the first visible .option-text element with the matching text
-            if level_lower == "native":
-                self.page.locator(".option-text:has-text('Native')").first.click()
-            elif level_lower == "fluent":
-                self.page.locator(".option-text:has-text('Fluent')").first.click()
-            elif level_lower == "conversational":
-                self.page.locator(".option-text:has-text('Conversational')").first.click()
-            elif level_lower == "basic":
-                self.page.locator(".option-text:has-text('Basic')").first.click()
+            # Dropdowns close after selection, so use .first for the visible option
+            if level_lower == "native or bilingual" or level_lower == "native":
+                self.page.get_by_text("Native or Bilingual", exact=True).first.click(timeout=10000)
+            elif level_lower == "full professional":
+                self.page.get_by_text("Full Professional", exact=True).first.click(timeout=10000)
+            elif level_lower == "professional working":
+                self.page.get_by_text("Professional Working", exact=True).first.click(timeout=10000)
+            elif level_lower == "limited working":
+                self.page.get_by_text("Limited Working", exact=True).first.click(timeout=10000)
+            elif level_lower == "elementary":
+                self.page.get_by_text("Elementary", exact=True).first.click(timeout=10000)
             else:
-                self.page.locator(".option-text:has-text('Basic')").first.click()
+                # Default to Elementary
+                self.page.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+            time.sleep(0.5)  # Wait for selection to register
         except Exception as e:
             print(f"⚠️ Could not select Japanese level: {level}, error: {e}")
 
     def select_english_level(self, level: str):
-        """Select English language level from dropdown"""
+        """Select English language level from dropdown
+        Available options: Elementary, Limited Working, Professional Working, Full Professional, Native or Bilingual
+        """
         self.locators.english_level_dropdown.click()
         time.sleep(2)  # Wait for dropdown to open
         level_lower = level.lower()
         
-        # Click the first visible .option-text element with the matching text
-        if level_lower == "native":
-            self.page.locator(".option-text:has-text('Native')").first.click()
-        elif level_lower == "fluent":
-            self.page.locator(".option-text:has-text('Fluent')").first.click()
-        elif level_lower == "conversational":
-            self.page.locator(".option-text:has-text('Conversational')").first.click()
-        elif level_lower == "basic":
-            self.page.locator(".option-text:has-text('Basic')").first.click()
-        else:
-            self.page.locator(".option-text:has-text('Basic')").first.click()
+        try:
+            # Dropdowns close after selection, so use .first for the visible option
+            if level_lower == "native or bilingual" or level_lower == "native":
+                self.page.get_by_text("Native or Bilingual", exact=True).first.click(timeout=10000)
+            elif level_lower == "full professional":
+                self.page.get_by_text("Full Professional", exact=True).first.click(timeout=10000)
+            elif level_lower == "professional working":
+                self.page.get_by_text("Professional Working", exact=True).first.click(timeout=10000)
+            elif level_lower == "limited working":
+                self.page.get_by_text("Limited Working", exact=True).first.click(timeout=10000)
+            elif level_lower == "elementary":
+                self.page.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+            else:
+                # Default to Elementary
+                self.page.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+            time.sleep(0.5)  # Wait for selection to register
+        except Exception as e:
+            print(f"⚠️ Could not select English level: {level}, error: {e}")
 
     def select_priority_grade(self, priority: str):
         """Select priority grade from dropdown"""
@@ -293,23 +323,28 @@ class JDPage:
         time.sleep(1)
         
         self.locators.priority_grade_dropdown.click()
-        time.sleep(2)  # Increased wait time for dropdown to load
+        time.sleep(2)  # Wait for dropdown to open and load all options
         
         priority_upper = priority.upper()
         
-        if priority_upper == "AAA":
-            self.page.locator(".option-text").filter(has_text="AAA").first.click()
-        elif priority_upper == "AA":
-            self.page.locator(".option-text").filter(has_text="AA").first.click()
-        elif priority_upper == "A":
-            self.page.locator(".option-text").filter(has_text="A").first.click()
-        elif priority_upper == "BBB":
-            self.page.locator(".option-text").filter(has_text="BBB").first.click()
-        elif priority_upper == "BB":
-            self.page.locator(".option-text").filter(has_text="BB").first.click()
-        else:
-            # Default to A if not recognized
-            self.page.locator(".option-text").filter(has_text="A").first.click()
+        try:
+            # Dropdowns close after selection, so use .first for the visible option
+            if priority_upper == "AAA":
+                self.page.get_by_text("AAA", exact=True).first.click(timeout=10000)
+            elif priority_upper == "AA":
+                self.page.get_by_text("AA", exact=True).first.click(timeout=10000)
+            elif priority_upper == "A":
+                self.page.get_by_text("A", exact=True).first.click(timeout=10000)
+            elif priority_upper == "BBB":
+                self.page.get_by_text("BBB", exact=True).first.click(timeout=10000)
+            elif priority_upper == "BB":
+                self.page.get_by_text("BB", exact=True).first.click(timeout=10000)
+            else:
+                # Default to A if not recognized
+                self.page.get_by_text("A", exact=True).first.click(timeout=10000)
+            time.sleep(0.5)  # Wait for selection to register
+        except Exception as e:
+            print(f"⚠️ Could not select Priority Grade: {priority}, error: {e}")
 
     def select_hiring_status(self, status: str):
         """Select hiring status from dropdown"""
@@ -317,19 +352,24 @@ class JDPage:
         time.sleep(1)
         
         self.locators.hiring_status_dropdown.click()
-        time.sleep(2)
+        time.sleep(2)  # Wait for dropdown to open and load all options
         
         status_lower = status.lower()
         
-        if status_lower == "open":
-            self.page.locator(".option-text").filter(has_text="Open").first.click()
-        elif status_lower == "urgent":
-            self.page.locator(".option-text").filter(has_text="Urgent").first.click()
-        elif status_lower == "closed":
-            self.page.locator(".option-text").filter(has_text="Closed").first.click()
-        else:
-            # Default to Open if not recognized
-            self.page.locator(".option-text").filter(has_text="Open").first.click()
+        try:
+            # Dropdowns close after selection, so use .first for the visible option
+            if status_lower == "open":
+                self.page.get_by_text("Open", exact=True).first.click(timeout=10000)
+            elif status_lower == "urgent":
+                self.page.get_by_text("Urgent", exact=True).first.click(timeout=10000)
+            elif status_lower == "closed":
+                self.page.get_by_text("Closed", exact=True).first.click(timeout=10000)
+            else:
+                # Default to Open if not recognized
+                self.page.get_by_text("Open", exact=True).first.click(timeout=10000)
+            time.sleep(0.5)  # Wait for selection to register
+        except Exception as e:
+            print(f"⚠️ Could not select Hiring Status: {status}, error: {e}")
 
     def select_employment_type(self, employment_type: str):
         """Select employment type from dropdown"""
@@ -337,39 +377,86 @@ class JDPage:
         time.sleep(1)
         
         self.locators.employment_type_dropdown.click()
-        time.sleep(2)
+        time.sleep(2)  # Wait for dropdown to open and load all options
         
         type_lower = employment_type.lower()
         
-        if type_lower == "part-time" or type_lower == "parttime":
-            self.page.locator(".option-text").filter(has_text="Part-time").first.click()
-        elif type_lower == "permanent":
-            self.page.locator(".option-text").filter(has_text="Permanent").first.click()
-        elif type_lower == "self-employed":
-            self.page.locator(".option-text").filter(has_text="Self-employed").first.click()
-        elif type_lower == "freelance":
-            self.page.locator(".option-text").filter(has_text="Freelance").first.click()
-        elif type_lower == "contract":
-            self.page.locator(".option-text").filter(has_text="Contract").first.click()
-        elif type_lower == "internship":
-            self.page.locator(".option-text").filter(has_text="Internship").first.click()
-        elif type_lower == "apprenticeship":
-            self.page.locator(".option-text").filter(has_text="Apprenticeship").first.click()
-        elif type_lower == "indirect contract":
-            self.page.locator(".option-text").filter(has_text="Indirect Contract").first.click()
-        else:
-            # Default to Permanent if not recognized
-            self.page.locator(".option-text").filter(has_text="Permanent").first.click()
+        try:
+            # Dropdowns close after selection, so use .first for the visible option
+            if type_lower == "part-time" or type_lower == "parttime":
+                self.page.get_by_text("Part-time", exact=True).first.click(timeout=10000)
+            elif type_lower == "permanent":
+                self.page.get_by_text("Permanent", exact=True).first.click(timeout=10000)
+            elif type_lower == "self-employed":
+                self.page.get_by_text("Self-employed", exact=True).first.click(timeout=10000)
+            elif type_lower == "freelance":
+                self.page.get_by_text("Freelance", exact=True).first.click(timeout=10000)
+            elif type_lower == "contract":
+                self.page.get_by_text("Contract", exact=True).first.click(timeout=10000)
+            elif type_lower == "internship":
+                self.page.get_by_text("Internship", exact=True).first.click(timeout=10000)
+            elif type_lower == "apprenticeship":
+                self.page.get_by_text("Apprenticeship", exact=True).first.click(timeout=10000)
+            elif type_lower == "indirect contract":
+                self.page.get_by_text("Indirect Contract", exact=True).first.click(timeout=10000)
+            else:
+                # Default to Permanent if not recognized
+                self.page.get_by_text("Permanent", exact=True).first.click(timeout=10000)
+            time.sleep(0.5)  # Wait for selection to register
+        except Exception as e:
+            print(f"⚠️ Could not select Employment Type: {employment_type}, error: {e}")
 
     def select_client(self, client_name: str):
-        """Select client from dropdown (conditional based on company selection)"""
-        self.locators.client_dropdown.click()
+        """Select client from dropdown (conditional based on company selection)
+        Handles dynamic client list with search functionality
+        """
+
+        print(f"🔧 Selecting client: {client_name}")
+        # Scroll to client dropdown to ensure visibility
+        self.locators.client_dropdown.scroll_into_view_if_needed()
         time.sleep(1)
-        if client_name.lower() == "client new":
-            self.locators.client_new_option.click()
-        else:
-            # Default to client new if not recognized
-            self.locators.client_new_option.click()
+        
+        # Click to open dropdown
+        self.locators.client_dropdown.click()
+        time.sleep(2)  # Wait for dropdown to open and load options
+
+        dropdown_options = self.page.locator("text=").all()
+        print(f"🔍 Found {len(dropdown_options)} options in client dropdown")
+        for option in dropdown_options:
+            if option.is_visible() and option.text_content().strip():
+                option.click()
+                print(f"✅ Selected first available client: {option.text_content()}")
+                break
+        
+        # try:
+        #     # Check if there's a search input in the dropdown and use it
+        #     search_input = self.page.locator("input[placeholder='Search...']").first
+        #     if search_input.is_visible():
+        #         print(f"🔍 Using search to find client: {client_name}")
+        #         search_input.fill(client_name)
+        #         time.sleep(1)  # Wait for search results
+            
+        #     # Click the client option using exact text match
+        #     self.page.get_by_text(client_name, exact=True).first.click(timeout=10000)
+        #     time.sleep(0.5)  # Wait for selection to register
+        #     print(f"✅ Selected client: {client_name}")
+            
+        # except Exception as e:
+        #     print(f"⚠️ Could not select client: {client_name}, error: {e}")
+        #     # If specific client not found, try to select any available client (first option)
+        #     try:
+        #         print("🔄 Attempting to select first available client option")
+        #         time.sleep(1)
+        #         # Get all text options in dropdown and click the first non-search element
+        #         dropdown_options = self.page.locator("text=").all()
+        #         for option in dropdown_options:
+        #             if option.is_visible() and option.text_content().strip():
+        #                 option.click()
+        #                 print(f"✅ Selected first available client: {option.text_content()}")
+        #                 break
+        #     except Exception as e2:
+        #         print(f"❌ Could not select any client: {e2}")
+        #         raise
 
     # ===== FORM SUBMISSION METHODS =====
     def save_jd(self):
@@ -501,7 +588,7 @@ class JDPage:
         
         if "job_function" in jd_data and jd_data["job_function"]:
             self.fill_job_function(jd_data["job_function"])
-        
+
         if "client" in jd_data and jd_data["client"]:
             self.select_client(jd_data["client"])
 

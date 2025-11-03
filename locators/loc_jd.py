@@ -44,7 +44,7 @@ class JDLocators:
         # Salary and compensation fields
         self.minimum_salary_input = page.get_by_role("textbox", name="Minimum Salary")
         self.maximum_salary_input = page.get_by_role("textbox", name="Maximum Salary")
-        self.currency_dropdown = page.locator("form div").filter(has_text="Currency").locator(".chevron").first
+        self.currency_dropdown = page.get_by_text('Currency')
         self.currency_select_trigger = page.locator(".select-trigger").filter(
             has_text="Currency"
         )
@@ -56,39 +56,30 @@ class JDLocators:
         self.target_age_max_input = page.get_by_role("textbox", name="Target Age Max")
 
         # Language and skills - use the chevron/trigger to open dropdowns
-        self.japanese_level_dropdown = page.locator("form div").filter(
-            has_text="Japanese Level"
-        ).locator(".chevron").first
+        self.japanese_level_dropdown = page.get_by_text('Japanese Level')
         self.japanese_level_select_trigger = page.locator(".select-trigger").filter(
             has_text="Japanese Level"
         )
-        self.english_level_dropdown = page.locator("form div").filter(
-            has_text="English Level"
-        ).locator(".chevron").first
+        self.english_level_dropdown = page.get_by_text('English Level')
+        
         self.english_level_select_trigger = page.locator(".select-trigger").filter(
             has_text="English Level"
         )
 
         # Additional fields - use the chevron/trigger to open dropdowns
-        self.priority_grade_dropdown = page.locator("form div").filter(
-            has_text="Priority Grade"
-        ).locator(".chevron").first
+        self.priority_grade_dropdown = page.get_by_text('Priority Grade')
         self.priority_grade_select_trigger = page.locator(".select-trigger").filter(
             has_text="Priority Grade"
         )
-        self.client_dropdown = page.locator("form div").filter(has_text="Client").locator(".chevron").first
+        self.client_dropdown = page.get_by_text('Client')
         self.client_select_trigger = page.locator(".select-trigger").filter(
             has_text="Client"
         )
-        self.hiring_status_dropdown = page.locator("form div").filter(
-            has_text="Hiring Status"
-        ).locator(".chevron").first
+        self.hiring_status_dropdown = page.get_by_text("Hiring Status")
         self.hiring_status_select_trigger = page.locator(".select-trigger").filter(
             has_text="Hiring Status"
         )
-        self.employment_type_dropdown = page.locator("form div").filter(
-            has_text="Employment Type"
-        ).locator(".chevron").first
+        self.employment_type_dropdown = page.get_by_text('Employment Type')
         self.employment_type_select_trigger = page.locator(".select-trigger").filter(
             has_text="Employment Type"
         )
@@ -123,6 +114,7 @@ class JDLocators:
         self.jpy_currency_option = page.get_by_text("JPY")
         self.usd_currency_option = page.get_by_text("USD")
         self.eur_currency_option = page.get_by_text("EUR")
+        self.gbp_currency_option = page.get_by_text("GBP")
 
         # Client options (actual system values)
         self.client_new_option = page.get_by_text("client new")

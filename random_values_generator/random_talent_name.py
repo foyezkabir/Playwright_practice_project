@@ -106,7 +106,7 @@ class RandomTalentName:
     
     def generate_language_level(self):
         """Generate random language proficiency level."""
-        levels = ["Basic", "Conversational", "Fluent", "Native"]
+        levels = ["Elementary", "Limited Working", "Professional Working", "Full Professional", "Native or Bilingual"]
         return random.choice(levels)
     
     def generate_gender(self):

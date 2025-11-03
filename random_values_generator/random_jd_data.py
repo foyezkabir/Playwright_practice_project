@@ -206,7 +206,7 @@ def generate_language_level():
         str: Language level
     """
     levels = [
-        "Basic", "Conversational", "Fluent", "Native"
+        "Elementary", "Limited Working", "Professional Working", "Full Professional", "Native or Bilingual"
     ]
     
     return random.choice(levels)
@@ -319,7 +319,8 @@ def generate_complete_jd_data():
         employment_type=generate_employment_type(),
         department=generate_department(),
         direct_report=generate_job_function(),
-        job_function=generate_job_function()
+        job_function=generate_job_function(),
+        client=generate_company_name()
     )
 
 

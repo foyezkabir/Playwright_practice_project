@@ -29,11 +29,7 @@ def admin_credentials():
 @pytest.fixture(scope="module")
 def test_agency_info():
     """Test agency information for JD operations"""
-    return {
-        "agency_name": "demo 06",
-        "agency_id": "174",
-        "company_name": "company for test",
-    }
+    return {"agency_name": "demo 06","agency_id": "174","company_name": "company for test",}
 
 
 @pytest.fixture(scope="module")
@@ -51,15 +47,16 @@ def created_jd_title():
 @pytest.fixture(scope="function")
 def fresh_jd_data():
     """Generate fresh JD data for each test"""
-    return JDTestData.complete()
+    jd_data = JDTestData.complete()
+    print(f"Generated fresh JD data: {asdict(jd_data)}")
+    return jd_data
 
 
 # ===== JD CRUD OPERATION TEST CASES (TC_01-TC_15) =====
 
 
 def test_TC_01(
-    page: Page, admin_credentials, test_agency_info, fresh_jd_data
-):
+    page: Page, admin_credentials, test_agency_info, fresh_jd_data):
     """TC_01: Verify JD creation with valid mandatory and optional data"""
     print("🧪 TC_01: Testing JD creation with valid data")
 
@@ -231,16 +228,20 @@ def test_TC_05(
 
 
 def test_TC_06(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
+    page: Page, admin_credentials, test_agency_info, fresh_jd_data
 ):
     """TC_06: Verify JD editing functionality with pre-filled data"""
     print("🧪 TC_06: Testing JD editing functionality")
 
+    # Convert dataclass to dict and override company name with test agency's company
+    jd_data = asdict(fresh_jd_data)
+    jd_data["company"] = test_agency_info["company_name"]
+
     # First create a JD to edit
     jd_page, success = JDHelpers.create_jd(
         page,
-        fresh_jd_data.__dict__,
-        test_agency_id,
+        jd_data,
+        test_agency_info["agency_id"],
         admin_credentials["email"],
         admin_credentials["password"],
     )
@@ -260,10 +261,10 @@ def test_TC_06(
     )
 
     # Verify pre-filled data
-    jd_page.verify_prefilled_jd_data(fresh_jd_data.__dict__)
+    jd_page.verify_prefilled_jd_data(jd_data)
 
     # Update JD data
-    updated_title = f"{fresh_jd_data.position_title} - EDITED"
+    updated_title = f"{jd_data['position_title']} - EDITED"
     jd_page.fill_position_job_title(updated_title)
 
     # Save changes
@@ -281,16 +282,20 @@ def test_TC_06(
 
 
 def test_TC_07(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
+    page: Page, admin_credentials, test_agency_info, fresh_jd_data
 ):
     """TC_07: Verify validation during JD editing"""
     print("🧪 TC_07: Testing JD edit validation")
 
+    # Convert dataclass to dict and override company name with test agency's company
+    jd_data = asdict(fresh_jd_data)
+    jd_data["company"] = test_agency_info["company_name"]
+
     # Create a JD to edit
     jd_page, success = JDHelpers.create_jd(
         page,
-        fresh_jd_data.__dict__,
-        test_agency_id,
+        jd_data,
+        test_agency_info["agency_id"],
         admin_credentials["email"],
         admin_credentials["password"],
     )
@@ -299,7 +304,7 @@ def test_TC_07(
     time.sleep(2)
 
     # Find and edit the created JD
-    jd_page.find_and_click_edit_jd(fresh_jd_data.position_title)
+    jd_page.find_and_click_edit_jd(jd_data["position_title"])
 
     # Clear mandatory field to trigger validation
     jd_page.locators.edit_position_job_title_input.clear()
@@ -322,16 +327,20 @@ def test_TC_07(
 
 
 def test_TC_08(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
+    page: Page, admin_credentials, test_agency_info, fresh_jd_data
 ):
     """TC_08: Verify JD edit cancellation without saving changes"""
     print("🧪 TC_08: Testing JD edit cancellation")
 
+    # Convert dataclass to dict and override company name with test agency's company
+    jd_data = asdict(fresh_jd_data)
+    jd_data["company"] = test_agency_info["company_name"]
+
     # Create a JD to edit
     jd_page, success = JDHelpers.create_jd(
         page,
-        fresh_jd_data.__dict__,
-        test_agency_id,
+        jd_data,
+        test_agency_info["agency_id"],
         admin_credentials["email"],
         admin_credentials["password"],
     )
@@ -340,10 +349,10 @@ def test_TC_08(
     time.sleep(2)
 
     # Find and edit the created JD
-    jd_page.find_and_click_edit_jd(fresh_jd_data.position_title)
+    jd_page.find_and_click_edit_jd(jd_data["position_title"])
 
     # Make changes without saving
-    original_title = fresh_jd_data.position_title
+    original_title = jd_data["position_title"]
     modified_title = f"{original_title} - MODIFIED"
     jd_page.fill_position_job_title(modified_title)
 
