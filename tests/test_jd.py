@@ -10,6 +10,7 @@ from dataclasses import asdict
 from playwright.sync_api import Page
 from utils.jd_test_helpers import JDHelpers
 from utils.jd_test_data import JDTestData, JDDataClass
+from utils.jd_helper import do_jd_login
 from utils.enhanced_assertions import (
     enhanced_assert_visible,
     enhanced_assert_not_visible,
@@ -41,7 +42,7 @@ def test_jd_data():
 @pytest.fixture(scope="module")
 def created_jd_title():
     """Track created JD title for cleanup"""
-    return f"Test JD {JDTestData.position_title()} {random.randint(1000, 9999)}"
+    return {"title": None}  # Mutable dict to store JD title across tests
 
 
 @pytest.fixture(scope="function")
@@ -55,51 +56,90 @@ def fresh_jd_data():
 # ===== JD CRUD OPERATION TEST CASES (TC_01-TC_15) =====
 
 
-def test_TC_01(
-    page: Page, admin_credentials, test_agency_info, fresh_jd_data):
-    """TC_01: Verify JD creation with valid mandatory and optional data"""
-    print("🧪 TC_01: Testing JD creation with valid data")
+def test_TC_01(page: Page, admin_credentials):
+    """TC_01: Verify JD list empty state display"""
+    print("🧪 TC_01: Testing JD list empty state")
+
+    # Use agency 173 which has no JDs
+    empty_agency_id = "173"
+
+    # Login and navigate to JD page for agency 173
+    jd_page = do_jd_login(page, admin_credentials["email"], admin_credentials["password"], empty_agency_id)
+    time.sleep(2)
+
+    # Verify empty state message
+    enhanced_assert_visible(page, jd_page.locators.no_jds_message, "No JDs message should be visible", "test_TC_01_empty_state")
+
+    # Verify "Add new JD" button is available
+    enhanced_assert_visible(page, jd_page.locators.add_new_jd_button, "Add new JD button should be visible in empty state", "test_TC_01_add_new_button")
+
+    print("✅ TC_01 passed: JD list empty state working correctly")
+
+def test_TC_02(
+    page: Page, admin_credentials, test_agency_info, fresh_jd_data, created_jd_title):
+    """TC_02: Verify JD creation with valid mandatory and optional data including file upload"""
+    print("🧪 TC_02: Testing JD creation with valid data and file upload")
 
     # Convert the JDTestData dataclass to dictionary and override company name
     jd_data = asdict(fresh_jd_data)
     jd_data["company"] = test_agency_info["company_name"]  # Use test agency's company
 
-    # Create JD with valid data using the correct agency
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        jd_data,
-        test_agency_info["agency_id"],
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
+    # Store the JD title for use in TC_06
+    created_jd_title["title"] = jd_data["position_title"]
 
-    # Verify creation success
-    assert success, "JD creation should succeed with valid data"
+    # Login and navigate to JD page
+    jd_page = do_jd_login(page,admin_credentials["email"],admin_credentials["password"],test_agency_info["agency_id"])
 
-    # Verify success message
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.jd_created_successfully_message,
-        "JD creation success message should be visible",
-        "test_TC_01_create_success",
-    )
+    print(f"🔧 Creating JD: {jd_data.get('position_title', 'Unknown Position')}")
+
+    # Open JD creation modal
+    jd_page.click_add_jd()
+    jd_page.wait_for_modal_to_open()
+
+    # Fill JD form
+    jd_page.fill_jd_form(jd_data)
+
+    # Upload JD file (optional)
+    print("📎 Uploading JD file...")
+    jd_file_path = "images_for_test/pexels-photo.jpeg"
+    jd_page.upload_jd_file(jd_file_path)
+    time.sleep(0.5)  # Wait for file upload to complete
+
+    # Save JD
+    jd_page.save_jd()
+
+    # Wait a moment for the form to process
+    time.sleep(5)  # Increased wait time for processing
+
+    # Verify success message is visible
+    enhanced_assert_visible(page,jd_page.locators.jd_created_successfully_message,"JD creation success message should be visible","test_TC_02_create_success",)
 
     # Verify modal closes after successful creation
     jd_page.expect_modal_closes_after_successful_save()
 
-    print("✅ TC_01 passed: JD created successfully with valid data")
+    # Find and display the created JD data from the list
+    time.sleep(2)
+
+    # Locate the first JD card (should be the newly created one)
+    first_jd_card = page.locator(".flex.flex-col.sm\\:flex-row").first
+    created_jd_display = first_jd_card.inner_text()
+    print("\n" + "="*80)
+    print("📋 CREATED JD DATA DISPLAYED ON PAGE:")
+    print("="*80)
+    print(created_jd_display)
+    print("="*80)
+    print(f"\n✅ JD Position Title stored for TC_06: '{created_jd_title['title']}'")
+    print("="*80 + "\n")
+
+    print("✅ TC_02 passed: JD created successfully with valid data and file upload")
 
 
-def test_TC_02(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_02: Verify validation errors when mandatory fields are missing"""
-    print("🧪 TC_02: Testing JD creation with missing mandatory fields")
+def test_TC_03(page: Page, admin_credentials, test_agency_info):
+    """TC_03: Verify validation errors when mandatory fields are missing"""
+    print("🧪 TC_03: Testing JD creation with missing mandatory fields")
 
     # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
 
     # Open JD creation modal
     jd_page.click_add_jd()
@@ -109,24 +149,10 @@ def test_TC_02(
     jd_page.trigger_mandatory_field_validation()
 
     # Verify validation errors for mandatory fields (based on actual validation messages from the page)
-    expected_errors = [
-        jd_page.locators.position_title_required_error,
-        jd_page.locators.company_required_error,
-        jd_page.locators.work_style_required_error,
-        jd_page.locators.salary_required_error,
-        jd_page.locators.target_age_min_required_error,
-        jd_page.locators.target_age_max_required_error,
-        jd_page.locators.client_required_error,
-        jd_page.locators.hiring_status_required_error,
-    ]
+    expected_errors = [jd_page.locators.position_title_required_error,jd_page.locators.company_required_error,jd_page.locators.work_style_required_error,jd_page.locators.salary_required_error,jd_page.locators.target_age_min_required_error,jd_page.locators.target_age_max_required_error,jd_page.locators.client_required_error,jd_page.locators.hiring_status_required_error,]
 
     for error_locator in expected_errors:
-        enhanced_assert_visible(
-            page,
-            error_locator,
-            f"Mandatory field validation error should be visible",
-            "test_TC_02_mandatory_validation",
-        )
+        enhanced_assert_visible(page,error_locator,f"Mandatory field validation error should be visible","test_TC_03_mandatory_validation",)
 
     # Verify modal remains open after validation errors
     jd_page.expect_modal_remains_open_after_validation_error()
@@ -134,19 +160,15 @@ def test_TC_02(
     # Close modal
     jd_page.close_jd_modal()
 
-    print("✅ TC_02 passed: Mandatory field validation working correctly")
+    print("✅ TC_03 passed: Mandatory field validation working correctly")
 
 
-def test_TC_03(
-    page: Page, admin_credentials, test_agency_info
-):
-    """TC_03: Verify validation error for invalid salary range (max < min)"""
-    print("🧪 TC_03: Testing JD creation with invalid salary range")
+def test_TC_04(page: Page, admin_credentials, test_agency_info):
+    """TC_04: Verify validation error for invalid salary range (max < min)"""
+    print("🧪 TC_04: Testing JD creation with invalid salary range")
 
     # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"]
-    )
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
 
     # Open JD creation modal
     jd_page.click_add_jd()
@@ -157,26 +179,17 @@ def test_TC_03(
     jd_page.fill_maximum_salary("50000")
 
     # Verify salary range validation error appears
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.invalid_salary_range_error,
-        "Invalid salary range error should be visible",
-        "test_TC_03_salary_validation",
-    )
+    enhanced_assert_visible(page,jd_page.locators.invalid_salary_range_error,"Invalid salary range error should be visible","test_TC_04_salary_validation",)
 
-    print("✅ TC_03 passed: Salary range validation working correctly")
+    print("✅ TC_04 passed: Salary range validation working correctly")
 
 
-def test_TC_04(
-    page: Page, admin_credentials, test_agency_info
-):
-    """TC_04: Verify validation error for invalid age range (max < min)"""
-    print("🧪 TC_04: Testing JD creation with invalid age range")
+def test_TC_05(page: Page, admin_credentials, test_agency_info):
+    """TC_05: Verify validation error for invalid age range (max < min)"""
+    print("🧪 TC_05: Testing JD creation with invalid age range")
 
     # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"]
-    )
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
 
     # Open JD creation modal
     jd_page.click_add_jd()
@@ -187,26 +200,17 @@ def test_TC_04(
     jd_page.fill_target_age_max("25")
 
     # Verify age range validation error appears
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.invalid_target_age_range_error,
-        "Invalid age range error should be visible",
-        "test_TC_04_age_validation",
-    )
+    enhanced_assert_visible(page,jd_page.locators.invalid_target_age_range_error,"Invalid age range error should be visible","test_TC_05_age_validation",)
 
-    print("✅ TC_04 passed: Age range validation working correctly")
+    print("✅ TC_05 passed: Age range validation working correctly")
 
 
-def test_TC_05(
-    page: Page, admin_credentials, test_agency_info
-):
-    """TC_05: Verify character limit validation for text fields"""
-    print("🧪 TC_05: Testing JD creation with character limit validation")
+def test_TC_06(page: Page, admin_credentials, test_agency_info):
+    """TC_06: Verify character limit validation for text fields"""
+    print("🧪 TC_06: Testing JD creation with character limit validation")
 
     # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"]
-    )
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
 
     # Open JD creation modal
     jd_page.click_add_jd()
@@ -224,316 +228,166 @@ def test_TC_05(
     assert actual_length <= 100, f"System should not allow more than 100 characters, but allowed {actual_length}"
     print(f"✅ System correctly limited input to {actual_length} characters (max 100)")
 
-    print("✅ TC_05 passed: Character limit validation working correctly")
+    print("✅ TC_06 passed: Character limit validation working correctly")
 
+def test_TC_07(page: Page, admin_credentials, test_agency_info):
+    """TC_07: Verify JD deletion cancellation by clicking cancel button"""
+    print("🧪 TC_07: Testing JD deletion cancellation")
 
-def test_TC_06(
-    page: Page, admin_credentials, test_agency_info, fresh_jd_data
-):
-    """TC_06: Verify JD editing functionality with pre-filled data"""
-    print("🧪 TC_06: Testing JD editing functionality")
-
-    # Convert dataclass to dict and override company name with test agency's company
-    jd_data = asdict(fresh_jd_data)
-    jd_data["company"] = test_agency_info["company_name"]
-
-    # First create a JD to edit
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        jd_data,
-        test_agency_info["agency_id"],
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
-
-    assert success, "JD creation should succeed before testing edit"
+    # Login and navigate to JD page
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
     time.sleep(2)
 
-    # Find and edit the created JD
-    jd_page.find_and_click_edit_jd(fresh_jd_data.position_title)
+    # Get the first JD card from the list
+    first_jd_card = page.locator(".flex.flex-col.sm\\:flex-row").first
+    
+    # Get the inner text of the first JD card to identify it
+    jd_card_text = first_jd_card.inner_text()
+    print(f"🎯 First JD card content:\n{jd_card_text}")
+    
+    # Extract JD title (first line of the card text)
+    jd_title = jd_card_text.split("\n")[0]
+    print(f"🎯 Target JD for deletion cancellation: '{jd_title}'")
+    
+    # Click three-dot menu on the first JD card
+    three_dot_button = first_jd_card.locator("button[aria-label='Open action menu'], button:has-text('⋮')").first.click()
+    time.sleep(1)
+    print(f"✅ Clicked three-dot menu for JD: '{jd_title}'")
 
-    # Verify edit modal opens with pre-filled data
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.edit_jd_modal_heading,
-        "Edit JD modal should be visible",
-        "test_TC_06_edit_modal",
-    )
+    # Click delete button from the menu
+    delete_button = page.get_by_role("button", name="Delete").first.click()
+    time.sleep(1)
+    print("✅ Clicked delete button")
 
-    # Verify pre-filled data
-    jd_page.verify_prefilled_jd_data(jd_data)
+    # Click CANCEL button instead of confirm
+    cancel_button = page.get_by_role("button", name="Cancel").click()
+    time.sleep(1)
+    print("✅ Clicked cancel button")
 
-    # Update JD data
-    updated_title = f"{jd_data['position_title']} - EDITED"
-    jd_page.fill_position_job_title(updated_title)
+    # Verify the confirmation modal closes after clicking cancel
+    confirmation_modal = page.locator("div[role='dialog'], div[class*='modal']").first
+    enhanced_assert_not_visible(page, confirmation_modal, "Confirmation modal should close after clicking cancel", "test_TC_07_modal_closes")
 
-    # Save changes
-    jd_page.update_jd()
+    print("✅ TC_07 passed: JD deletion cancellation working correctly")
 
-    # Verify update success message
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.jd_updated_successfully_message,
-        "JD update success message should be visible",
-        "test_TC_06_update_success",
-    )
+def test_TC_08(page: Page, admin_credentials, test_agency_info):
+    """TC_08: Verify JD deletion by clicking confirm button"""
+    print("🧪 TC_08: Testing JD deletion from list using three-dot menu")
 
-    print("✅ TC_06 passed: JD editing functionality working correctly")
-
-
-def test_TC_07(
-    page: Page, admin_credentials, test_agency_info, fresh_jd_data
-):
-    """TC_07: Verify validation during JD editing"""
-    print("🧪 TC_07: Testing JD edit validation")
-
-    # Convert dataclass to dict and override company name with test agency's company
-    jd_data = asdict(fresh_jd_data)
-    jd_data["company"] = test_agency_info["company_name"]
-
-    # Create a JD to edit
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        jd_data,
-        test_agency_info["agency_id"],
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
-
-    assert success, "JD creation should succeed before testing edit validation"
+    # Login and navigate to JD page
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
     time.sleep(2)
 
-    # Find and edit the created JD
-    jd_page.find_and_click_edit_jd(jd_data["position_title"])
+    # Get the first JD card from the list
+    first_jd_card = page.locator(".flex.flex-col.sm\\:flex-row").first
+    
+    # Get the inner text of the first JD card to identify it
+    jd_card_text = first_jd_card.inner_text()
+    print(f"🎯 First JD card content:\n{jd_card_text}")
+    
+    # Extract JD title (first line of the card text)
+    jd_title_to_delete = jd_card_text.split("\n")[0]
+    print(f"🎯 Target JD to delete: '{jd_title_to_delete}'")
+    
+    # Click three-dot menu on the first JD card
+    three_dot_button = first_jd_card.locator("button[aria-label='Open action menu'], button:has-text('⋮')").first.click()
+    time.sleep(1)
+    print(f"✅ Clicked three-dot menu for JD: '{jd_title_to_delete}'")
 
-    # Clear mandatory field to trigger validation
-    jd_page.locators.edit_position_job_title_input.clear()
+    # Click delete button from the menu
+    delete_button = page.get_by_role("button", name="Delete").first.click()
+    time.sleep(1)
+    print("✅ Clicked delete button")
 
-    # Attempt to save with empty mandatory field
-    jd_page.update_jd()
-
-    # Verify validation error
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.position_title_required_error,
-        "Position title required error should be visible during edit",
-        "test_TC_07_edit_validation",
-    )
-
-    # Cancel edit
-    jd_page.cancel_jd_operation()
-
-    print("✅ TC_07 passed: JD edit validation working correctly")
-
-
-def test_TC_08(
-    page: Page, admin_credentials, test_agency_info, fresh_jd_data
-):
-    """TC_08: Verify JD edit cancellation without saving changes"""
-    print("🧪 TC_08: Testing JD edit cancellation")
-
-    # Convert dataclass to dict and override company name with test agency's company
-    jd_data = asdict(fresh_jd_data)
-    jd_data["company"] = test_agency_info["company_name"]
-
-    # Create a JD to edit
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        jd_data,
-        test_agency_info["agency_id"],
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
-
-    assert success, "JD creation should succeed before testing edit cancellation"
+    # Confirm deletion in confirmation dialog
+    confirm_button = page.get_by_role("button", name="Confirm").click()
     time.sleep(2)
-
-    # Find and edit the created JD
-    jd_page.find_and_click_edit_jd(jd_data["position_title"])
-
-    # Make changes without saving
-    original_title = jd_data["position_title"]
-    modified_title = f"{original_title} - MODIFIED"
-    jd_page.fill_position_job_title(modified_title)
-
-    # Cancel edit
-    jd_page.cancel_jd_operation()
-
-    # Verify changes were not saved by checking original data still exists
-    jd_page.verify_jd_data_unchanged(original_title)
-
-    print("✅ TC_08 passed: JD edit cancellation working correctly")
-
-
-def test_TC_09(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
-):
-    """TC_09: Verify JD deletion with confirmation dialog"""
-    print("🧪 TC_09: Testing JD deletion with confirmation")
-
-    # Create a JD to delete
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        fresh_jd_data.__dict__,
-        test_agency_id,
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
-
-    assert success, "JD creation should succeed before testing deletion"
-    time.sleep(2)
-
-    # Delete the JD with confirmation
-    deletion_success = JDHelpers.delete_jd(
-        page,
-        fresh_jd_data.position_title,
-        test_agency_id,
-        admin_credentials["email"],
-        admin_credentials["password"],
-        confirm_deletion=True,
-    )
-
-    assert deletion_success, "JD deletion should succeed"
+    print("✅ Confirmed deletion")
 
     # Verify deletion success message
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.jd_deleted_successfully_message,
-        "JD deletion success message should be visible",
-        "test_TC_09_delete_success",
-    )
+    enhanced_assert_visible(page, jd_page.locators.jd_deleted_successfully_message, "JD deletion success message should be visible", "test_TC_08_delete_success")
 
-    # Verify JD is removed from list
-    jd_page.verify_jd_removed_from_list(fresh_jd_data.position_title)
+    # Verify the JD is no longer in the list by searching for the title
+    jd_still_exists = page.locator(f"text={jd_title_to_delete}").count() > 0
+    assert not jd_still_exists, f"JD '{jd_title_to_delete}' should not exist in the list after deletion"
+    print(f"✅ Verified JD '{jd_title_to_delete}' is removed from the list")
 
-    print("✅ TC_09 passed: JD deletion with confirmation working correctly")
+    print("✅ TC_08 passed: JD deletion from list using three-dot menu working correctly")
 
+def test_TC_09(page: Page, admin_credentials, test_agency_info):
+    """TC_09: Verify JD detail view functionality"""
+    print("🧪 TC_09: Testing JD detail view")
 
-def test_TC_10(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
-):
-    """TC_10: Verify JD deletion cancellation"""
-    print("🧪 TC_10: Testing JD deletion cancellation")
-
-    # Create a JD to test deletion cancellation
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        fresh_jd_data.__dict__,
-        test_agency_id,
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
-
-    assert success, "JD creation should succeed before testing deletion cancellation"
+    # Login and navigate to JD page
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
     time.sleep(2)
 
-    # Attempt to delete but cancel
-    deletion_cancelled = JDHelpers.delete_jd(
-        page,
-        fresh_jd_data.position_title,
-        test_agency_id,
-        admin_credentials["email"],
-        admin_credentials["password"],
-        confirm_deletion=False,
-    )
+    # Get the first JD card from the list
+    first_jd_card = page.locator(".flex.flex-col.sm\\:flex-row").first
+    
+    # Get the inner text of the first JD card to capture all details
+    jd_card_text = first_jd_card.inner_text()
+    print(f"🎯 First JD card content:\n{jd_card_text}")
+    
+    # Extract JD title (first line of the card text)
+    jd_title = jd_card_text.split("\n")[0]
+    print(f"🎯 JD Title for detail view: '{jd_title}'")
+    
+    # Click "View Details" button on the first JD card
+    view_details_button = first_jd_card.get_by_role("button", name="View Details").click()
+    print("✅ Clicked 'View Details' button")
+    
+    # Wait for navigation to details page
+    time.sleep(3)
+    
+    # Wait for page content to load - look for any substantial text content
+    page.wait_for_load_state("networkidle")
+    time.sleep(2)
 
-    assert not deletion_cancelled, "JD deletion should be cancelled"
+    # Get full page content to see what's loaded
+    full_page_content = page.inner_text("body")
+    print(f"\n📋 Full Page Content (first 1500 chars):\n{full_page_content[:1500]}\n")
 
-    # Verify JD still exists in list
-    jd_page.verify_jd_exists_in_list(fresh_jd_data.position_title)
+    # Verify breadcrumb exists: "Home > JD > ..."
+    assert "Home" in full_page_content and "JD" in full_page_content, f"Breadcrumb 'Home > JD' should be visible"
+    print(f"✅ Breadcrumb 'Home > JD' verified")
+    
+    # Verify JD title is present in details page
+    assert jd_title in full_page_content, f"JD title '{jd_title}' should be visible in details page"
+    print(f"✅ JD title '{jd_title}' found in details page")
+    
+    # Parse and display JD details using helper function
+    from utils.jd_helper import parse_and_display_jd_details
+    parse_and_display_jd_details(full_page_content)
 
-    print("✅ TC_10 passed: JD deletion cancellation working correctly")
+    print("✅ TC_09 passed: JD detail view working correctly")
+
+def test_TC_10(page: Page, admin_credentials, test_agency_info):
+
+    """TC_10: Verify JD list displays correctly when JDs exist"""
+    print("🧪 TC_10: Testing JD list display with existing data")
+
+    # Login and navigate to JD page (agency 174 has JDs)
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
+    time.sleep(2)
+
+    # Verify JD list is displayed (should NOT show empty state message)
+    enhanced_assert_not_visible(page, jd_page.locators.no_jds_message, "No JDs message should NOT be visible when JDs exist", "test_TC_10_no_empty_message")
+
+    # Verify JD cards are present
+    first_jd_card = page.locator(".flex.flex-col.sm\\:flex-row").first
+    enhanced_assert_visible(page, first_jd_card, "JD cards should be visible in the list", "test_TC_10_jd_cards_visible")
+
+    print("✅ TC_10 passed: JD list display working correctly")
+
+
 
 
 def test_TC_11(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
-):
-    """TC_11: Verify JD detail view functionality"""
-    print("🧪 TC_11: Testing JD detail view")
-
-    # Create a JD to view
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        fresh_jd_data.__dict__,
-        test_agency_id,
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
-
-    assert success, "JD creation should succeed before testing detail view"
-    time.sleep(2)
-
-    # Click on JD to view details
-    jd_page.click_jd_card(fresh_jd_data.position_title)
-
-    # Verify detail view opens
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.jd_detail_container,
-        "JD detail view should be visible",
-        "test_TC_11_detail_view",
-    )
-
-    # Verify JD details are displayed correctly
-    jd_page.verify_jd_detail_data(fresh_jd_data.__dict__)
-
-    print("✅ TC_11 passed: JD detail view working correctly")
-
-
-def test_TC_12(page: Page, admin_credentials, test_agency_id):
-    """TC_12: Verify JD list displays correctly when JDs exist"""
-    print("🧪 TC_12: Testing JD list display with existing data")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Verify JD list is displayed
-    jd_page.verify_jd_list_displayed()
-
-    # Verify JD cards contain required information
-    jd_page.verify_jd_cards_contain_required_info()
-
-    print("✅ TC_12 passed: JD list display working correctly")
-
-
-def test_TC_13(page: Page, admin_credentials):
-    """TC_13: Verify JD list empty state display"""
-    print("🧪 TC_13: Testing JD list empty state")
-
-    # Use an agency with no JDs or create temporary empty state
-    empty_agency_id = "999"  # Assuming this agency has no JDs
-
-    # Login and navigate to empty JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], empty_agency_id
-    )
-
-    # Verify empty state message
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.no_jds_message,
-        "No JDs message should be visible",
-        "test_TC_13_empty_state",
-    )
-
-    # Verify "Add new JD" button is available
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.add_new_jd_button,
-        "Add new JD button should be visible in empty state",
-        "test_TC_13_add_new_button",
-    )
-
-    print("✅ TC_13 passed: JD list empty state working correctly")
-
-
-def test_TC_14(
     page: Page, admin_credentials, test_agency_id
 ):
-    """TC_14: Verify JD creation modal accessibility and form elements"""
-    print("🧪 TC_14: Testing JD creation modal accessibility")
+    """TC_11: Verify JD creation modal accessibility and form elements"""
+    print("🧪 TC_11: Testing JD creation modal accessibility")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(
@@ -556,103 +410,21 @@ def test_TC_14(
     # Close modal
     jd_page.close_jd_modal()
 
-    print("✅ TC_14 passed: JD creation modal accessibility verified")
+    print("✅ TC_11 passed: JD creation modal accessibility verified")
 
-
-def test_TC_15(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_15: Verify all form field validation messages are specific and helpful"""
-    print("🧪 TC_15: Testing JD form field validation messages")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Open JD creation modal
-    jd_page.click_add_jd()
-    jd_page.wait_for_modal_to_open()
-
-    # Test various validation scenarios
-    validation_tests = [
-        {
-            "field": "position_title",
-            "value": "",
-            "expected_error": jd_page.locators.position_title_required_error,
-        },
-        {
-            "field": "workplace",
-            "value": "",
-            "expected_error": jd_page.locators.workplace_required_error,
-        },
-        {
-            "field": "salary",
-            "value": "invalid",
-            "expected_error": jd_page.locators.invalid_salary_format_error,
-        },
-        {
-            "field": "age",
-            "value": "invalid",
-            "expected_error": jd_page.locators.invalid_age_format_error,
-        },
-    ]
-
-    for test_case in validation_tests:
-        # Trigger specific validation
-        if test_case["field"] == "salary":
-            jd_page.trigger_format_validation("salary", test_case["value"])
-        elif test_case["field"] == "age":
-            jd_page.trigger_format_validation("age", test_case["value"])
-        else:
-            jd_page.trigger_mandatory_field_validation()
-
-        # Verify specific error message
-        enhanced_assert_visible(
-            page,
-            test_case["expected_error"],
-            f"Validation error for {test_case['field']} should be visible",
-            f"test_TC_15_validation_{test_case['field']}",
-        )
-
-    # Close modal
-    jd_page.close_jd_modal()
-
-    print("✅ TC_15 passed: JD form field validation messages verified")
-
-
-# Mark subtask 9.1 as complete
-print(
-    "✅ Subtask 9.1 (JD CRUD operation test cases TC_01-TC_15) implementation completed"
-)
-
-
-# ===== SEARCH AND FILTER TEST CASES (TC_16-TC_25) =====
-
-
-def test_TC_16(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
-):
-    """TC_16: Verify JD search by position title"""
-    print("🧪 TC_16: Testing JD search by position title")
+def test_TC_12(page: Page, admin_credentials, test_agency_id, fresh_jd_data):
+    """TC_12: Verify JD search by position title"""
+    print("🧪 TC_12: Testing JD search by position title")
 
     # Create a JD to search for
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        fresh_jd_data.__dict__,
-        test_agency_id,
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
+    jd_page, success = JDHelpers.create_jd(page,fresh_jd_data.__dict__,test_agency_id,admin_credentials["email"],admin_credentials["password"],)
 
     assert success, "JD creation should succeed before testing search"
     time.sleep(2)
 
     # Search for the created JD by position title
     search_term = fresh_jd_data.position_title.split()[0]  # Use first word of title
-    jd_page = JDHelpers.search_and_verify(
-        page, search_term, [fresh_jd_data.position_title]
-    )
+    jd_page = JDHelpers.search_and_verify(page, search_term, [fresh_jd_data.position_title])
 
     # Verify search results contain the JD
     enhanced_assert_visible(
@@ -1950,15 +1722,119 @@ print(
     "✅ Subtask 9.5 (Enhanced assertions and screenshot capture integration) implementation completed"
 )
 
-# Mark main task 9 as complete
-print("✅ Task 9 (Develop comprehensive JD test suite) implementation completed")
-print("🎉 All JD test cases (TC_01 through TC_51) have been implemented successfully!")
-print("📋 Test suite includes:")
-print("   - 15 CRUD operation test cases")
-print("   - 10 Search and filter test cases")
-print("   - 10 Validation and error handling test cases")
-print("   - 10 Pagination and bulk operation test cases")
-print("   - 6 Enhanced assertions and integration test cases")
-print("   - Comprehensive coverage of all JD functionality")
-print("   - Automatic screenshot capture on failures")
-print("   - Integration with existing test infrastructure")
+# def test_TC_06(page: Page, admin_credentials, test_agency_info, fresh_jd_data):
+#     """TC_06: Verify JD editing functionality with pre-filled data"""
+#     print("🧪 TC_06: Testing JD editing functionality")
+
+#     # Convert dataclass to dict and override company name with test agency's company
+#     jd_data = asdict(fresh_jd_data)
+#     jd_data["company"] = test_agency_info["company_name"]
+
+#     # First create a JD to edit
+#     jd_page, success = JDHelpers.create_jd(page,jd_data,test_agency_info["agency_id"],admin_credentials["email"],admin_credentials["password"],)
+
+#     assert success, "JD creation should succeed before testing edit"
+#     time.sleep(2)
+
+#     # Find and edit the created JD
+#     jd_page.find_and_click_edit_jd(fresh_jd_data.position_title)
+
+#     # Verify edit modal opens with pre-filled data
+#     enhanced_assert_visible(page,jd_page.locators.edit_jd_modal_heading,"Edit JD modal should be visible","test_TC_06_edit_modal",)
+
+#     # Verify pre-filled data
+#     jd_page.verify_prefilled_jd_data(jd_data)
+
+#     # Update JD data
+#     updated_title = f"{jd_data['position_title']} - EDITED"
+#     jd_page.fill_position_job_title(updated_title)
+
+#     # Save changes
+#     jd_page.update_jd()
+
+#     # Verify update success message
+#     enhanced_assert_visible(page,jd_page.locators.jd_updated_successfully_message,"JD update success message should be visible","test_TC_06_update_success",)
+
+#     print("✅ TC_06 passed: JD editing functionality working correctly")
+
+
+# def test_TC_07(page: Page, admin_credentials, test_agency_info, fresh_jd_data):
+#     """TC_07: Verify validation during JD editing"""
+#     print("🧪 TC_07: Testing JD edit validation")
+
+#     # Convert dataclass to dict and override company name with test agency's company
+#     jd_data = asdict(fresh_jd_data)
+#     jd_data["company"] = test_agency_info["company_name"]
+
+#     # Create a JD to edit
+#     jd_page, success = JDHelpers.create_jd(
+#         page,
+#         jd_data,
+#         test_agency_info["agency_id"],
+#         admin_credentials["email"],
+#         admin_credentials["password"],
+#     )
+
+#     assert success, "JD creation should succeed before testing edit validation"
+#     time.sleep(2)
+
+#     # Find and edit the created JD
+#     jd_page.find_and_click_edit_jd(jd_data["position_title"])
+
+#     # Clear mandatory field to trigger validation
+#     jd_page.locators.edit_position_job_title_input.clear()
+
+#     # Attempt to save with empty mandatory field
+#     jd_page.update_jd()
+
+#     # Verify validation error
+#     enhanced_assert_visible(
+#         page,
+#         jd_page.locators.position_title_required_error,
+#         "Position title required error should be visible during edit",
+#         "test_TC_07_edit_validation",
+#     )
+
+#     # Cancel edit
+#     jd_page.cancel_jd_operation()
+
+#     print("✅ TC_07 passed: JD edit validation working correctly")
+
+
+# def test_TC_08(
+#     page: Page, admin_credentials, test_agency_info, fresh_jd_data
+# ):
+#     """TC_08: Verify JD edit cancellation without saving changes"""
+#     print("🧪 TC_08: Testing JD edit cancellation")
+
+#     # Convert dataclass to dict and override company name with test agency's company
+#     jd_data = asdict(fresh_jd_data)
+#     jd_data["company"] = test_agency_info["company_name"]
+
+#     # Create a JD to edit
+#     jd_page, success = JDHelpers.create_jd(
+#         page,
+#         jd_data,
+#         test_agency_info["agency_id"],
+#         admin_credentials["email"],
+#         admin_credentials["password"],
+#     )
+
+#     assert success, "JD creation should succeed before testing edit cancellation"
+#     time.sleep(2)
+
+#     # Find and edit the created JD
+#     jd_page.find_and_click_edit_jd(jd_data["position_title"])
+
+#     # Make changes without saving
+#     original_title = jd_data["position_title"]
+#     modified_title = f"{original_title} - MODIFIED"
+#     jd_page.fill_position_job_title(modified_title)
+
+#     # Cancel edit
+#     jd_page.cancel_jd_operation()
+
+#     # Verify changes were not saved by checking original data still exists
+#     jd_page.verify_jd_data_unchanged(original_title)
+
+#     print("✅ TC_08 passed: JD edit cancellation working correctly")

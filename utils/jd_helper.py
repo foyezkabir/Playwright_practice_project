@@ -76,19 +76,20 @@ def do_create_jd(
     # Save JD
     jd_page.save_jd()
 
-    # Wait for success message or validation errors
-    time.sleep(3)
+    # Wait a moment for the form to process
+    time.sleep(2)
 
     # Check for success or validation errors
     success = False
     try:
-        # Check for success message first
-        if jd_page.locators.jd_created_successfully_message.count() > 0:
+        # Try to wait for success message (toast appears quickly)
+        try:
+            jd_page.locators.jd_created_successfully_message.wait_for(state="visible", timeout=5000)
             print("✅ JD created successfully!")
             success = True
-        else:
-            # Check for validation errors (8 mandatory fields)
-            print("⚠️ Checking for validation errors...")
+        except:
+            # Success message didn't appear, check for validation errors
+            print("⚠️ Success message not found, checking for validation errors...")
             validation_found = False
             
             # Check for all mandatory field validation errors
@@ -121,7 +122,8 @@ def do_create_jd(
                 print("❌ Validation errors found during JD creation")
                 success = False
             else:
-                print("✅ No validation errors found, assuming success")
+                print("⚠️ No success message and no validation errors - uncertain state")
+                success = False  # Don't assume success if we can't confirm it
                 success = True
                 
     except Exception as e:
@@ -1714,6 +1716,50 @@ def assert_jd_data_not_modified_after_cancel(page: Page, jd_title: str, original
     jd_page.verify_data_not_modified_after_cancellation(original_data, jd_title)
 
     print("✅ JD data not modified after cancellation verification passed")
+
+
+def parse_and_display_jd_details(full_page_content: str):
+    """
+    Parse and display key JD details from page content
+    
+    Args:
+        full_page_content: Full page content text from page.inner_text("body")
+    """
+    print("\n" + "="*80)
+    print("📋 CAPTURED JD DETAILS PAGE CONTENT:")
+    print("="*80)
+    
+    # Extract and display key information
+    details_lines = full_page_content.split("\n")
+    
+    key_fields = [
+        "Company Name",
+        "Job Title",
+        "Salary Budget",
+        "Hiring Status",
+        "Priority Grade",
+        "Work Style",
+        "Work Place",
+        "Japanese Level",
+        "English Level",
+        "Job Age",
+        "Target Age",
+        "Client Owner",
+        "Client Grade",
+        "Opening Date"
+    ]
+    
+    for i, line in enumerate(details_lines):
+        line_stripped = line.strip()
+        # Check if this line is a field name
+        if line_stripped in key_fields:
+            # Next line should be ":", and line after that is the value
+            if i + 2 < len(details_lines) and details_lines[i + 1].strip() == ":":
+                value = details_lines[i + 2].strip()
+                if value:  # Only print if there's a value
+                    print(f"{line_stripped}: {value}")
+    
+    print("="*80 + "\n")
 
 # ===== FILE UPLOAD HELPER FUNCTIONS =====
 

@@ -191,47 +191,25 @@ class JDPage:
             # Click the chevron to open dropdown
             self.locators.work_style_dropdown.click()
             print("✅ Clicked work style dropdown")
-            time.sleep(2)  # Increased wait time
+            time.sleep(2)  # Wait for dropdown to open
             
-            # Wait for dropdown to be visible
-            self.page.wait_for_timeout(1000)
-            
+            # Select work style using exact text match and .first to avoid conflicts
             if work_style.lower() == "remote":
-                # Try to wait for the option to be visible first
-                try:
-                    self.locators.remote_work_option.wait_for(state="visible", timeout=10000)
-                    self.locators.remote_work_option.click()
-                    print("✅ Selected Remote work style")
-                except Exception as e:
-                    print(f"⚠️ First attempt failed: {e}")
-                    # Fallback: try clicking the dropdown again and retry
-                    self.locators.work_style_dropdown.click()
-                    time.sleep(1)
-                    self.locators.remote_work_option.click()
-                    print("✅ Selected Remote work style (fallback)")
+                self.page.get_by_text("Remote", exact=True).first.click(timeout=10000)
+                print("✅ Selected Remote work style")
             elif work_style.lower() == "on-site" or work_style.lower() == "onsite":
-                try:
-                    self.locators.onsite_work_option.wait_for(state="visible", timeout=10000)
-                    self.locators.onsite_work_option.click()
-                    print("✅ Selected On-site work style")
-                except Exception as e:
-                    print(f"⚠️ First attempt failed: {e}")
-                    self.locators.work_style_dropdown.click()
-                    time.sleep(1)
-                    self.locators.onsite_work_option.click()
-                    print("✅ Selected On-site work style (fallback)")
+                self.page.get_by_text("On-site", exact=True).first.click(timeout=10000)
+                print("✅ Selected On-site work style")
             elif work_style.lower() == "hybrid":
-                try:
-                    self.locators.hybrid_work_option.wait_for(state="visible", timeout=10000)
-                    self.locators.hybrid_work_option.click()
-                    print("✅ Selected Hybrid work style")
-                except Exception as e:
-                    print(f"⚠️ First attempt failed: {e}")
-                    self.locators.work_style_dropdown.click()
-                    time.sleep(1)
-                    self.locators.hybrid_work_option.click()
-                    print("✅ Selected Hybrid work style (fallback)")
-                    
+                self.page.get_by_text("Hybrid", exact=True).first.click(timeout=10000)
+                print("✅ Selected Hybrid work style")
+            else:
+                # Default to Remote if not recognized
+                self.page.get_by_text("Remote", exact=True).first.click(timeout=10000)
+                print("✅ Selected Remote work style (default)")
+            
+            time.sleep(0.5)  # Wait for selection to register
+            
         except Exception as e:
             print(f"❌ Error selecting work style: {e}")
             raise
@@ -266,25 +244,30 @@ class JDPage:
         """Select Japanese language level from dropdown
         Available options: Elementary, Limited Working, Professional Working, Full Professional, Native or Bilingual
         """
+        print(f"🔧 Selecting Japanese level: {level}")
         self.locators.japanese_level_dropdown.click()
         time.sleep(2)  # Wait for dropdown to open
         level_lower = level.lower()
         
+        # Scope selection to within the modal only
+        modal = self.locators.jd_modal_body
+        
         try:
-            # Dropdowns close after selection, so use .first for the visible option
+            # Select from within the modal only
             if level_lower == "native or bilingual" or level_lower == "native":
-                self.page.get_by_text("Native or Bilingual", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Native or Bilingual", exact=True).first.click(timeout=10000)
             elif level_lower == "full professional":
-                self.page.get_by_text("Full Professional", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Full Professional", exact=True).first.click(timeout=10000)
             elif level_lower == "professional working":
-                self.page.get_by_text("Professional Working", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Professional Working", exact=True).first.click(timeout=10000)
             elif level_lower == "limited working":
-                self.page.get_by_text("Limited Working", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Limited Working", exact=True).first.click(timeout=10000)
             elif level_lower == "elementary":
-                self.page.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Elementary", exact=True).first.click(timeout=10000)
             else:
                 # Default to Elementary
-                self.page.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+            print(f"✅ Selected Japanese level: {level}")
             time.sleep(0.5)  # Wait for selection to register
         except Exception as e:
             print(f"⚠️ Could not select Japanese level: {level}, error: {e}")
@@ -293,31 +276,38 @@ class JDPage:
         """Select English language level from dropdown
         Available options: Elementary, Limited Working, Professional Working, Full Professional, Native or Bilingual
         """
+        print(f"🔧 Selecting English level: {level}")
         self.locators.english_level_dropdown.click()
         time.sleep(2)  # Wait for dropdown to open
         level_lower = level.lower()
         
+        modal = self.locators.jd_modal_body
+        # Scope selection to within the modal only
+        
         try:
-            # Dropdowns close after selection, so use .first for the visible option
+            # Select from within the modal only
             if level_lower == "native or bilingual" or level_lower == "native":
-                self.page.get_by_text("Native or Bilingual", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Native or Bilingual", exact=True).first.click(timeout=10000)
             elif level_lower == "full professional":
-                self.page.get_by_text("Full Professional", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Full Professional", exact=True).first.click(timeout=10000)
             elif level_lower == "professional working":
-                self.page.get_by_text("Professional Working", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Professional Working", exact=True).first.click(timeout=10000)
             elif level_lower == "limited working":
-                self.page.get_by_text("Limited Working", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Limited Working", exact=True).first.click(timeout=10000)
             elif level_lower == "elementary":
-                self.page.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Elementary", exact=True).first.click(timeout=10000)
             else:
                 # Default to Elementary
-                self.page.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Elementary", exact=True).first.click(timeout=10000)
+            print(f"✅ Selected English level: {level}")
             time.sleep(0.5)  # Wait for selection to register
         except Exception as e:
             print(f"⚠️ Could not select English level: {level}, error: {e}")
 
     def select_priority_grade(self, priority: str):
         """Select priority grade from dropdown"""
+        print(f"🔧 Selecting Priority Grade: {priority}")
+        
         # Scroll to priority grade field to ensure it's visible
         self.locators.priority_grade_dropdown.scroll_into_view_if_needed()
         time.sleep(1)
@@ -325,138 +315,126 @@ class JDPage:
         self.locators.priority_grade_dropdown.click()
         time.sleep(2)  # Wait for dropdown to open and load all options
         
+        # Scope selection to within the modal only
+        modal = self.locators.jd_modal_body
+        
         priority_upper = priority.upper()
         
         try:
-            # Dropdowns close after selection, so use .first for the visible option
+            # Select from within the modal only
             if priority_upper == "AAA":
-                self.page.get_by_text("AAA", exact=True).first.click(timeout=10000)
+                modal.get_by_text("AAA", exact=True).first.click(timeout=10000)
             elif priority_upper == "AA":
-                self.page.get_by_text("AA", exact=True).first.click(timeout=10000)
+                modal.get_by_text("AA", exact=True).first.click(timeout=10000)
             elif priority_upper == "A":
-                self.page.get_by_text("A", exact=True).first.click(timeout=10000)
+                modal.get_by_text("A", exact=True).first.click(timeout=10000)
             elif priority_upper == "BBB":
-                self.page.get_by_text("BBB", exact=True).first.click(timeout=10000)
+                modal.get_by_text("BBB", exact=True).first.click(timeout=10000)
             elif priority_upper == "BB":
-                self.page.get_by_text("BB", exact=True).first.click(timeout=10000)
+                modal.get_by_text("BB", exact=True).first.click(timeout=10000)
             else:
                 # Default to A if not recognized
-                self.page.get_by_text("A", exact=True).first.click(timeout=10000)
+                modal.get_by_text("A", exact=True).first.click(timeout=10000)
+            print(f"✅ Selected Priority Grade: {priority}")
             time.sleep(0.5)  # Wait for selection to register
         except Exception as e:
             print(f"⚠️ Could not select Priority Grade: {priority}, error: {e}")
 
     def select_hiring_status(self, status: str):
         """Select hiring status from dropdown"""
+        print(f"🔧 Selecting Hiring Status: {status}")
         self.locators.hiring_status_dropdown.scroll_into_view_if_needed()
         time.sleep(1)
         
         self.locators.hiring_status_dropdown.click()
         time.sleep(2)  # Wait for dropdown to open and load all options
         
+        # Scope selection to within the modal only
+        modal = self.locators.jd_modal_body
+        
         status_lower = status.lower()
         
         try:
-            # Dropdowns close after selection, so use .first for the visible option
+            # Select from within the modal only
             if status_lower == "open":
-                self.page.get_by_text("Open", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Open", exact=True).first.click(timeout=10000)
             elif status_lower == "urgent":
-                self.page.get_by_text("Urgent", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Urgent", exact=True).first.click(timeout=10000)
             elif status_lower == "closed":
-                self.page.get_by_text("Closed", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Closed", exact=True).first.click(timeout=10000)
             else:
                 # Default to Open if not recognized
-                self.page.get_by_text("Open", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Open", exact=True).first.click(timeout=10000)
+            print(f"✅ Selected Hiring Status: {status}")
             time.sleep(0.5)  # Wait for selection to register
         except Exception as e:
             print(f"⚠️ Could not select Hiring Status: {status}, error: {e}")
 
     def select_employment_type(self, employment_type: str):
         """Select employment type from dropdown"""
-        self.locators.employment_type_dropdown.scroll_into_view_if_needed()
+        print(f"🔧 Selecting Employment Type: {employment_type}")
+        # self.locators.employment_type_dropdown.scroll_into_view_if_needed()
         time.sleep(1)
         
         self.locators.employment_type_dropdown.click()
         time.sleep(2)  # Wait for dropdown to open and load all options
         
+        # Scope selection to within the modal only
+        modal = self.locators.jd_modal_body
+        
         type_lower = employment_type.lower()
         
         try:
-            # Dropdowns close after selection, so use .first for the visible option
+            # Select from within the modal only
             if type_lower == "part-time" or type_lower == "parttime":
-                self.page.get_by_text("Part-time", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Part-time", exact=True).first.click(timeout=10000)
             elif type_lower == "permanent":
-                self.page.get_by_text("Permanent", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Permanent", exact=True).first.click(timeout=10000)
             elif type_lower == "self-employed":
-                self.page.get_by_text("Self-employed", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Self-employed", exact=True).first.click(timeout=10000)
             elif type_lower == "freelance":
-                self.page.get_by_text("Freelance", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Freelance", exact=True).first.click(timeout=10000)
             elif type_lower == "contract":
-                self.page.get_by_text("Contract", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Contract", exact=True).first.click(timeout=10000)
             elif type_lower == "internship":
-                self.page.get_by_text("Internship", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Internship", exact=True).first.click(timeout=10000)
             elif type_lower == "apprenticeship":
-                self.page.get_by_text("Apprenticeship", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Apprenticeship", exact=True).first.click(timeout=10000)
             elif type_lower == "indirect contract":
-                self.page.get_by_text("Indirect Contract", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Indirect Contract", exact=True).first.click(timeout=10000)
             else:
                 # Default to Permanent if not recognized
-                self.page.get_by_text("Permanent", exact=True).first.click(timeout=10000)
+                modal.get_by_text("Permanent", exact=True).first.click(timeout=10000)
+            print(f"✅ Selected Employment Type: {employment_type}")
             time.sleep(0.5)  # Wait for selection to register
         except Exception as e:
             print(f"⚠️ Could not select Employment Type: {employment_type}, error: {e}")
 
-    def select_client(self, client_name: str):
+    def select_client(self, client_name: str = None):
         """Select client from dropdown (conditional based on company selection)
-        Handles dynamic client list with search functionality
+        Note: Company must be selected first before client dropdown becomes enabled
+        Selects the first available client from the dropdown
         """
-
-        print(f"🔧 Selecting client: {client_name}")
+        print(f"🔧 Selecting client from dropdown")
+        
         # Scroll to client dropdown to ensure visibility
-        self.locators.client_dropdown.scroll_into_view_if_needed()
+        # self.locators.client_dropdown.scroll_into_view_if_needed()
         time.sleep(1)
         
-        # Click to open dropdown
-        self.locators.client_dropdown.click()
-        time.sleep(2)  # Wait for dropdown to open and load options
-
-        dropdown_options = self.page.locator("text=").all()
-        print(f"🔍 Found {len(dropdown_options)} options in client dropdown")
-        for option in dropdown_options:
-            if option.is_visible() and option.text_content().strip():
-                option.click()
-                print(f"✅ Selected first available client: {option.text_content()}")
-                break
-        
-        # try:
-        #     # Check if there's a search input in the dropdown and use it
-        #     search_input = self.page.locator("input[placeholder='Search...']").first
-        #     if search_input.is_visible():
-        #         print(f"🔍 Using search to find client: {client_name}")
-        #         search_input.fill(client_name)
-        #         time.sleep(1)  # Wait for search results
+        try:
+            # Click to open dropdown
+            self.locators.client_dropdown.click()
+            print("✅ Clicked client dropdown")
+            time.sleep(2)  # Wait for dropdown to open and load options
             
-        #     # Click the client option using exact text match
-        #     self.page.get_by_text(client_name, exact=True).first.click(timeout=10000)
-        #     time.sleep(0.5)  # Wait for selection to register
-        #     print(f"✅ Selected client: {client_name}")
-            
-        # except Exception as e:
-        #     print(f"⚠️ Could not select client: {client_name}, error: {e}")
-        #     # If specific client not found, try to select any available client (first option)
-        #     try:
-        #         print("🔄 Attempting to select first available client option")
-        #         time.sleep(1)
-        #         # Get all text options in dropdown and click the first non-search element
-        #         dropdown_options = self.page.locator("text=").all()
-        #         for option in dropdown_options:
-        #             if option.is_visible() and option.text_content().strip():
-        #                 option.click()
-        #                 print(f"✅ Selected first available client: {option.text_content()}")
-        #                 break
-        #     except Exception as e2:
-        #         print(f"❌ Could not select any client: {e2}")
-        #         raise
+            # Use the known client option "client new" - this is always available
+            self.page.get_by_text("client new", exact=True).first.click(timeout=10000)
+            print(f"✅ Selected client: client new")
+            time.sleep(0.5)  # Wait for selection to register
+                
+        except Exception as e:
+            print(f"❌ Could not select client: {e}")
+            raise
 
     # ===== FORM SUBMISSION METHODS =====
     def save_jd(self):
@@ -481,11 +459,10 @@ class JDPage:
 
     def trigger_mandatory_field_validation(self):
         """Trigger validation by attempting to save empty mandatory fields"""
-        # Clear all mandatory fields to ensure they're empty
-        self.locators.position_job_title_input.fill("")
-        self.locators.jd_workplace_input.fill("")
-        # Attempt to save to trigger validation
-        self.attempt_save_with_validation_errors()
+        self.scroll_into_view_if_needed(self.locators.save_button)
+        self.attempt_save_with_validation_errors()  # Attempt to save to trigger validation
+        time.sleep(1)
+        self.scroll_into_view_if_needed(self.locators.position_job_title_input)
 
     def trigger_salary_range_validation(self, min_salary: str, max_salary: str):
         """Trigger salary range validation with invalid range"""
@@ -527,6 +504,17 @@ class JDPage:
         
         self.attempt_save_with_validation_errors()
 
+    def scroll_down(self, y=500):
+        """Scroll down the JD modal to reveal hidden fields/buttons"""
+        self.page.evaluate(f"window.scrollBy(0, {y});")
+        time.sleep(1)
+
+    def scroll_into_view_if_needed(self, locator=None):
+        """Scroll to make sure the element is in view"""
+        if locator:
+            locator.scroll_into_view_if_needed()
+        time.sleep(1)
+
     # ===== COMPREHENSIVE FORM FILLING METHOD =====
     def fill_jd_form(self, jd_data: dict):
         """Fill JD form with provided data dictionary"""
@@ -564,6 +552,7 @@ class JDPage:
         
         if "target_age_max" in jd_data and jd_data["target_age_max"]:
             self.fill_target_age_max(jd_data["target_age_max"])
+            self.scroll_into_view_if_needed(self.locators.save_button)
         
         if "japanese_level" in jd_data and jd_data["japanese_level"]:
             self.select_japanese_level(jd_data["japanese_level"])
@@ -573,6 +562,10 @@ class JDPage:
         
         if "priority_grade" in jd_data and jd_data["priority_grade"]:
             self.select_priority_grade(jd_data["priority_grade"])
+
+        # Mandatory to select client after company
+        if "client" in jd_data and jd_data["client"]:
+            self.select_client(jd_data["client"])
         
         if "hiring_status" in jd_data and jd_data["hiring_status"]:
             self.select_hiring_status(jd_data["hiring_status"])
@@ -589,8 +582,6 @@ class JDPage:
         if "job_function" in jd_data and jd_data["job_function"]:
             self.fill_job_function(jd_data["job_function"])
 
-        if "client" in jd_data and jd_data["client"]:
-            self.select_client(jd_data["client"])
 
     # ===== FILE UPLOAD METHODS =====
     def upload_jd_file(self, file_path: str):

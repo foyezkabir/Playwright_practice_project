@@ -67,19 +67,22 @@ class JDLocators:
         )
 
         # Additional fields - use the chevron/trigger to open dropdowns
-        self.priority_grade_dropdown = page.get_by_text('Priority Grade')
+        # Priority Grade dropdown - use .last to avoid conflicts with multiple "Priority Grade" texts
+        self.priority_grade_dropdown = page.get_by_text('Priority Grade').last
         self.priority_grade_select_trigger = page.locator(".select-trigger").filter(
             has_text="Priority Grade"
         )
-        self.client_dropdown = page.get_by_text('Client')
+        # Client dropdown - using .last to get the one in modal (not sidebar)
+        # First "Client" is sidebar menu link, last "Client" is in the modal form
+        self.client_dropdown = page.get_by_text('Client').last
         self.client_select_trigger = page.locator(".select-trigger").filter(
             has_text="Client"
         )
-        self.hiring_status_dropdown = page.get_by_text("Hiring Status")
+        self.hiring_status_dropdown = page.get_by_text("Hiring Status").last
         self.hiring_status_select_trigger = page.locator(".select-trigger").filter(
             has_text="Hiring Status"
         )
-        self.employment_type_dropdown = page.get_by_text('Employment Type')
+        self.employment_type_dropdown = page.get_by_text('Employment Type').last
         self.employment_type_select_trigger = page.locator(".select-trigger").filter(
             has_text="Employment Type"
         )
@@ -222,7 +225,7 @@ class JDLocators:
         )
 
         # ===== JD LIST ELEMENTS =====
-        self.no_jds_message = page.get_by_text("No companies found")
+        self.no_jds_message = page.get_by_text("No JD found")
         self.add_new_jd_button = page.get_by_role("button", name="Add new JD")
         self.jd_list_container = page.locator(".jd-list, [class*='jd-list']")
         self.jd_cards_container = page.locator(".jd-cards, [class*='cards']")
