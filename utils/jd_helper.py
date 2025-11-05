@@ -2684,3 +2684,387 @@ def do_search_by_company_name(page: Page, company_name: str):
     print(f"✅ Verified: All {company_card_count} displayed JD(s) contain the searched company name '{company_name}'")
     
     return company_card_count
+
+
+# ============================================================================
+# JD FILTER FEATURE HELPER FUNCTIONS
+# ============================================================================
+
+def do_open_filters_panel(page):
+    """
+    Opens the JD filters panel by clicking the Filters button.
+    
+    Args:
+        page: Playwright page object
+        
+    Returns:
+        None
+    """
+    print("\n🔍 Opening filters panel...")
+    filters_button = page.get_by_text("Filters").first
+    filters_button.click()
+    time.sleep(1)
+    print("✅ Filters panel opened")
+
+
+def do_verify_all_filter_headings_visible(page):
+    """
+    Verifies that all 12 filter headings are visible in the filter panel.
+    
+    Args:
+        page: Playwright page object
+        
+    Returns:
+        None
+        
+    Expected filters:
+        1. Company Name
+        2. Open Position Job Title
+        3. Hiring Status
+        4. Work Style
+        5. Work Place
+        6. Priority Grade
+        7. Language
+        8. Salary Budget
+        9. Job Age
+        10. Target Age
+        11. JD Open Date
+        12. Client owner
+    """
+    print("\n📋 Verifying all filter headings are visible...")
+    
+    filter_headings = [
+        "Company Name",
+        "Open Position Job Title",
+        "Hiring Status",
+        "Work Style",
+        "Work Place",
+        "Priority Grade",
+        "Language",
+        "Salary Budget",
+        "Job Age",
+        "Target Age",
+        "JD Open Date",
+        "Client owner"
+    ]
+    
+    for heading in filter_headings:
+        heading_locator = page.get_by_role("heading", name=heading, level=3)
+        assert heading_locator.is_visible(), f"Filter heading '{heading}' should be visible"
+        print(f"   ✅ Filter heading visible: {heading}")
+    
+    print(f"✅ All {len(filter_headings)} filter headings verified successfully")
+
+
+def do_expand_filter_section(page, filter_name):
+    """
+    Expands a specific filter section by clicking its "Add" button.
+    
+    Args:
+        page: Playwright page object
+        filter_name: Name of the filter to expand (e.g., "Company Name", "Hiring Status")
+        
+    Returns:
+        None
+        
+    Note:
+        - Language filter has a button "Add Language" instead of text "Add"
+        - Other filters use clickable div with "Add" text
+    """
+    print(f"\n📂 Expanding filter section: {filter_name}...")
+    
+    if filter_name == "Language":
+        # Language filter has a specific button
+        add_button = page.get_by_role("button", name="Add Language")
+        add_button.click(force=True)
+    else:
+        # Find the filter heading
+        heading_locator = page.get_by_role("heading", name=filter_name, level=3)
+        
+        # Find the parent container and click the "Add" text/div
+        parent = heading_locator.locator("..")
+        add_button = parent.get_by_text("Add").first
+        add_button.click(force=True)
+    
+    time.sleep(0.5)
+    print(f"✅ Filter section expanded: {filter_name}")
+
+
+def do_select_filter_checkbox(page, checkbox_label):
+    """
+    Selects a specific checkbox in an expanded filter section.
+    
+    Args:
+        page: Playwright page object
+        checkbox_label: Exact label of the checkbox to select (e.g., "company for test", "Closed")
+        
+    Returns:
+        None
+    """
+    print(f"\n☑️  Selecting filter checkbox: {checkbox_label}...")
+    
+    try:
+        checkbox = page.get_by_role("checkbox", name=checkbox_label)
+        # Use force click to handle overlapping elements
+        checkbox.click(force=True, timeout=5000)
+        time.sleep(0.5)  # Wait for filter to apply
+        print(f"✅ Checkbox selected: {checkbox_label}")
+    except Exception as e:
+        print(f"⚠️  Could not find checkbox '{checkbox_label}': {e}")
+        # Try clicking by text as fallback (without exact match for flexibility)
+        try:
+            checkbox_text = page.get_by_text(checkbox_label).first
+            checkbox_text.click(force=True)
+            time.sleep(0.5)
+            print(f"✅ Checkbox selected by text: {checkbox_label}")
+        except Exception as e2:
+            print(f"❌ Failed to select checkbox '{checkbox_label}': {e2}")
+            raise
+
+
+def do_collapse_filter_section(page):
+    """
+    Collapses any open filter sections by clicking on the empty space 
+    between "All clear" button and "Filters" heading.
+    
+    Args:
+        page: Playwright page object
+        
+    Returns:
+        None
+    """
+    print(f"\n🔽 Collapsing open filter sections...")
+    
+    # Click on the "Filters" heading area (between All clear button and Filters text)
+    filters_heading = page.get_by_role("heading", name="Filters", level=2)
+    filters_heading.click()
+    time.sleep(0.5)
+    
+    print(f"✅ Filter sections collapsed")
+
+
+def do_apply_company_filter(page, company_name):
+    """
+    Applies a company filter by expanding Company Name section and selecting checkbox.
+    
+    Args:
+        page: Playwright page object
+        company_name: Exact company name to filter by (e.g., "company for test")
+        
+    Returns:
+        None
+    """
+    print(f"\n🏢 Applying company filter: {company_name}...")
+    
+    # Expand Company Name filter
+    do_expand_filter_section(page, "Company Name")
+    
+    # Select the company checkbox
+    do_select_filter_checkbox(page, company_name)
+    
+    # Click on "Filters" heading to collapse the expanded section
+    print("🔽 Collapsing filter section by clicking on 'Filters' heading...")
+    filters_heading = page.get_by_role("heading", name="Filters", level=2)
+    filters_heading.click()
+    time.sleep(1)
+    
+    # Wait for filtered results to load
+    print("⏳ Waiting for filtered results to load...")
+    time.sleep(3)
+    
+    # Click on the dark overlay backdrop outside the modal to close it
+    print("🔽 Closing filter modal by clicking on overlay backdrop...")
+    overlay = page.locator("div.fixed.inset-0")
+    overlay.click(force=True)
+    time.sleep(1)
+    
+    print(f"✅ Company filter applied: {company_name}")
+
+
+def do_apply_hiring_status_filter(page, status):
+    """
+    Applies a hiring status filter by expanding Hiring Status section and selecting checkbox.
+    
+    Args:
+        page: Playwright page object
+        status: Hiring status to filter by - "Open", "Urgent", or "Closed"
+        
+    Returns:
+        None
+    """
+    print(f"\n📊 Applying hiring status filter: {status}...")
+    
+    # Expand Hiring Status filter
+    do_expand_filter_section(page, "Hiring Status")
+    
+    # Select the status checkbox
+    do_select_filter_checkbox(page, status)
+    
+    # Click on "Filters" heading to collapse the expanded section
+    print("🔽 Collapsing filter section by clicking on 'Filters' heading...")
+    filters_heading = page.get_by_role("heading", name="Filters", level=2)
+    filters_heading.click()
+    time.sleep(1)
+    
+    # Wait for filtered results to load
+    print("⏳ Waiting for filtered results to load...")
+    time.sleep(3)
+    
+    # Click on the dark overlay backdrop outside the modal to close it
+    print("🔽 Closing filter modal by clicking on overlay backdrop...")
+    overlay = page.locator("div.fixed.inset-0")
+    overlay.click(force=True)
+    time.sleep(1)
+    
+    print(f"✅ Hiring status filter applied: {status}")
+    print("⏳ Waiting for filtered results to load...")
+    time.sleep(3)
+    
+    # Click outside the filter modal to close it - click on the breadcrumb area which is definitely outside the filter panel
+    print("🔽 Closing filter modal by clicking outside on breadcrumb area...")
+    breadcrumb = page.locator("nav").first  # Click on the navigation breadcrumb area
+    breadcrumb.click()
+    time.sleep(1)
+    
+    print(f"✅ Hiring status filter applied: {status}")
+    print("⏳ Waiting for filtered results to load...")
+    time.sleep(3)
+    
+    # Click outside the filter modal to close it
+    print("🔽 Closing filter modal by clicking outside...")
+    page.locator("main").click(position={"x": 100, "y": 100})
+    time.sleep(1)
+    
+    print(f"✅ Hiring status filter applied: {status}")
+    print("⏳ Waiting for filtered results to load...")
+    time.sleep(3)
+    
+    print(f"✅ Hiring status filter applied: {status}")
+
+
+def do_verify_filter_tag_visible(page, filter_heading_name, expected_tag_text):
+    """
+    Verifies that a filter heading shows the selected value as a tag after applying filter.
+    This function scopes the search to the filter panel to avoid conflicts with main content.
+    
+    Args:
+        page: Playwright page object
+        filter_heading_name: Name of the filter (e.g., "Company Name", "Hiring Status")
+        expected_tag_text: Expected text to appear in the heading (e.g., "company for test", "Closed")
+        
+    Returns:
+        None
+    """
+    print(f"\n🏷️  Verifying filter tag: {filter_heading_name} = {expected_tag_text}...")
+    
+    # Find the filter heading
+    heading_locator = page.get_by_role("heading", name=filter_heading_name, level=3)
+    
+    # Get its parent container (the filter section)
+    filter_section = heading_locator.locator("..")
+    
+    # Look for the selected tag/badge within this filter section only
+    # The selected value appears as a badge/tag with background color
+    # We check if the text appears in a span/div with specific styling (not in checkbox label)
+    tag_locator = filter_section.locator(f"span:has-text('{expected_tag_text}')").first
+    
+    is_visible = tag_locator.is_visible()
+    assert is_visible, f"Filter tag '{expected_tag_text}' should be visible under '{filter_heading_name}' heading"
+    
+    print(f"✅ Filter tag verified: {filter_heading_name} shows '{expected_tag_text}'")
+
+
+def do_verify_jd_count(page, expected_count):
+    """
+    Verifies the number of JD cards displayed after applying filters.
+    
+    Args:
+        page: Playwright page object
+        expected_count: Expected number of JD cards to be displayed
+        
+    Returns:
+        Actual count of JD cards found
+    """
+    print(f"\n🔢 Verifying JD count (expected: {expected_count})...")
+    
+    # Count JD cards by finding "View Details" buttons
+    jd_cards = page.get_by_role("button", name="View Details")
+    actual_count = jd_cards.count()
+    
+    assert actual_count == expected_count, f"Expected {expected_count} JD(s), but found {actual_count}"
+    print(f"✅ JD count verified: {actual_count} JD(s) displayed")
+    
+    return actual_count
+
+
+def do_verify_all_jds_contain_text(page, expected_text):
+    """
+    Verifies that all displayed JD cards contain specific text (e.g., company name, status).
+    
+    Args:
+        page: Playwright page object
+        expected_text: Text that should appear in all JD cards
+        
+    Returns:
+        None
+    """
+    print(f"\n📝 Verifying all JDs contain text: '{expected_text}'...")
+    
+    time.sleep(1)  # Wait for results to load
+    
+    # Find all JD cards
+    jd_cards = page.locator("main").locator("div[class*='flex-1']").locator("..")
+    # print(jd_cards.text_content())
+    card_count = jd_cards.count()
+    
+    assert card_count > 0, "No JD cards found to verify"
+    
+    for i in range(card_count):
+        card_text = jd_cards.nth(i).inner_text()
+        print(f"   JD card {i+1}: {card_text}")
+        assert expected_text in card_text, f"JD card {i+1} should contain text '{expected_text}'"
+    #     print(f"   ✅ JD card {i+1} contains '{expected_text}'")
+    
+    print(f"✅ All {card_count} JD(s) verified to contain '{expected_text}'")
+
+
+def do_clear_all_filters(page):
+    """
+    Clears all applied filters by clicking the "All clear" button.
+    
+    Args:
+        page: Playwright page object
+        
+    Returns:
+        None
+    """
+    print("\n🧹 Clearing all filters...")
+    
+    all_clear_button = page.get_by_role("button", name="All clear")
+    all_clear_button.click()
+    time.sleep(1)  # Wait for filters to reset and results to reload
+    
+    print("✅ All filters cleared successfully")
+
+
+def do_verify_filter_reset_to_add(page, filter_heading_name):
+    """
+    Verifies that a filter heading shows "Add" text after clearing filters.
+    
+    Args:
+        page: Playwright page object
+        filter_heading_name: Name of the filter to verify (e.g., "Company Name")
+        
+    Returns:
+        None
+    """
+    print(f"\n🔄 Verifying filter reset: {filter_heading_name}...")
+    
+    heading_locator = page.get_by_role("heading", name=filter_heading_name, level=3)
+    parent = heading_locator.locator("..")
+    
+    # Check if "Add" text is visible (indicating filter is reset)
+    add_text = parent.get_by_text("Add", exact=True).first
+    assert add_text.is_visible(), f"Filter '{filter_heading_name}' should show 'Add' after clearing"
+    
+    print(f"✅ Filter reset verified: {filter_heading_name} shows 'Add'")
