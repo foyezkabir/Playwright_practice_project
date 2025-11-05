@@ -2506,3 +2506,181 @@ def assert_line_specific_errors(page: Page, test_name: str = "line_specific_erro
     jd_page.verify_line_specific_errors()
     
     print("✅ Line-specific errors assertion passed")
+
+
+def verify_jd_modal_fields_and_buttons(page: Page, test_name_prefix: str = "test_TC_11"):
+    """
+    Verify all form fields and buttons are present in the JD creation modal
+    
+    Args:
+        page: Playwright page object
+        test_name_prefix: Prefix for screenshot naming (default: "test_TC_11")
+    """
+    # Locate the modal first to scope all searches within it
+    modal = page.locator("div[role='dialog'], div[class*='modal']").first
+    
+    print("\n🔍 Verifying form fields by title names:")
+    
+    field_titles = [
+        "Position Job Title",
+        "Company",
+        "Work Style",
+        "JD Workplace",
+        "Minimum Salary",
+        "Maximum Salary",
+        "Currency",
+        "Job Age Min",
+        "Job Age Max",
+        "Target Age Min",
+        "Target Age Max",
+        "Client",
+        "Hiring Status",
+        "Priority Grade",
+        "Japanese Level",
+        "English Level",
+        "Direct Report",
+        "Department",
+        "Job Function",
+        "Upload JD file (optional)"
+    ]
+
+    # Fast verification without enhanced assertions (no sleep/screenshot)
+    for field_title in field_titles:
+        field_label = modal.get_by_text(field_title, exact=True)
+        assert field_label.is_visible(timeout=2000), f"{field_title} field label should be present"
+        print(f"   ✅ {field_title}: field label found")
+
+    # Verify Save button is present
+    print("\n🔍 Verifying modal buttons:")
+    save_button = modal.get_by_role("button", name="Save")
+    assert save_button.is_visible(timeout=2000), "Save button should be present"
+    print("   ✅ Save button: found")
+
+    # Verify Cancel button is present
+    cancel_button = modal.get_by_role("button", name="Cancel")
+    assert cancel_button.is_visible(timeout=2000), "Cancel button should be present"
+    print("   ✅ Cancel button: found")
+
+    # Verify close modal button is present
+    print("\n🔍 Verifying close modal button:")
+    close_button = modal.get_by_role("button", name="Close modal")
+    assert close_button.is_visible(timeout=2000), "Close modal button should be present"
+    print("   ✅ Close modal button: found")
+    
+    print("\n✅ All form fields and buttons verified successfully")
+
+
+def do_search_by_jd_title(page: Page, search_term: str):
+    """
+    Search for JD by title and verify only that JD appears in results
+    
+    Args:
+        page: Playwright page object
+        search_term: JD title to search for
+        
+    Returns:
+        bool: True if search successful and only matching JD found
+    """
+    from pages.jd_page import JDPage
+    from utils.enhanced_assertions import enhanced_assert_visible
+    
+    jd_page = JDPage(page)
+    
+    print(f"\n🔍 Searching for JD: '{search_term}'")
+    
+    # Perform search
+    search_count = jd_page.perform_search(search_term)
+    print(f"✅ Search completed, found {search_count} results")
+    import time
+    time.sleep(2)
+
+    # Verify the specific JD is visible
+    target_jd = page.get_by_text(search_term, exact=True)
+    enhanced_assert_visible(page, target_jd, f"JD '{search_term}' should be visible in search results", "search_by_jd_title")
+    print(f"✅ Target JD '{search_term}' is visible in search results")
+
+    # Verify only 1 JD card is displayed
+    jd_cards = page.locator(".flex.flex-col.sm\\:flex-row")
+    card_count = jd_cards.count()
+    
+    assert card_count == 1, f"Only 1 JD should be displayed in search results, but found {card_count}"
+    print(f"✅ Verified only 1 JD card is displayed (no other JDs)")
+
+    # Verify the displayed card contains the exact search term
+    first_card_text = jd_cards.first.inner_text()
+    assert search_term in first_card_text, f"The displayed JD card should contain '{search_term}'"
+    print(f"✅ Verified the displayed JD card contains '{search_term}'")
+    
+    return True
+
+
+def do_clear_search_and_show_full_list(page: Page):
+    """
+    Clear search input and display full JD list
+    
+    Args:
+        page: Playwright page object
+        
+    Returns:
+        int: Number of JDs in full list
+    """
+    from pages.jd_page import JDPage
+    import time
+    
+    jd_page = JDPage(page)
+    
+    print("\n🔄 Clearing search to show full list")
+    jd_page.clear_search_input()
+    time.sleep(1)
+    jd_page.perform_empty_search()
+    time.sleep(2)
+    
+    # Get full list count
+    jd_cards = page.locator(".flex.flex-col.sm\\:flex-row")
+    full_list_count = jd_cards.count()
+    print(f"✅ Full list displayed with {full_list_count} JDs")
+    
+    return full_list_count
+
+
+def do_search_by_company_name(page: Page, company_name: str):
+    """
+    Search for JDs by company name and verify results
+    
+    Args:
+        page: Playwright page object
+        company_name: Company name to search for
+        
+    Returns:
+        int: Number of JDs found for the company
+    """
+    from pages.jd_page import JDPage
+    from utils.enhanced_assertions import enhanced_assert_visible
+    import time
+    
+    jd_page = JDPage(page)
+    
+    print(f"\n🔍 Searching for company: '{company_name}'")
+    
+    # Perform search for company name
+    company_search_count = jd_page.perform_search(company_name)
+    print(f"✅ Search completed, found {company_search_count} results")
+    time.sleep(2)
+
+    # Get all JD cards displayed after search
+    jd_cards = page.locator(".flex.flex-col.sm\\:flex-row")
+    company_card_count = jd_cards.count()
+    
+    # Verify at least 1 JD is displayed
+    assert company_card_count >= 1, f"At least 1 JD should be displayed for company '{company_name}', but found {company_card_count}"
+    print(f"✅ Found {company_card_count} JD(s) for company '{company_name}'")
+    
+    # Verify the company name appears in the result card(s)
+    for i in range(company_card_count):
+        card_text = jd_cards.nth(i).text_content()
+        assert company_name in card_text, f"JD card {i+1} should contain company name '{company_name}'"
+        print(f"   ✅ JD card {i+1} contains company '{company_name}'")
+    
+    print(f"✅ Verified: All {company_card_count} displayed JD(s) contain the searched company name '{company_name}'")
+    
+    return company_card_count

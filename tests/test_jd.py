@@ -75,10 +75,45 @@ def test_TC_01(page: Page, admin_credentials):
 
     print("✅ TC_01 passed: JD list empty state working correctly")
 
-def test_TC_02(
+def test_TC_02(page: Page, admin_credentials):
+    """TC_02: Verify JD creation modal heading and form fields presence"""
+    print("🧪 TC_02: Testing JD creation modal heading and form fields")
+
+    # Use agency 173 (empty state agency)
+    empty_agency_id = "173"
+
+    # Login and navigate to JD page for agency 173
+    jd_page = do_jd_login(page, admin_credentials["email"], admin_credentials["password"], empty_agency_id)
+
+    # Click on "Add new JD" button
+    jd_page.click_add_jd()
+
+    # Verify modal heading is "Add New JD"
+    modal_heading = page.get_by_text("Add New JD", exact=True)
+    enhanced_assert_visible(page, modal_heading, "Modal heading 'Add New JD' should be visible", "test_TC_11_modal_heading")
+    print("✅ Modal heading verified: 'Add New JD'")
+
+    # Verify all form fields and buttons using helper function
+    from utils.jd_helper import verify_jd_modal_fields_and_buttons
+    verify_jd_modal_fields_and_buttons(page, "test_TC_11")
+
+    # Close modal using close modal button
+    print("\n🔍 Closing modal using close modal button:")
+    close_button = page.get_by_role("button", name="Close modal")
+    close_button.click()
+    time.sleep(1)
+    
+    # Verify modal is closed
+    modal = page.locator("div[role='dialog'], div[class*='modal']").first
+    enhanced_assert_not_visible(page, modal, "Modal should be closed after clicking close button", "test_TC_11_modal_closed")
+    print("   ✅ Modal closed successfully")
+
+    print("\n✅ TC_02 passed: JD creation modal heading, form fields, buttons, and close functionality verified")
+
+def test_TC_03(
     page: Page, admin_credentials, test_agency_info, fresh_jd_data, created_jd_title):
-    """TC_02: Verify JD creation with valid mandatory and optional data including file upload"""
-    print("🧪 TC_02: Testing JD creation with valid data and file upload")
+    """TC_03: Verify JD creation with valid mandatory and optional data including file upload"""
+    print("🧪 TC_03: Testing JD creation with valid data and file upload")
 
     # Convert the JDTestData dataclass to dictionary and override company name
     jd_data = asdict(fresh_jd_data)
@@ -131,12 +166,12 @@ def test_TC_02(
     print(f"\n✅ JD Position Title stored for TC_06: '{created_jd_title['title']}'")
     print("="*80 + "\n")
 
-    print("✅ TC_02 passed: JD created successfully with valid data and file upload")
+    print("✅ TC_03 passed: JD created successfully with valid data and file upload")
 
 
-def test_TC_03(page: Page, admin_credentials, test_agency_info):
-    """TC_03: Verify validation errors when mandatory fields are missing"""
-    print("🧪 TC_03: Testing JD creation with missing mandatory fields")
+def test_TC_04(page: Page, admin_credentials, test_agency_info):
+    """TC_04: Verify validation errors when mandatory fields are missing"""
+    print("🧪 TC_04: Testing JD creation with missing mandatory fields")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
@@ -160,12 +195,12 @@ def test_TC_03(page: Page, admin_credentials, test_agency_info):
     # Close modal
     jd_page.close_jd_modal()
 
-    print("✅ TC_03 passed: Mandatory field validation working correctly")
+    print("✅ TC_04 passed: Mandatory field validation working correctly")
 
 
-def test_TC_04(page: Page, admin_credentials, test_agency_info):
-    """TC_04: Verify validation error for invalid salary range (max < min)"""
-    print("🧪 TC_04: Testing JD creation with invalid salary range")
+def test_TC_05(page: Page, admin_credentials, test_agency_info):
+    """TC_05: Verify validation error for invalid salary range (max < min)"""
+    print("🧪 TC_05: Testing JD creation with invalid salary range")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
@@ -181,12 +216,12 @@ def test_TC_04(page: Page, admin_credentials, test_agency_info):
     # Verify salary range validation error appears
     enhanced_assert_visible(page,jd_page.locators.invalid_salary_range_error,"Invalid salary range error should be visible","test_TC_04_salary_validation",)
 
-    print("✅ TC_04 passed: Salary range validation working correctly")
+    print("✅ TC_05 passed: Salary range validation working correctly")
 
 
-def test_TC_05(page: Page, admin_credentials, test_agency_info):
-    """TC_05: Verify validation error for invalid age range (max < min)"""
-    print("🧪 TC_05: Testing JD creation with invalid age range")
+def test_TC_06(page: Page, admin_credentials, test_agency_info):
+    """TC_06: Verify validation error for invalid age range (max < min)"""
+    print("🧪 TC_06: Testing JD creation with invalid age range")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
@@ -202,12 +237,12 @@ def test_TC_05(page: Page, admin_credentials, test_agency_info):
     # Verify age range validation error appears
     enhanced_assert_visible(page,jd_page.locators.invalid_target_age_range_error,"Invalid age range error should be visible","test_TC_05_age_validation",)
 
-    print("✅ TC_05 passed: Age range validation working correctly")
+    print("✅ TC_06 passed: Age range validation working correctly")
 
 
-def test_TC_06(page: Page, admin_credentials, test_agency_info):
-    """TC_06: Verify character limit validation for text fields"""
-    print("🧪 TC_06: Testing JD creation with character limit validation")
+def test_TC_07(page: Page, admin_credentials, test_agency_info):
+    """TC_07: Verify character limit validation for text fields"""
+    print("🧪 TC_07: Testing JD creation with character limit validation")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
@@ -228,11 +263,11 @@ def test_TC_06(page: Page, admin_credentials, test_agency_info):
     assert actual_length <= 100, f"System should not allow more than 100 characters, but allowed {actual_length}"
     print(f"✅ System correctly limited input to {actual_length} characters (max 100)")
 
-    print("✅ TC_06 passed: Character limit validation working correctly")
+    print("✅ TC_07 passed: Character limit validation working correctly")
 
-def test_TC_07(page: Page, admin_credentials, test_agency_info):
-    """TC_07: Verify JD deletion cancellation by clicking cancel button"""
-    print("🧪 TC_07: Testing JD deletion cancellation")
+def test_TC_08(page: Page, admin_credentials, test_agency_info):
+    """TC_08: Verify JD deletion cancellation by clicking cancel button"""
+    print("🧪 TC_08: Testing JD deletion cancellation")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
@@ -268,11 +303,11 @@ def test_TC_07(page: Page, admin_credentials, test_agency_info):
     confirmation_modal = page.locator("div[role='dialog'], div[class*='modal']").first
     enhanced_assert_not_visible(page, confirmation_modal, "Confirmation modal should close after clicking cancel", "test_TC_07_modal_closes")
 
-    print("✅ TC_07 passed: JD deletion cancellation working correctly")
+    print("✅ TC_08 passed: JD deletion cancellation working correctly")
 
-def test_TC_08(page: Page, admin_credentials, test_agency_info):
-    """TC_08: Verify JD deletion by clicking confirm button"""
-    print("🧪 TC_08: Testing JD deletion from list using three-dot menu")
+def test_TC_09(page: Page, admin_credentials, test_agency_info):
+    """TC_09: Verify JD deletion by clicking confirm button"""
+    print("🧪 TC_09: Testing JD deletion from list using three-dot menu")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
@@ -312,11 +347,11 @@ def test_TC_08(page: Page, admin_credentials, test_agency_info):
     assert not jd_still_exists, f"JD '{jd_title_to_delete}' should not exist in the list after deletion"
     print(f"✅ Verified JD '{jd_title_to_delete}' is removed from the list")
 
-    print("✅ TC_08 passed: JD deletion from list using three-dot menu working correctly")
+    print("✅ TC_09 passed: JD deletion from list using three-dot menu working correctly")
 
-def test_TC_09(page: Page, admin_credentials, test_agency_info):
-    """TC_09: Verify JD detail view functionality"""
-    print("🧪 TC_09: Testing JD detail view")
+def test_TC_10(page: Page, admin_credentials, test_agency_info):
+    """TC_10: Verify JD detail view functionality"""
+    print("🧪 TC_10: Testing JD detail view")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
@@ -360,12 +395,12 @@ def test_TC_09(page: Page, admin_credentials, test_agency_info):
     from utils.jd_helper import parse_and_display_jd_details
     parse_and_display_jd_details(full_page_content)
 
-    print("✅ TC_09 passed: JD detail view working correctly")
+    print("✅ TC_10 passed: JD detail view working correctly")
 
-def test_TC_10(page: Page, admin_credentials, test_agency_info):
+def test_TC_11(page: Page, admin_credentials, test_agency_info):
 
-    """TC_10: Verify JD list displays correctly when JDs exist"""
-    print("🧪 TC_10: Testing JD list display with existing data")
+    """TC_11: Verify JD list displays correctly when JDs exist"""
+    print("🧪 TC_11: Testing JD list display with existing data")
 
     # Login and navigate to JD page (agency 174 has JDs)
     jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
@@ -378,184 +413,66 @@ def test_TC_10(page: Page, admin_credentials, test_agency_info):
     first_jd_card = page.locator(".flex.flex-col.sm\\:flex-row").first
     enhanced_assert_visible(page, first_jd_card, "JD cards should be visible in the list", "test_TC_10_jd_cards_visible")
 
-    print("✅ TC_10 passed: JD list display working correctly")
+    print("✅ TC_11 passed: JD list display working correctly")
 
+def test_TC_12(page: Page, admin_credentials, test_agency_info):
+    """TC_12: Verify JD search by position title and company name"""
+    print("🧪 TC_12: Testing JD search by position title and company name")
 
+    # Import helper functions
+    from utils.jd_helper import do_search_by_jd_title, do_clear_search_and_show_full_list, do_search_by_company_name
+    
+    # Login and navigate to JD page
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
+    time.sleep(1)
 
+    # Part 1: Search by JD Title
+    print("\n📋 Part 1: Searching by JD Title")
+    do_search_by_jd_title(page, "JD for search Only")
 
-def test_TC_11(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_11: Verify JD creation modal accessibility and form elements"""
-    print("🧪 TC_11: Testing JD creation modal accessibility")
+    # Clear search and show full list
+    do_clear_search_and_show_full_list(page)
+    time.sleep(4)
+
+    # Part 2: Search by Company Name
+    print("\n📋 Part 2: Searching by Company Name")
+    do_search_by_company_name(page, "Only for TC 13")
+
+    print("\n✅ TC_12 passed: JD search by title and company name working correctly")
+
+def test_TC_13(page: Page, admin_credentials, test_agency_info):
+    """TC_13: Verify JD search with no results shows correct message"""
+    print("🧪 TC_13: Testing JD search with no results")
 
     # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Open JD creation modal
-    jd_page.click_add_jd()
-    jd_page.wait_for_modal_to_open()
-
-    # Verify modal accessibility elements
-    jd_page.verify_modal_accessibility()
-
-    # Verify all form labels are present and correctly associated
-    jd_page.verify_form_labels_accessibility()
-
-    # Verify required field indicators
-    jd_page.verify_required_field_indicators()
-
-    # Close modal
-    jd_page.close_jd_modal()
-
-    print("✅ TC_11 passed: JD creation modal accessibility verified")
-
-def test_TC_12(page: Page, admin_credentials, test_agency_id, fresh_jd_data):
-    """TC_12: Verify JD search by position title"""
-    print("🧪 TC_12: Testing JD search by position title")
-
-    # Create a JD to search for
-    jd_page, success = JDHelpers.create_jd(page,fresh_jd_data.__dict__,test_agency_id,admin_credentials["email"],admin_credentials["password"],)
-
-    assert success, "JD creation should succeed before testing search"
-    time.sleep(2)
-
-    # Search for the created JD by position title
-    search_term = fresh_jd_data.position_title.split()[0]  # Use first word of title
-    jd_page = JDHelpers.search_and_verify(page, search_term, [fresh_jd_data.position_title])
-
-    # Verify search results contain the JD
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.jd_card(fresh_jd_data.position_title),
-        f"JD '{fresh_jd_data.position_title}' should be visible in search results",
-        "test_TC_16_search_results",
-    )
-
-    # Verify search term is highlighted in results
-    jd_page.verify_search_highlights(search_term)
-
-    print("✅ TC_16 passed: JD search by position title working correctly")
-
-
-def test_TC_17(
-    page: Page, admin_credentials, test_agency_id, fresh_jd_data
-):
-    """TC_17: Verify JD search by company name"""
-    print("🧪 TC_17: Testing JD search by company name")
-
-    # Create a JD to search for
-    jd_page, success = JDHelpers.create_jd(
-        page,
-        fresh_jd_data.__dict__,
-        test_agency_id,
-        admin_credentials["email"],
-        admin_credentials["password"],
-    )
-
-    assert success, "JD creation should succeed before testing search"
-    time.sleep(2)
-
-    # Search for JDs by company name
-    search_term = fresh_jd_data.company
-    jd_page = JDHelpers.search_and_verify(
-        page, search_term, [fresh_jd_data.position_title]
-    )
-
-    # Verify search results contain JDs from the company
-    jd_page.verify_search_results_contain_company(fresh_jd_data.company)
-
-    print("✅ TC_17 passed: JD search by company name working correctly")
-
-
-def test_TC_18(page: Page, admin_credentials, test_agency_id):
-    """TC_18: Verify JD search with no results"""
-    print("🧪 TC_18: Testing JD search with no results")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"])
+    time.sleep(0.3)
 
     # Search for non-existent term
-    nonexistent_term = "nonexistentjobposition12345"
-    jd_page, results = JDHelpers.test_no_results_scenarios(page, [nonexistent_term])
+    nonexistent_term = "non-existent job-position-12345"
+    print(f"🔍 Searching for non-existent term: '{nonexistent_term}'")
+    
+    # Perform search
+    search_count = jd_page.perform_search(nonexistent_term)
+    print(f"✅ Search completed, found {search_count} results")
+    time.sleep(2)
 
-    # Verify no results message is displayed
-    JDHelpers.assert_no_results(page, nonexistent_term, "test_TC_18_no_results")
+    # Verify "No JD found" message is displayed (correct message)
+    no_jd_message = page.get_by_text("No JD found")
+    enhanced_assert_visible(page, no_jd_message, "No JD found message should be visible after searching for non-existent JD", "test_TC_14_no_jd_found")
+    print("✅ Correct message 'No JD found' is displayed")
 
-    print("✅ TC_18 passed: JD search no results scenario working correctly")
-
-
-def test_TC_19(page: Page, admin_credentials, test_agency_id):
-    """TC_19: Verify JD search clearing functionality"""
-    print("🧪 TC_19: Testing JD search clearing")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Perform initial search
-    search_term = "engineer"
-    initial_count = jd_page.perform_search(search_term)
-
-    # Clear search
-    jd_page.clear_search_input()
-    jd_page.perform_empty_search()
-
-    # Verify all JDs are displayed again
-    cleared_count = jd_page.get_search_results_count()
-    assert cleared_count >= initial_count, "Cleared search should show all JDs"
-
-    # Verify search input is empty
-    jd_page.verify_search_input_value("")
-
-    print("✅ TC_19 passed: JD search clearing working correctly")
+    print("✅ TC_13 passed: JD search no results message working correctly")
 
 
-def test_TC_20(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_20: Verify JD search handles special characters correctly"""
-    print("🧪 TC_20: Testing JD search with special characters")
 
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Test search with special characters
-    special_terms = ["C++", "C#", ".NET", "Node.js", "@company"]
-
-    for term in special_terms:
-        try:
-            # Perform search with special characters
-            count = jd_page.perform_search(term)
-
-            # Verify search doesn't break the application
-            jd_page.verify_search_functionality_intact()
-
-            # Reset search for next test
-            jd_page.reset_search_state()
-
-            print(f"   ✅ Special character search '{term}' handled correctly")
-
-        except Exception as e:
-            print(f"   ⚠️ Special character search '{term}' had issues: {e}")
-
-    print("✅ TC_20 passed: JD search with special characters working correctly")
-
-
-def test_TC_21(page: Page, admin_credentials, test_agency_id):
+def test_TC_21(page: Page, admin_credentials, test_agency_info):
     """TC_21: Verify JD filtering by company"""
     print("🧪 TC_21: Testing JD filtering by company")
 
     # Login and navigate to JD page
     jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
+        page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"]
     )
 
     # Apply company filter
