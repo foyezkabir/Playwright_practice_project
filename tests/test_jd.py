@@ -10,24 +10,8 @@ from dataclasses import asdict
 from playwright.sync_api import Page
 from utils.jd_test_helpers import JDHelpers
 from utils.jd_test_data import JDTestData, JDDataClass
-from utils.jd_helper import (
-    do_jd_login,
-    do_open_filters_panel,
-    do_verify_all_filter_headings_visible,
-    do_apply_company_filter,
-    do_apply_hiring_status_filter,
-    do_verify_filter_tag_visible,
-    do_verify_jd_count,
-    do_verify_all_jds_contain_text,
-    do_clear_all_filters,
-    do_verify_filter_reset_to_add,
-    do_expand_filter_section,
-    do_select_filter_checkbox,
-)
-from utils.enhanced_assertions import (
-    enhanced_assert_visible,
-    enhanced_assert_not_visible,
-)
+from utils.jd_helper import (do_apply_all_filters, do_jd_login,do_open_filters_panel,do_verify_all_filter_headings_visible,do_apply_company_filter,do_apply_hiring_status_filter,do_verify_filter_tag_visible,do_verify_jd_count,do_verify_all_jds_contain_text,do_clear_all_filters,do_verify_filter_reset_to_add,do_expand_filter_section,do_select_filter_checkbox,do_verify_filtered_results_tc19,do_close_filter_modal_and_verify_results,do_compare_jd_counts_and_verify_cleared,do_close_filter_modal_after_clearing,)   
+from utils.enhanced_assertions import (enhanced_assert_visible,enhanced_assert_not_visible,)
 from utils.config import BASE_URL
 
 
@@ -64,10 +48,6 @@ def fresh_jd_data():
     jd_data = JDTestData.complete()
     print(f"Generated fresh JD data: {asdict(jd_data)}")
     return jd_data
-
-
-# ===== JD CRUD OPERATION TEST CASES (TC_01-TC_15) =====
-
 
 def test_TC_01(page: Page, admin_credentials):
     """TC_01: Verify JD list empty state display"""
@@ -181,7 +161,6 @@ def test_TC_03(
 
     print("✅ TC_03 passed: JD created successfully with valid data and file upload")
 
-
 def test_TC_04(page: Page, admin_credentials, test_agency_info):
     """TC_04: Verify validation errors when mandatory fields are missing"""
     print("🧪 TC_04: Testing JD creation with missing mandatory fields")
@@ -210,7 +189,6 @@ def test_TC_04(page: Page, admin_credentials, test_agency_info):
 
     print("✅ TC_04 passed: Mandatory field validation working correctly")
 
-
 def test_TC_05(page: Page, admin_credentials, test_agency_info):
     """TC_05: Verify validation error for invalid salary range (max < min)"""
     print("🧪 TC_05: Testing JD creation with invalid salary range")
@@ -231,7 +209,6 @@ def test_TC_05(page: Page, admin_credentials, test_agency_info):
 
     print("✅ TC_05 passed: Salary range validation working correctly")
 
-
 def test_TC_06(page: Page, admin_credentials, test_agency_info):
     """TC_06: Verify validation error for invalid age range (max < min)"""
     print("🧪 TC_06: Testing JD creation with invalid age range")
@@ -251,7 +228,6 @@ def test_TC_06(page: Page, admin_credentials, test_agency_info):
     enhanced_assert_visible(page,jd_page.locators.invalid_target_age_range_error,"Invalid age range error should be visible","test_TC_05_age_validation",)
 
     print("✅ TC_06 passed: Age range validation working correctly")
-
 
 def test_TC_07(page: Page, admin_credentials, test_agency_info):
     """TC_07: Verify character limit validation for text fields"""
@@ -497,7 +473,6 @@ def test_TC_14(page: Page, test_agency_info):
     
     print("✅ TC_14 passed: Filter panel accessible, all filter headings visible")
 
-
 def test_TC_15(page: Page, test_agency_info):
     """Verify that applying company filter displays only JDs from that company."""
     print("\n🧪 TC_15: Testing single company filter application")
@@ -516,6 +491,73 @@ def test_TC_15(page: Page, test_agency_info):
     do_verify_all_jds_contain_text(page, "Company For Test")
 
     print("✅ TC_15 passed: Company filter working correctly, only matching JDs displayed")
+
+def test_TC_16(page: Page, test_agency_info):
+    """Verify that applying multiple filter fields at once works correctly with AND logic."""
+    print("\n🧪 TC_16: Testing multiple filters applied at once")
+
+    # Login to agency with JD data (agency 174)
+    jd_page = do_jd_login(page, "mi003b@onemail.host", "Kabir123#", test_agency_info["agency_id"])
+    
+    # Open filters panel
+    do_open_filters_panel(page)
+    
+    # Apply all filters using helper function
+    do_apply_all_filters(page)
+    
+    # Verify filtered results using helper function
+    do_verify_filtered_results_tc19(page)
+    
+    print("\n✅ TC_16 passed: Multiple filters applied successfully, AND logic verified")
+
+def test_TC_17(page: Page, test_agency_info):
+    """Verify that applying multiple filters (Company + Hiring Status) works with AND logic."""
+    print("\n🧪 TC_17: Testing multiple filters with AND logic")
+    
+    # Login to agency with JD data (agency 174)
+    jd_page = do_jd_login(page, "mi003b@onemail.host", "Kabir123#", test_agency_info["agency_id"])
+    time.sleep(2)
+    
+    # Open filters panel
+    do_open_filters_panel(page)
+    
+    # Apply company filter for "company for test"
+    do_apply_company_filter(page, "company for test")
+    
+    # Apply hiring status filter for "Closed"
+    do_apply_hiring_status_filter(page, "Closed")
+    
+    # Verify only 1 JD is displayed (Company For Test + Closed status)
+    filtered_count = page.locator(".flex.flex-col.sm\\:flex-row").count()
+    print(f"📊 Filtered JD count: {filtered_count}")
+    assert filtered_count == 1, f"Expected 1 JD with filters, but got {filtered_count}"
+    
+    # Verify the displayed JD contains both "Company For Test" and "Closed"
+    do_verify_all_jds_contain_text(page, "Company For Test")
+    do_verify_all_jds_contain_text(page, "Closed")
+    
+    # Verify the specific JD is "Staff System Administrator"
+    do_verify_all_jds_contain_text(page, "Staff System Administrator")
+    
+    # Now clear all filters and verify all JDs are restored
+    print("\n🔄 Clearing all filters...")
+    
+    # Reopen filters panel
+    do_open_filters_panel(page)
+    
+    # Click "All clear" button
+    do_clear_all_filters(page)
+    time.sleep(3)  # Wait for results to reload after clearing
+    
+    # Close filter modal after clearing
+    do_close_filter_modal_after_clearing(page)
+    
+    # Compare counts and verify filters were cleared
+    do_compare_jd_counts_and_verify_cleared(page, filtered_count)
+    
+    print("✅ TC_17 passed: Multiple filters work with AND logic, and clearing restores all JDs")
+
+
 
 
 
@@ -1804,205 +1846,4 @@ def test_TC_51_test_execution_summary(page: Page):
 # ============================================================================
 
 
-def test_TC_17(page: Page, test_agency_info):
-    """Verify that applying multiple filters (Company + Hiring Status) works with AND logic."""
-    print("\n🧪 TC_17: Testing multiple filters with AND logic")
-    
-    # Login to agency with JD data (agency 174)
-    jd_page = do_jd_login(page, "mi003b@onemail.host", "Kabir123#", test_agency_info["agency_id"])
-    time.sleep(2)
-    
-    # Open filters panel
-    do_open_filters_panel(page)
-    
-    # Apply company filter for "company for test"
-    do_apply_company_filter(page, "company for test")
-    
-    # Apply hiring status filter for "Closed"
-    do_apply_hiring_status_filter(page, "Closed")
-    
-    # Verify both filter tags are visible
-    do_verify_filter_tag_visible(page, "Company Name", "company for test")
-    do_verify_filter_tag_visible(page, "Hiring Status", "Closed")
-    
-    # Verify only 1 JD is displayed (Company For Test + Closed status)
-    do_verify_jd_count(page, 1)
-    
-    # Verify the displayed JD contains both "Company For Test" and "Closed"
-    do_verify_all_jds_contain_text(page, "Company For Test")
-    do_verify_all_jds_contain_text(page, "Closed")
-    
-    # Verify the specific JD is "Staff System Administrator"
-    do_verify_all_jds_contain_text(page, "Staff System Administrator")
-    
-    print("✅ TC_17 passed: Multiple filters work with AND logic, correct JD displayed")
-
-
-def test_TC_18(page: Page, test_agency_info):
-    """Verify that clicking 'All clear' button resets all filters and displays all JDs."""
-    print("\n🧪 TC_18: Testing 'All clear' button functionality")
-    
-    # Login to agency with JD data (agency 174)
-    jd_page = do_jd_login(page, "mi003b@onemail.host", "Kabir123#", test_agency_info["agency_id"])
-    time.sleep(2)
-    
-    # Open filters panel
-    do_open_filters_panel(page)
-    
-    # Apply multiple filters
-    do_apply_company_filter(page, "company for test")
-    do_apply_hiring_status_filter(page, "Closed")
-    
-    # Verify only 1 JD is displayed before clearing
-    do_verify_jd_count(page, 1)
-    
-    # Clear all filters
-    do_clear_all_filters(page)
-    
-    # Verify filter headings show "Add" (reset state)
-    do_verify_filter_reset_to_add(page, "Company Name")
-    do_verify_filter_reset_to_add(page, "Hiring Status")
-    
-    # Verify all JDs are displayed after clearing (expected: 4 total JDs)
-    do_verify_jd_count(page, 4)
-    
-    print("✅ TC_18 passed: 'All clear' button resets all filters successfully")
-
-
-def test_TC_19(page: Page, test_agency_info):
-    """Verify that applying multiple filter fields at once works correctly with AND logic."""
-    print("\n🧪 TC_19: Testing multiple filters applied at once")
-    
-    # Login to agency with JD data (agency 174)
-    jd_page = do_jd_login(page, "mi003b@onemail.host", "Kabir123#", test_agency_info["agency_id"])
-    time.sleep(2)
-    
-    # Open filters panel
-    do_open_filters_panel(page)
-    
-    # Apply all filters at once (before closing modal)
-    print("\n🔧 Applying multiple filters...")
-    
-    # Helper function to collapse a filter section by clicking its heading
-    def collapse_filter(filter_name):
-        try:
-            heading = page.get_by_role("heading", name=filter_name, level=3)
-            heading.click(force=True, timeout=3000)
-            time.sleep(0.3)
-            print(f"✅ Collapsed filter: {filter_name}")
-        except Exception as e:
-            print(f"⚠️ Could not collapse {filter_name}: {e}")
-            # Continue anyway - some filters might auto-collapse
-    
-    # 1. Company Name: company for test
-    do_expand_filter_section(page, "Company Name")
-    do_select_filter_checkbox(page, "company for test")
-    collapse_filter("Company Name")
-    
-    # 2. Hiring Status: Urgent
-    do_expand_filter_section(page, "Hiring Status")
-    do_select_filter_checkbox(page, "Urgent")
-    collapse_filter("Hiring Status")
-    
-    # 3. Work Style: Hybrid
-    do_expand_filter_section(page, "Work Style")
-    do_select_filter_checkbox(page, "Remote")
-    collapse_filter("Work Style")
-    
-    # 4. Work Place: Yokohama (text input field - try partial match)
-    do_expand_filter_section(page, "Work Place")
-    # Work Place is a text input, not a checkbox - fill it directly and press Enter
-    work_place_input = page.locator("input[placeholder*='Work Place'], input[name*='work'], input[type='text']").filter(has_text="").first
-    try:
-        work_place_input.fill("Yokohama Office")
-        work_place_input.press("Enter")
-        print("✅ Work Place filled: Yokohama Office (Enter pressed)")
-    except:
-        # Alternative: find input inside Work Place section
-        work_place_section = page.get_by_role("heading", name="Work Place", level=3).locator("..").locator("..")
-        work_place_input = work_place_section.locator("input").first
-        work_place_input.fill("Yokohama")
-        work_place_input.press("Enter")
-        print("✅ Work Place filled: Yokohama (Enter pressed)")
-    time.sleep(0.5)
-    collapse_filter("Work Place")
-    
-    # 5. Priority Grade: AAA
-    do_expand_filter_section(page, "Priority Grade")
-    do_select_filter_checkbox(page, "AAA")
-    collapse_filter("Priority Grade")
-    
-    # 6. Language: PROFESSIONAL_WORKING (English) - you may need to select the language level
-    do_expand_filter_section(page, "Language")
-    do_select_filter_checkbox(page, "Japanese")
-    collapse_filter("Language")
-
-    # 7. Salary Budget: 188519.00 - 216689.00 USD (text input field)
-    do_expand_filter_section(page, "Salary Budget")
-    salary_min_input = page.locator("input[placeholder*='Min'], input[name*='salary_min']").first
-    salary_max_input = page.locator("input[placeholder*='Max'], input[name*='salary_max']").first
-    try:
-        salary_min_input.fill("188519")
-        salary_max_input.fill("216689")
-        salary_max_input.press("Enter")
-        print("✅ Salary Budget filled: 188519 - 216689")
-    except:
-        print("⚠️ Could not fill salary budget fields")
-    time.sleep(0.5)
-    collapse_filter("Salary Budget")
-    
-    # 8. Target Age: 35-50 Years (text input field)
-    do_expand_filter_section(page, "Target Age")
-    target_age_min_input = page.locator("input[placeholder*='Min'], input[name*='target_age_min']").first
-    target_age_max_input = page.locator("input[placeholder*='Max'], input[name*='target_age_max']").first
-    try:
-        target_age_min_input.fill("35")
-        target_age_max_input.fill("50")
-        target_age_max_input.press("Enter")
-        print("✅ Target Age filled: 35 - 50")
-    except:
-        print("⚠️ Could not fill target age fields")
-    time.sleep(0.5)
-    collapse_filter("Target Age")
-    
-    # 9. Client owner: Select the owner (if available as dropdown/checkbox)
-    # This may need adjustment based on actual UI
-    # do_expand_filter_section(page, "Client owner")
-    # do_select_filter_checkbox(page, "Owner Name")
-    # collapse_filter("Client owner")
-    
-    print("✅ All filters applied")
-    
-    # Wait for filtered results to load
-    print("⏳ Waiting for filtered results to load...")
-    time.sleep(3)
-    
-    # Click on the overlay backdrop to close the modal
-    print("🔽 Closing filter modal by clicking on overlay backdrop...")
-    overlay = page.locator("div.fixed.inset-0")
-    overlay.click(force=True)
-    time.sleep(1)
-    
-    # Debug: Check how many JDs are displayed
-    jd_cards = page.locator(".flex.flex-col.sm\\:flex-row")
-    actual_count = jd_cards.count()
-    print(f"\n📊 Filtered results: Found {actual_count} JD(s)")
-    
-    # Verify filters work with AND logic (restrictive combination may return 0 results)
-    assert actual_count >= 0, "Filter results count should be valid"
-    
-    if actual_count == 0:
-        print("✅ Filters applied successfully with AND logic - no JDs match all criteria")
-        # Verify "No companies found" or similar message is displayed
-        no_results_message = page.get_by_text("No companies found")
-        enhanced_assert_visible(page, no_results_message, "No results message should be visible", "test_TC_19_no_results")
-    else:
-        print(f"✅ Filters applied successfully - {actual_count} JD(s) match all criteria")
-        # Verify all displayed JDs match the filter criteria
-        for i in range(min(actual_count, 3)):  # Check first 3 JDs
-            jd_card = jd_cards.nth(i)
-            jd_text = jd_card.inner_text()
-            print(f"\n📋 JD {i+1} content:\n{jd_text[:300]}")
-    
-    print("\n✅ TC_19 passed: Multiple filters applied successfully, AND logic verified")
 
