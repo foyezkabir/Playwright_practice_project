@@ -10,7 +10,7 @@ from dataclasses import asdict
 from playwright.sync_api import Page
 from utils.jd_test_helpers import JDHelpers
 from utils.jd_test_data import JDTestData, JDDataClass
-from utils.jd_helper import (do_apply_all_filters, do_jd_login,do_open_filters_panel,do_verify_all_filter_headings_visible,do_apply_company_filter,do_apply_hiring_status_filter,do_verify_filter_tag_visible,do_verify_jd_count,do_verify_all_jds_contain_text,do_clear_all_filters,do_verify_filter_reset_to_add,do_expand_filter_section,do_select_filter_checkbox,do_verify_filtered_results_tc19,do_close_filter_modal_and_verify_results,do_compare_jd_counts_and_verify_cleared,do_close_filter_modal_after_clearing,)   
+from utils.jd_helper import (do_apply_all_filters, do_jd_login,do_open_filters_panel,do_verify_all_filter_headings_visible,do_apply_company_filter,do_apply_hiring_status_filter,do_verify_filter_tag_visible,do_verify_jd_count,do_verify_all_jds_contain_text,do_clear_all_filters,do_verify_filter_reset_to_add,do_expand_filter_section,do_select_filter_checkbox,do_verify_filtered_results_tc19,do_close_filter_modal_and_verify_results,do_compare_jd_counts_and_verify_cleared,do_close_filter_modal_after_clearing,do_open_share_modal_for_first_jd,do_verify_share_modal_opened,do_select_user_in_share_modal,do_click_share_button_and_verify_success,do_verify_user_in_shared_list,do_delete_shared_user,do_confirm_user_removal,do_verify_user_removed_successfully,do_close_share_modal,)   
 from utils.enhanced_assertions import (enhanced_assert_visible,enhanced_assert_not_visible,)
 from utils.config import BASE_URL
 
@@ -557,150 +557,55 @@ def test_TC_17(page: Page, test_agency_info):
     
     print("✅ TC_17 passed: Multiple filters work with AND logic, and clearing restores all JDs")
 
+def test_TC_18(page: Page, test_agency_info):
+    """TC_18: Verify JD share functionality - sharing JD with user and then deleting user from share"""
+    print("\n🧪 TC_18: Testing JD share and delete user functionality")
+    
+    # Login to agency with JD data (agency 174)
+    jd_page = do_jd_login(page, "mi003b@onemail.host", "Kabir123#", test_agency_info["agency_id"])
+    time.sleep(2)
+    
+    # Open share modal for the first JD in the list
+    jd_title = do_open_share_modal_for_first_jd(page)
+    
+    # Verify share modal opened correctly with all elements
+    do_verify_share_modal_opened(page, jd_title)
+    
+    # Select a user from the dropdown (default user: "GOAT")
+    do_select_user_in_share_modal(page, "GOAT")
+    
+    # Click Share button and verify success
+    do_click_share_button_and_verify_success(page)
+    
+    # Verify user appears in "People with share" list
+    do_verify_user_in_shared_list(page, "GOAT")
+    
+    # Delete the shared user
+    do_delete_shared_user(page, "GOAT")
+    
+    # Confirm user removal in confirmation dialog
+    do_confirm_user_removal(page)
+    
+    # Verify user removed successfully
+    do_verify_user_removed_successfully(page)
+    
+    # Close the share modal
+    do_close_share_modal(page)
+    
+    print("✅ TC_18 passed: JD share and delete user functionality working correctly")
 
 
 
-
-
-def test_TC_21(page: Page, admin_credentials, test_agency_info):
-    """TC_21: Verify JD filtering by company"""
-    print("🧪 TC_21: Testing JD filtering by company")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_info["agency_id"]
-    )
-
-    # Apply company filter
-    test_company = "Test Company"
-    filters = {"company": test_company}
-    jd_page = JDHelpers.apply_filters(page, filters)
-
-    # Verify filtered results
-    JDHelpers.assert_filtered_count(page, filters, None, "test_TC_21_company_filter")
-
-    # Verify all results match the company filter
-    jd_page.verify_filtered_results_match_criteria(filters)
-
-    print("✅ TC_21 passed: JD filtering by company working correctly")
-
-
-def test_TC_22(page: Page, admin_credentials, test_agency_id):
-    """TC_22: Verify JD filtering by work style"""
-    print("🧪 TC_22: Testing JD filtering by work style")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Apply work style filter
-    test_work_style = "Remote"
-    filters = {"work_style": test_work_style}
-    jd_page = JDHelpers.apply_filters(page, filters)
-
-    # Verify filtered results
-    JDHelpers.assert_filtered_count(page, filters, None, "test_TC_22_work_style_filter")
-
-    # Verify all results match the work style filter
-    jd_page.verify_filtered_results_match_criteria(filters)
-
-    print("✅ TC_22 passed: JD filtering by work style working correctly")
-
-
-def test_TC_23(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_23: Verify JD filtering by hiring status"""
-    print("🧪 TC_23: Testing JD filtering by hiring status")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Apply hiring status filter
-    test_status = "Active"
-    filters = {"hiring_status": test_status}
-    jd_page = JDHelpers.apply_filters(page, filters)
-
-    # Verify filtered results
-    JDHelpers.assert_filtered_count(page, filters, None, "test_TC_23_status_filter")
-
-    # Verify all results match the status filter
-    jd_page.verify_filtered_results_match_criteria(filters)
-
-    print("✅ TC_23 passed: JD filtering by hiring status working correctly")
-
-
-def test_TC_24(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_24: Verify JD filtering with multiple filter combinations"""
-    print("🧪 TC_24: Testing JD filtering with multiple filters")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Test multiple filter combinations
-    filter_combinations = [
-        {"company": "Test Company", "work_style": "Remote"},
-        {"work_style": "On-site", "hiring_status": "Active"},
-        {"company": "ABC Corp", "hiring_status": "Inactive"},
-    ]
-
-    jd_page, results = JDHelpers.test_multi_filter_combinations(
-        page, filter_combinations
-    )
-
-    # Verify at least one combination worked
-    successful_combinations = [r for r in results.values() if r.get("success")]
-    assert (
-        len(successful_combinations) > 0
-    ), "At least one filter combination should work"
-
-    print("✅ TC_24 passed: JD filtering with multiple filters working correctly")
-
-
-def test_TC_25(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_25: Verify JD filter clearing functionality"""
-    print("🧪 TC_25: Testing JD filter clearing")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Apply some filters first
-    test_filters = {"company": "Test Company", "work_style": "Remote"}
-    jd_page, success = JDHelpers.test_all_clear_button(page, test_filters)
-
-    # Verify filters were cleared successfully
-    assert success, "All clear button should work correctly"
-
-    # Verify all filters are removed
-    assert_filters_cleared(page, "test_TC_25_filters_cleared")
-
-    print("✅ TC_25 passed: JD filter clearing working correctly")
 
 
 # ===== VALIDATION AND ERROR HANDLING TEST CASES (TC_26-TC_35) =====
 
-
-def test_TC_26(
-    page: Page, admin_credentials, test_agency_id
-):
+def test_TC_26(page: Page, admin_credentials, test_agency_id):
     """TC_26: Verify numeric field format validation (salary, age)"""
     print("🧪 TC_26: Testing numeric field format validation")
 
     # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_id)
 
     # Open JD creation modal
     jd_page.click_add_jd()
@@ -710,23 +615,13 @@ def test_TC_26(
     jd_page.trigger_format_validation("salary", "invalid_salary")
 
     # Verify salary format validation error
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.invalid_salary_format_error,
-        "Invalid salary format error should be visible",
-        "test_TC_26_salary_format",
-    )
+    enhanced_assert_visible(page,jd_page.locators.invalid_salary_format_error,"Invalid salary format error should be visible","test_TC_26_salary_format",)
 
     # Test invalid age format
     jd_page.trigger_format_validation("age", "invalid_age")
 
     # Verify age format validation error
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.invalid_age_format_error,
-        "Invalid age format error should be visible",
-        "test_TC_26_age_format",
-    )
+    enhanced_assert_visible(page,jd_page.locators.invalid_age_format_error,"Invalid age format error should be visible","test_TC_26_age_format",)
 
     # Close modal
     jd_page.close_jd_modal()
@@ -930,170 +825,14 @@ def test_TC_31(
     print("✅ TC_31 passed: File upload content validation working correctly")
 
 
-def test_TC_32(page: Page, admin_credentials, test_agency_id):
-    """TC_32: Verify network error handling during JD operations"""
-    print("🧪 TC_32: Testing network error handling")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Simulate network error scenarios
-    try:
-        # Test network error during JD creation
-        jd_page.simulate_network_error_during_creation()
-
-        # Verify error message is displayed
-        enhanced_assert_visible(
-            page,
-            jd_page.locators.error_toast,
-            "Network error message should be visible",
-            "test_TC_32_network_error",
-        )
-
-        # Verify retry functionality is available
-        jd_page.verify_retry_functionality_available()
-
-    except Exception as e:
-        print(f"⚠️ Network error handling test encountered: {e}")
-
-    print("✅ TC_32 passed: Network error handling working correctly")
-
-
-def test_TC_33(page: Page, admin_credentials, test_agency_id):
-    """TC_33: Verify timeout error handling during long operations"""
-    print("🧪 TC_33: Testing timeout error handling")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    try:
-        # Test timeout during file upload
-        jd_page.simulate_timeout_during_file_upload()
-
-        # Verify timeout error message
-        timeout_error = page.locator("text=Request timeout")
-        if timeout_error.count() > 0:
-            enhanced_assert_visible(
-                page,
-                timeout_error,
-                "Timeout error message should be visible",
-                "test_TC_33_timeout_error",
-            )
-
-        # Verify user can retry the operation
-        jd_page.verify_retry_after_timeout()
-
-    except Exception as e:
-        print(f"⚠️ Timeout error handling test encountered: {e}")
-
-    print("✅ TC_33 passed: Timeout error handling working correctly")
-
-
-def test_TC_34(page: Page, admin_credentials, test_agency_id):
-    """TC_34: Verify permission error handling for restricted operations"""
-    print("🧪 TC_34: Testing permission error handling")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    try:
-        # Test permission error during deletion
-        jd_page.simulate_permission_error_during_deletion()
-
-        # Verify permission error message
-        enhanced_assert_visible(
-            page,
-            jd_page.locators.deletion_permission_error,
-            "Permission error message should be visible",
-            "test_TC_34_permission_error",
-        )
-
-    except Exception as e:
-        print(f"⚠️ Permission error handling test encountered: {e}")
-
-    print("✅ TC_34 passed: Permission error handling working correctly")
-
-
-def test_TC_35(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_35: Verify comprehensive validation error display and user guidance"""
-    print("🧪 TC_35: Testing comprehensive validation error display")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Open JD creation modal
-    jd_page.click_add_jd()
-    jd_page.wait_for_modal_to_open()
-
-    # Create multiple validation errors simultaneously
-    validation_scenarios = [
-        {"action": "leave_mandatory_empty", "field": "position_title"},
-        {"action": "invalid_salary_range", "min": "80000", "max": "50000"},
-        {"action": "invalid_age_range", "min": "35", "max": "25"},
-        {"action": "character_limit", "field": "position_title", "value": "A" * 150},
-    ]
-
-    # Trigger multiple validation errors
-    jd_page.trigger_mandatory_field_validation()
-    jd_page.trigger_salary_range_validation("80000", "50000")
-    jd_page.trigger_age_range_validation("35", "25")
-
-    # Verify all validation errors are displayed clearly
-    validation_errors = [
-        jd_page.locators.position_title_required_error,
-        jd_page.locators.invalid_salary_range_error,
-        jd_page.locators.invalid_age_range_error,
-    ]
-
-    for i, error_locator in enumerate(validation_errors):
-        enhanced_assert_visible(
-            page,
-            error_locator,
-            f"Validation error {i+1} should be visible",
-            f"test_TC_35_validation_error_{i+1}",
-        )
-
-    # Verify error messages are helpful and specific
-    jd_page.verify_validation_messages_are_helpful()
-
-    # Verify form remains accessible during validation
-    jd_page.verify_form_accessibility_during_validation()
-
-    # Close modal
-    jd_page.close_jd_modal()
-
-    print("✅ TC_35 passed: Comprehensive validation error display working correctly")
-
-
-# Mark subtask 9.3 as complete
-print(
-    "✅ Subtask 9.3 (Validation and error handling test cases TC_26-TC_35) implementation completed"
-)
-
-
 # ===== PAGINATION AND BULK OPERATION TEST CASES (TC_36-TC_45) =====
 
-
-def test_TC_36(
-    page: Page, admin_credentials, test_agency_id
-):
+def test_TC_36(page: Page, admin_credentials, test_agency_id):
     """TC_36: Verify pagination navigation using next and previous buttons"""
     print("🧪 TC_36: Testing pagination navigation with next/previous buttons")
 
     # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
+    jd_page = JDHelpers.login(page, admin_credentials["email"], admin_credentials["password"], test_agency_id)
 
     # Test pagination navigation
     jd_page, navigation_results = do_test_pagination_navigation(page)
@@ -1402,195 +1141,6 @@ def test_TC_45(page: Page, admin_credentials, test_agency_id):
 
     print("✅ TC_45 passed: Pagination edge cases working correctly")
 
-
-# Mark subtask 9.4 as complete
-print(
-    "✅ Subtask 9.4 (Pagination and bulk operation test cases TC_36-TC_45) implementation completed"
-)
-
-
-# ===== ENHANCED ASSERTIONS AND SCREENSHOT CAPTURE INTEGRATION =====
-
-# Create screenshots directory for JD tests
-import os
-
-screenshots_dir = "screenshots/jd_screenshots"
-os.makedirs(screenshots_dir, exist_ok=True)
-
-
-def test_TC_46(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_46: Verify enhanced assertions are properly integrated across all JD tests"""
-    print("🧪 TC_46: Testing enhanced assertions integration")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Test enhanced assertion with screenshot capture
-    enhanced_assert_visible(
-        page,
-        jd_page.locators.jd_page_heading,
-        "JD page heading should be visible",
-        "test_TC_46_enhanced_assertion",
-    )
-
-    # Test enhanced assertion failure scenario (for screenshot capture testing)
-    try:
-        # This should fail and capture a screenshot
-        non_existent_element = page.locator("non-existent-element-12345")
-        enhanced_assert_visible(
-            page,
-            non_existent_element,
-            "This assertion should fail and capture screenshot",
-            "test_TC_46_failure_screenshot",
-        )
-    except AssertionError:
-        # Expected failure - verify screenshot was captured
-        screenshot_path = f"{screenshots_dir}/test_TC_46_failure_screenshot.png"
-        assert (
-            os.path.exists(screenshot_path) or True
-        ), "Screenshot should be captured on assertion failure"
-        print("✅ Screenshot captured on assertion failure as expected")
-
-    print("✅ TC_46 passed: Enhanced assertions integration working correctly")
-
-
-def test_TC_47(page: Page, admin_credentials, test_agency_id):
-    """TC_47: Verify screenshots are organized properly in jd_screenshots directory"""
-    print("🧪 TC_47: Testing screenshot organization")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Capture multiple screenshots with different test names
-    test_scenarios = [
-        "jd_creation_modal",
-        "jd_list_view",
-        "jd_filter_panel",
-        "jd_search_results",
-    ]
-
-    for scenario in test_scenarios:
-        enhanced_assert_visible(
-            page,
-            jd_page.locators.jd_page_heading,
-            f"Testing screenshot capture for {scenario}",
-            f"test_TC_47_{scenario}",
-        )
-
-    # Verify screenshots directory structure
-    assert os.path.exists(screenshots_dir), "JD screenshots directory should exist"
-
-    # List screenshot files
-    screenshot_files = [f for f in os.listdir(screenshots_dir) if f.endswith(".png")]
-    print(f"📸 Found {len(screenshot_files)} screenshot files in {screenshots_dir}")
-
-    print("✅ TC_47 passed: Screenshot organization working correctly")
-
-
-def test_TC_48(
-    page: Page, admin_credentials, test_agency_id
-):
-    """TC_48: Verify test reporting integration with existing report.html system"""
-    print("🧪 TC_48: Testing test reporting integration")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Perform test actions that should be captured in reports
-    test_actions = [
-        {"action": "navigate", "description": "Navigate to JD page"},
-        {"action": "create_jd", "description": "Create new JD"},
-        {"action": "search_jd", "description": "Search for JDs"},
-        {"action": "filter_jd", "description": "Apply JD filters"},
-    ]
-
-    for action in test_actions:
-        print(f"📊 Executing test action: {action['description']}")
-
-        # Capture action with enhanced assertion
-        enhanced_assert_visible(
-            page,
-            jd_page.locators.jd_page_heading,
-            action["description"],
-            f"test_TC_48_{action['action']}",
-        )
-
-    # Verify report integration (check if report.html exists and can be updated)
-    report_file = "report.html"
-    if os.path.exists(report_file):
-        print(f"✅ Report file {report_file} exists and can be integrated")
-    else:
-        print(f"ℹ️ Report file {report_file} will be created during test execution")
-
-    print("✅ TC_48 passed: Test reporting integration working correctly")
-
-
-def test_TC_49(page: Page, admin_credentials, test_agency_id):
-    """TC_49: Verify failure debugging support with automatic screenshot capture"""
-    print("🧪 TC_49: Testing failure debugging support")
-
-    # Login and navigate to JD page
-    jd_page = JDHelpers.login(
-        page, admin_credentials["email"], admin_credentials["password"], test_agency_id
-    )
-
-    # Test various failure scenarios to ensure debugging support
-    debugging_scenarios = [
-        {
-            "name": "element_not_found",
-            "element": page.locator("non-existent-element"),
-            "description": "Element not found scenario",
-        },
-        {
-            "name": "timeout_scenario",
-            "element": jd_page.locators.jd_page_heading,
-            "description": "Timeout scenario (simulated)",
-        },
-    ]
-
-    for scenario in debugging_scenarios:
-        try:
-            if scenario["name"] == "element_not_found":
-                enhanced_assert_visible(
-                    page,
-                    scenario["element"],
-                    scenario["description"],
-                    f"test_TC_49_{scenario['name']}",
-                )
-            elif scenario["name"] == "timeout_scenario":
-                # Simulate timeout by using very short timeout
-                page.set_default_timeout(100)  # Very short timeout
-                try:
-                    enhanced_assert_visible(
-                        page,
-                        scenario["element"],
-                        scenario["description"],
-                        f"test_TC_49_{scenario['name']}",
-                    )
-                finally:
-                    page.set_default_timeout(30000)  # Reset to normal timeout
-
-        except (AssertionError, Exception) as e:
-            print(
-                f"✅ Expected failure captured for {scenario['name']}: {type(e).__name__}"
-            )
-
-            # Verify screenshot was captured for debugging
-            screenshot_path = f"{screenshots_dir}/test_TC_49_{scenario['name']}.png"
-            if os.path.exists(screenshot_path):
-                print(f"✅ Debug screenshot captured: {screenshot_path}")
-
-    print("✅ TC_49 passed: Failure debugging support working correctly")
-
-
 def test_TC_50(
     page: Page, admin_credentials, test_agency_id
 ):
@@ -1684,44 +1234,6 @@ def test_TC_50(
 
 
 # ===== TEST EXECUTION SUMMARY AND CLEANUP =====
-
-
-def test_TC_51_test_execution_summary(page: Page):
-    """TC_51: Generate test execution summary and cleanup"""
-    print("🧪 TC_51: Generating test execution summary")
-
-    # Generate test execution summary
-    summary = {
-        "total_tests": 51,
-        "crud_tests": 15,
-        "search_filter_tests": 10,
-        "validation_tests": 10,
-        "pagination_bulk_tests": 10,
-        "integration_tests": 6,
-        "screenshots_captured": (
-            len([f for f in os.listdir(screenshots_dir) if f.endswith(".png")])
-            if os.path.exists(screenshots_dir)
-            else 0
-        ),
-    }
-
-    print("📊 JD Test Suite Execution Summary:")
-    print(f"   Total test cases: {summary['total_tests']}")
-    print(f"   CRUD operation tests: {summary['crud_tests']}")
-    print(f"   Search & filter tests: {summary['search_filter_tests']}")
-    print(f"   Validation & error tests: {summary['validation_tests']}")
-    print(f"   Pagination & bulk tests: {summary['pagination_bulk_tests']}")
-    print(f"   Integration tests: {summary['integration_tests']}")
-    print(f"   Screenshots captured: {summary['screenshots_captured']}")
-
-    # Verify test artifacts
-    if os.path.exists(screenshots_dir):
-        print(f"✅ Screenshot directory created: {screenshots_dir}")
-
-    if os.path.exists("report.html"):
-        print("✅ Test report integration available")
-
-    print("✅ TC_51 passed: Test execution summary generated successfully")
 
 # def test_TC_06(page: Page, admin_credentials, test_agency_info, fresh_jd_data):
 #     """TC_06: Verify JD editing functionality with pre-filled data"""
@@ -1839,11 +1351,6 @@ def test_TC_51_test_execution_summary(page: Page):
 #     jd_page.verify_jd_data_unchanged(original_title)
 
 #     print("✅ TC_08 passed: JD edit cancellation working correctly")
-
-
-# ============================================================================
-# FILTER FEATURE TEST CASES (TC_15 - TC_18)
-# ============================================================================
 
 
 

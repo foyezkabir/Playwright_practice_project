@@ -492,3 +492,16 @@ class JDLocators:
             return self.page.locator(
                 f".{filter_type}-filter option[value='{option_value}']"
             )
+
+        # ===== JD SHARE FUNCTIONALITY =====
+        self.share_button_in_three_dot_menu = page.get_by_role("button", name="Share")
+        self.share_modal_heading = lambda jd_title: page.get_by_role("heading", name=f"Share '{jd_title}' JD")
+        self.share_modal_user_select_trigger = page.get_by_text("Select User")
+        self.share_modal_user_search_input = page.locator("div:has(> [placeholder='Search...'])").get_by_role("textbox", name="Search...")
+        self.share_modal_cancel_button = page.get_by_role("button", name="Cancel")
+        self.share_modal_share_button = page.get_by_role("button", name="Share")
+        self.no_users_access_message = page.get_by_text("No users have access to this JD yet.")
+        
+        def get_user_option_in_share_modal(self, user_name: str):
+            """Get user option in share modal by username"""
+            return self.page.locator(f"div:has-text('{user_name}')").filter(has=self.page.locator("image"))
