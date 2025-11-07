@@ -1,8 +1,3 @@
-"""
-JD (Job Description) Test Suite
-Comprehensive test cases covering all JD functionality including CRUD operations, search, filtering, validation, and bulk operations
-"""
-
 import pytest
 import time
 import random
@@ -14,33 +9,25 @@ from utils.jd_helper import (do_apply_all_filters, do_jd_login,do_open_filters_p
 from utils.enhanced_assertions import (enhanced_assert_visible,enhanced_assert_not_visible,)
 from utils.config import BASE_URL
 
-
-# ===== TEST FIXTURES =====
-
-
 @pytest.fixture(scope="module")
 def admin_credentials():
     """Admin credentials for JD management tests"""
     return {"email": "mi003b@onemail.host", "password": "Kabir123#"}
-
 
 @pytest.fixture(scope="module")
 def test_agency_info():
     """Test agency information for JD operations"""
     return {"agency_name": "demo 06","agency_id": "174","company_name": "company for test",}
 
-
 @pytest.fixture(scope="module")
 def test_jd_data():
     """Generate test JD data for the module"""
     return JDTestData.complete()
 
-
 @pytest.fixture(scope="module")
 def created_jd_title():
     """Track created JD title for cleanup"""
     return {"title": None}  # Mutable dict to store JD title across tests
-
 
 @pytest.fixture(scope="function")
 def fresh_jd_data():
