@@ -28,7 +28,7 @@ class EmailVerifyLocators:
         # Status and feedback messages
         self.resend_otp_countdown = page.get_by_text("Resend OTP in")
         self.verification_success_message = page.get_by_text("OTP verified successfully")
-        self.verification_error_message = page.get_by_text("Invalid code")
+        self.verification_error_message = page.get_by_text("Invalid verification code provided, please try again.")
         self.resend_otp_success_message = page.get_by_text("OTP resent successfully")
         
         # Navigation elements

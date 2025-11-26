@@ -168,6 +168,11 @@ report.html
 # Allure reports
 allure-results/
 allure-report/
+allure-results-*/
+allure-report-*/
+
+# Documentation
+docs/
 
 # mypy
 .mypy_cache/

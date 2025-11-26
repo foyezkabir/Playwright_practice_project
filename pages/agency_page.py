@@ -308,7 +308,7 @@ class AgencyPage:
         until the agency is found or the last page is reached.
         """
         # Wait for page to load initially
-        time.sleep(2)
+        time.sleep(1.5)
         
         print(f"🔍 Starting search for agency: '{agency_name}'")
         print(f"📍 Current URL: {page.url}")
@@ -323,12 +323,8 @@ class AgencyPage:
         while current_page < max_pages:
             current_page += 1
             
-            # Wait for content to load and be stable
-            try:
-                page.wait_for_load_state("domcontentloaded", timeout=5000)
-                time.sleep(1)  # Small wait for content to stabilize
-            except:
-                pass
+            # Consistent wait for content to stabilize - no variable wait_for_load_state
+            time.sleep(1.5)
             
             print(f"🔍 Searching page {current_page} for '{agency_name}'...")
             
@@ -362,14 +358,9 @@ class AgencyPage:
             # If we are here, it means the agency wasn't found AND there's a next page.
             print(f"-> Agency not found on page {current_page}, navigating to the next page...")
             
-            try:
-                next_button.click()
-                # Wait for the network to be idle with shorter timeout
-                page.wait_for_load_state("networkidle", timeout=8000)
-                time.sleep(2)  # Shorter wait than before
-            except Exception as e:
-                print(f"Error clicking next button: {e}")
-                return False
+            # Click next button and continue
+            next_button.click()
+            time.sleep(1.5)  # Consistent wait after clicking next
                 
         print(f"❌ Searched {max_pages} pages but couldn't find agency '{agency_name}'")
         return False

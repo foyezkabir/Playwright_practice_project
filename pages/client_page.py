@@ -182,7 +182,7 @@ class ClientPage:
     
     def click_company_dropdown(self):
         """Click Company dropdown."""
-        self.locators.company_dropdown.click()
+        self.locators.company_select_trigger.click()
     
     def click_english_level_dropdown(self):
         """Click English Level dropdown."""
@@ -225,13 +225,10 @@ class ClientPage:
     def fill_email(self, email: str):
         """Fill email address field."""
         self.locators.email_input.fill(email)
-        """Clear email field."""
-        email_input = self.page.locator("[id=\"email_contacts[0].email\"]")
-        email_input.clear()
     
     def click_email_input(self):
         """Click email input field."""
-        self.locators.email_contact_email_label.click()
+        self.locators.email_input.click()
     
     def click_add_email_address_button(self):
         """Click Add Email Address button."""
@@ -316,6 +313,30 @@ class ClientPage:
         """Verify Client breadcrumb (Home > Client) is visible."""
         expect(self.locators.client_breadcrumb).to_be_visible()
     
+    def expect_detail_view_breadcrumb(self, client_name: str):
+        """Verify client detail view breadcrumb (Home>Client>[Client Name]) is visible."""
+        expect(self.locators.breadcrumb(client_name)).to_be_visible()
+    
+    def expect_client_name_japanese_format(self, japanese_name: str):
+        """Verify client name displays in Japanese format (LAST First) in detail view heading."""
+        expect(self.locators.client_name_detail_heading(japanese_name)).to_be_visible()
+    
+    def convert_japanese_format_to_breadcrumb_format(self, japanese_format_name: str) -> str:
+        """
+        Convert client name from Japanese format (LAST First) to breadcrumb format (First Last).
+        Args:
+            japanese_format_name: Name in Japanese format (e.g., "TESTLAST TestFirst")
+        Returns:
+            Name in breadcrumb format (e.g., "TestFirst TestLast")
+        """
+        name_parts = japanese_format_name.split()
+        last_name_caps = name_parts[0]  # e.g., "TESTLAST"
+        first_name = name_parts[1] if len(name_parts) > 1 else ""  # e.g., "TestFirst"
+        
+        # Breadcrumb uses normal format: First Last (with proper capitalization)
+        last_name_proper = last_name_caps[0] + last_name_caps[1:].lower()  # "TESTLAST" -> "TestLast"
+        return f"{first_name} {last_name_proper}"
+    
     def expect_main_content(self):
         """Verify main content area is visible."""
         expect(self.locators.main_content).to_be_visible()
@@ -331,6 +352,10 @@ class ClientPage:
     def expect_add_new_client_modal_heading(self):
         """Verify Add New Client modal heading is visible."""
         expect(self.locators.add_new_client_modal_heading).to_be_visible()
+    
+    def click_add_new_client_modal_heading(self):
+        """Click on Add New Client modal heading to trigger validation."""
+        self.locators.add_new_client_modal_heading.click()
     
     def expect_english_name_input(self):
         """Verify English first and last name inputs are visible."""
@@ -416,9 +441,34 @@ class ClientPage:
     
     # ===== VALIDATION ERROR EXPECTATIONS =====
     
+    def expect_first_name_required_error(self):
+        """Verify 'First name is required' error is visible."""
+        expect(self.locators.first_name_required_error).to_be_visible()
+    
+    def expect_last_name_required_error(self):
+        """Verify 'Last name is required' error is visible."""
+        expect(self.locators.last_name_required_error).to_be_visible()
+    
+    def expect_first_name_min_length_error(self):
+        """Verify 'First name must be at least 3 characters' error is visible."""
+        expect(self.locators.first_name_min_length_error).to_be_visible()
+    
+    def expect_last_name_min_length_error(self):
+        """Verify 'Last name must be at least 3 characters' error is visible."""
+        expect(self.locators.last_name_min_length_error).to_be_visible()
+    
+    def expect_first_name_special_char_error(self):
+        """Verify 'First name can't accept special characters' error is visible."""
+        expect(self.locators.first_name_special_char_error).to_be_visible()
+    
+    def expect_last_name_special_char_error(self):
+        """Verify 'Last name can't accept special characters' error is visible."""
+        expect(self.locators.last_name_special_char_error).to_be_visible()
+    
     def expect_client_name_required_error(self):
-        """Verify 'Client name is required' error is visible."""
-        expect(self.locators.client_name_required_error).to_be_visible()
+        """Verify 'Client name is required' error is visible (checks both first and last name)."""
+        self.expect_first_name_required_error()
+        self.expect_last_name_required_error()
     
     def expect_company_required_error(self):
         """Verify 'Company is required' error is visible."""
@@ -467,8 +517,24 @@ class ClientPage:
         expect(self.locators.client_deleted_successfully_message).to_be_visible()
     
     def expect_note_saved_successfully_message(self):
-        """Verify 'Note saved successfully' message is visible."""
+        """Verify note saved successfully message is visible."""
         expect(self.locators.note_saved_successfully_message).to_be_visible()
+    
+    def expect_note_saved_modal_heading(self):
+        """Verify Note Saved! modal heading is visible."""
+        expect(self.locators.note_saved_modal_heading).to_be_visible()
+    
+    def expect_note_saved_modal_message(self):
+        """Verify note saved modal message is visible."""
+        expect(self.locators.note_saved_modal_message).to_be_visible()
+    
+    def expect_note_saved_close_button(self):
+        """Verify note saved modal close button is visible."""
+        expect(self.locators.note_saved_close_button).to_be_visible()
+    
+    def click_note_saved_close_button(self):
+        """Click close button on note saved modal."""
+        self.locators.note_saved_close_button.click()
     
     def expect_note_saved_toast(self):
         """Verify 'Note Saved! Successfully saved' toast is visible."""
@@ -512,6 +578,10 @@ class ClientPage:
         """Verify Add Note to Client modal heading is visible."""
         expect(self.locators.add_note_modal_heading).to_be_visible()
     
+    def expect_note_required_error(self):
+        """Verify note required error message is visible."""
+        expect(self.locators.note_required_error).to_be_visible()
+    
     def expect_save_and_finish_button(self):
         """Verify Save & Finish button is visible."""
         expect(self.locators.save_and_finish_button).to_be_visible()
@@ -551,8 +621,16 @@ class ClientPage:
         expect(self.locators.client_status_add_span).to_be_visible()
     
     def expect_gender_add_span(self):
-        """Verify Gender add span is visible."""
+        """Verify Gender filter add span is visible."""
         expect(self.locators.gender_add_span).to_be_visible()
+    
+    def expect_company_add_span(self):
+        """Verify Company Name filter add span is visible."""
+        expect(self.locators.company_add_span).to_be_visible()
+    
+    def expect_department_add_span(self):
+        """Verify Department filter add span is visible."""
+        expect(self.locators.department_add_span).to_be_visible()
     
     # ===== SEARCH EXPECTATIONS =====
     
@@ -718,12 +796,8 @@ class ClientPage:
 
     def upload_client_image(self, image_path: str):
         """Upload a client image/logo."""
-        # self.click_upload_logo_label(image_path)
-        # # Wait for the file input to be populated           
-        # self.locators.upload_logo_input.set_input_files(image_path)
-        # Test 1: Upload large file (>5MB) - expect file size error
-        self.click_upload_logo_label(image_path)
-        self.expect_file_size_error()
+        self.locators.upload_logo_input.set_input_files(image_path)
+        time.sleep(0.5)  # Wait for file to be uploaded
 
     def assert_client_creation_without_mandatory_fields(self):
         """
@@ -821,6 +895,7 @@ class ClientPage:
         self.click_note_textbox()
         self.fill_note_text(note_text)
         self.click_save_and_finish_button()
+        self.expect_note_saved_successfully_message()
     
     def verify_client_created(self, wait_time: int = 2):
         """Verify client was created successfully with optional wait time."""

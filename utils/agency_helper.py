@@ -55,12 +55,12 @@ def do_create_agency(page: Page, agency_name: str, email: str = "gi7j8d@mepost.p
     
     print(f"🔧 Creating agency: {agency_name}")
     
-    # If modal appears, use it; otherwise click create new agency
-    try:
-        agency_page.expect_agency_modal_heading()
+    # Check if modal is already open without taking screenshot
+    modal_already_open = agency_page.locators.agency_create_modal_heading.count() > 0
+    
+    if modal_already_open:
         print("✅ Modal already open")
-        # Modal is already open
-    except:
+    else:
         # No modal, click to open
         print("🔄 Clicking create new agency button")
         agency_page.click_create_new_agency()
@@ -449,12 +449,12 @@ def do_create_agency_with_image_verification(page: Page, email: str = "50st3o@me
     print(f"📍 Current URL after save: {current_url}")
     
     # Wait before refreshing
-    time.sleep(1)
+    time.sleep(1.5)
     
     # Refresh the page to ensure latest data is loaded
     print("🔄 Refreshing page to load latest agencies...")
     page.reload()
-    time.sleep(3)
+    time.sleep(1.5)
 
     # Search for the created agency in the paginated list
     print(f"🔍 Searching for agency '{random_agency_name}' in the list...")

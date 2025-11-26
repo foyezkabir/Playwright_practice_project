@@ -70,7 +70,7 @@ def test_TC_09(page: Page):
 @allure.title("TC_10 - reset password page's elements are visible.")
 def test_TC_10(page: Page):
     """Verify reset password page's elements are visible."""
-    reset_page = do_reset_password_flow(page, email="t631iv@givememail.club", submit=True) # email 1 = attempt 1
+    reset_page = do_reset_password_flow(page, email="3ek690@givememail.club", submit=True) # email 1 = attempt 1
     reset_page.verify_reset_password_heading()
     reset_page.expect_otp_input_visible()
     reset_page.expect_new_password_input_visible()
@@ -80,20 +80,20 @@ def test_TC_10(page: Page):
 @allure.title("TC_11 - resend OTP countdown is visible.")
 def test_TC_11(page: Page):
     """Verify resend OTP countdown is visible."""
-    reset_page = do_reset_password_flow(page, email="t631iv@givememail.club", submit=True) # email 1 = attempt 2
+    reset_page = do_reset_password_flow(page, email="3ek690@givememail.club", submit=True) # email 1 = attempt 2
     reset_page.expect_countdown_timer_visible()
 
 @allure.title("TC_12 - valid email navigation to reset password page.")
 def test_TC_12(page: Page):
     """Verify valid email navigation to reset password page."""
-    reset_page = do_reset_password_flow(page, email="t631iv@givememail.club", submit=True) # email 1 = attempt 3
+    reset_page = do_reset_password_flow(page, email="3ek690@givememail.club", submit=True) # email 1 = attempt 3
     reset_page.expect_otp_sent_toast()
     reset_page.verify_reset_password_heading()
 
 @allure.title("TC_13 - empty fields validation message is visible.")
 def test_TC_13(page: Page):
     """Verify empty fields validation message is visible."""
-    reset_page = do_reset_password_flow(page, email="t631iv@givememail.club", submit=True) # email 1 = attempt 4
+    reset_page = do_reset_password_flow(page, email="3ek690@givememail.club", submit=True) # email 1 = attempt 4
     reset_page.click_set_password()
     reset_page.expect_otp_required_error()
     reset_page.expect_new_password_required_error()
@@ -102,49 +102,49 @@ def test_TC_13(page: Page):
 @allure.title("TC_14 - OTP input accepts only numbers.")
 def test_TC_14(page: Page):
     """Verify OTP input accepts only numbers."""
-    reset_page = do_reset_password_flow(page, email="t631iv@givememail.club", otp="OTP!@#", submit=True) # email 1 = attempt 5
+    reset_page = do_reset_password_flow(page, email="3ek690@givememail.club", otp="OTP!@#", submit=True) # email 1 = attempt 5
     reset_page.expect_otp_accept_numbers_only_error()
 
 @allure.title("TC_15 - max attempt limit exceeded error is visible.")
 def test_TC_15(page: Page):
     """Verify max attempt limit exceeded error is visible."""
-    reset_page = do_reset_password_flow(page, email="t631iv@givememail.club", submit=True) # email 1 = Final attempt
+    reset_page = do_reset_password_flow(page, email="3ek690@givememail.club", submit=True) # email 1 = Final attempt
     reset_page.expect_attempt_limit_error()
 
 @allure.title("TC_16 - OTP input limit validation with less than 6 digits.")
 def test_TC_16(page: Page):
     """Verify OTP input limit validation with less than 6 digits."""
-    reset_page = do_reset_password_flow(page, email="nua26i@onemail.host", otp="123", submit=True)
+    reset_page = do_reset_password_flow(page, email="n5oroo@onemail.host", otp="123", submit=True)
     reset_page.expect_otp_input_limit_error()
 
 @allure.title("TC_17 - OTP input limit validation with more than 6 digits.")
 def test_TC_17(page: Page):
     """Verify OTP input limit validation with more than 6 digits."""
-    reset_page = do_reset_password_flow(page, email="nua26i@onemail.host", otp="12345678901", submit=True)
+    reset_page = do_reset_password_flow(page, email="n5oroo@onemail.host", otp="12345678901", submit=True)
     reset_page.expect_otp_input_limit_error()
 
 @allure.title("TC_18 - invalid OTP validation is visible.")
 def test_TC_18(page: Page):
     """Verify invalid OTP validation is visible."""
-    reset_page = do_reset_password_flow(page, email="nua26i@onemail.host", otp="123456", new_password="SecurePass123!", confirm_password="SecurePass123!", submit=True)
+    reset_page = do_reset_password_flow(page, email="n5oroo@onemail.host", otp="123456", new_password="SecurePass123!", confirm_password="SecurePass123!", submit=True)
     reset_page.expect_invalid_otp_error()
 
 @allure.title("TC_19 - password complexity validation is visible.")
 def test_TC_19(page: Page):
     """Verify password complexity validation is visible."""
-    reset_page = do_reset_password_flow(page, email="t66468@mepost.pw", otp="123456", new_password="weak", confirm_password="weak", submit=True)
+    reset_page = do_reset_password_flow(page, email="mi003b@onemail.host", otp="123456", new_password="weak", confirm_password="weak", submit=True)
     reset_page.expect_password_complexity_error()
 
 @allure.title("TC_20 - password mismatch validation is visible.")
 def test_TC_20(page: Page):
     """Verify password mismatch validation is visible."""
-    reset_page = do_reset_password_flow(page, email="t66468@mepost.pw", otp="123456", new_password="SecurePass123!", confirm_password="DifferentPass456@", submit=True)
+    reset_page = do_reset_password_flow(page, email="mi003b@onemail.host", otp="123456", new_password="SecurePass123!", confirm_password="DifferentPass456@", submit=True)
     reset_page.expect_password_mismatch_error()
 
 @allure.title("TC_21 - show/hide password functionality works.")
 def test_TC_21(page: Page):
     """Verify show/hide password functionality works."""
-    reset_page = do_reset_password_flow(page, email="t66468@mepost.pw", submit=True)
+    reset_page = do_reset_password_flow(page, email="mi003b@onemail.host", submit=True)
     reset_page.enter_new_password("SecurePass123!")
     reset_page.show_new_password()
     reset_page.hide_new_password()
@@ -155,7 +155,7 @@ def test_TC_21(page: Page):
 @allure.title("TC_22 - resend OTP functionality works.")
 def test_TC_22(page: Page):
     """Verify resend OTP functionality works."""
-    reset_page = do_reset_password_flow(page, email="t66468@mepost.pw", submit=True)
+    reset_page = do_reset_password_flow(page, email="mi003b@onemail.host", submit=True)
     reset_page.expect_countdown_timer_visible()
     time.sleep(60)  # Wait for countdown to finish
     reset_page.expect_resend_otp_button_visible()

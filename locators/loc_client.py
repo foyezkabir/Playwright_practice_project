@@ -20,7 +20,7 @@ class ClientLocators:
         self.add_client_button = page.get_by_role("button", name="Add Client")
         
         # Search functionality
-        self.search_clients_input = page.get_by_role("textbox", name="Search clients...")
+        self.search_clients_input = page.get_by_placeholder("Search...")
         self.search_no_results_message = lambda query: page.locator("div").filter(has_text=re.compile(rf"^No clients found for \"{query}\"$")).nth(1)
         
         # Client card elements
@@ -28,6 +28,7 @@ class ClientLocators:
         self.view_details_button_first = page.get_by_role("button", name="View Details").first
         self.open_action_menu_button = page.get_by_role("button", name="Open action menu")
         self.open_action_menu_button_first = page.get_by_role("button", name="Open action menu").first
+        self.first_client_name = page.locator("h3.text-lg").first
         
         # ===== CLIENT CREATION MODAL ELEMENTS =====
         self.client_modal_body = page.locator(".modal-body")
@@ -36,30 +37,31 @@ class ClientLocators:
         self.close_modal_button = page.get_by_role("button", name="Close modal")
         
         # Basic information fields
-        self.english_first_name_input = page.get_by_placeholder("English First Name")
-        self.english_last_name_input = page.get_by_placeholder("English Last Name")
-        self.japanese_first_name_input = page.get_by_placeholder("Japanese First Name")
-        self.japanese_last_name_input = page.get_by_placeholder("Japanese Last Name")
-        self.job_title_input = page.get_by_placeholder("Job title")
+        self.english_first_name_input = page.get_by_label("English First Name")
+        self.english_last_name_input = page.get_by_label("English Last Name")
+        self.japanese_first_name_input = page.get_by_label("Japanese First Name")
+        self.japanese_last_name_input = page.get_by_label("Japanese Last Name")
+        self.job_title_input = page.get_by_label("Job title")
         
         # Dropdown fields
         self.select_trigger_first = page.locator(".select-trigger").first
         self.gender_dropdown = page.get_by_text("Gender", exact=True)
         self.department_dropdown = page.get_by_text("Department", exact=True)
         self.department_select_trigger = page.locator("div:nth-child(5) > .searchable-select > .select-trigger")
-        self.company_dropdown = page.get_by_text("Company *", exact=True)
+        self.company_dropdown = page.get_by_text("Company", exact=True).first
+        self.company_select_trigger = page.locator("label").filter(has_text="Company").locator("..").locator(".select-trigger")
         self.company_dropdown_with_error = page.locator("div").filter(has_text=re.compile(r"^Company \*Company is required\.$"))
         self.english_level_dropdown = page.get_by_text("English Level", exact=True)
         self.japanese_level_dropdown = page.get_by_text("Japanese Level", exact=True)
         
         # Contact fields - Phone
         self.phone_label_dropdown = page.get_by_text("Label").first
-        self.phone_number_input = page.get_by_placeholder("Number")
+        self.phone_number_input = page.get_by_label("Number", exact=True)
         self.add_phone_number_button = page.get_by_role("button", name="+ Add Phone Number")
         
         # Contact fields - Email
         self.email_label_dropdown = page.get_by_text("Label").nth(1)
-        self.email_input = page.get_by_placeholder("Email")
+        self.email_input = page.get_by_label("Email")
         self.add_email_address_button = page.get_by_role("button", name="+ Add Email Address")
         
         # File upload
@@ -72,11 +74,20 @@ class ClientLocators:
         
         # ===== VALIDATION ERROR MESSAGES =====
         # Required field errors
-        self.client_name_required_error = page.get_by_text("Client name is required")
+        self.first_name_required_error = page.get_by_text("First name is required")
+        self.last_name_required_error = page.get_by_text("Last name is required")
         self.company_required_error = page.get_by_text("Company is required.")
-        self.email_address_required_error = page.get_by_text("At least one email address is")
+        self.email_address_required_error = page.get_by_text("At least one email address is required")
         self.invalid_email_address_error = page.get_by_text("Invalid email address")
         self.email_name_label_required_error = page.get_by_text("Email name/label is required when address is provided")
+        
+        # Min length validation errors
+        self.first_name_min_length_error = page.get_by_text("First name must be at least 3 characters")
+        self.last_name_min_length_error = page.get_by_text("Last name must be at least 3 characters")
+        
+        # Special character validation errors
+        self.first_name_special_char_error = page.get_by_text("First name can't accept special characters")
+        self.last_name_special_char_error = page.get_by_text("Last name can't accept special characters")
         
         # Email validation errors
         self.public_email_not_allowed_error = page.get_by_text("Public email addresses are")
@@ -90,6 +101,9 @@ class ClientLocators:
         self.client_deleted_successfully_message = page.get_by_text("Client deleted successfully")
         self.note_saved_successfully_message = page.get_by_text("Note saved successfully")
         self.note_saved_toast = page.get_by_text("Note Saved!Successfully saved")
+        self.note_saved_modal_heading = page.get_by_role("heading", name="Note Saved!")
+        self.note_saved_modal_message = page.get_by_text("Successfully saved a note for this client.")
+        self.note_saved_close_button = page.get_by_role("button", name="Close", exact=True)
         
         # ===== DELETE CONFIRMATION MODAL =====
         self.delete_confirmation_heading = page.get_by_role("heading", name="Are you sure you want to")
@@ -103,13 +117,15 @@ class ClientLocators:
         # ===== CLIENT DETAIL VIEW =====
         self.breadcrumb = lambda client_name: page.get_by_text(f"Home>Client>{client_name}")
         self.client_name_in_modal = lambda name: page.locator("div").filter(has_text=re.compile(rf"^{name}$")).nth(1)
+        self.client_name_detail_heading = lambda name: page.locator("h3").filter(has_text=re.compile(rf"^{name}"))
         
         # ===== ADD NOTES FUNCTIONALITY =====
-        self.add_notes_button = page.get_by_role("button", name="Add Notes")
+        self.add_notes_button = page.get_by_role("button", name="Add Notes").first
         self.add_note_modal_heading = page.get_by_role("heading", name="Add Note to Client")
         self.note_textbox = page.get_by_role("textbox").get_by_role("paragraph")
-        self.note_textbox_general = page.get_by_role("textbox")
+        self.note_textbox_general = page.get_by_role("textbox").nth(1)  # Second textbox is the note editor
         self.save_and_finish_button = page.get_by_role("button", name="Save & Finish")
+        self.note_required_error = page.get_by_text("Please enter a note")
         self.close_button = page.get_by_role("button", name="Close", exact=True)
         
         # ===== FILTER PANEL ELEMENTS =====
@@ -126,12 +142,14 @@ class ClientLocators:
         # Filter add buttons
         self.client_status_add_span = page.locator("div").filter(has_text=re.compile(r"^Client StatusAdd$")).locator("span")
         self.gender_add_span = page.locator("div").filter(has_text=re.compile(r"^GenderAdd$")).locator("span")
-        
-        # ===== DYNAMIC LOCATORS =====
-        def get_client_card_by_name(self, name: str):
-            """Get client card by client name"""
-            return self.page.locator(f"div:has-text('{name}')")
-        
-        def get_client_search_result(self, name: str):
-            """Get client search result containing the client name"""
-            return self.page.get_by_role("main").locator("div").filter(has_text=name)
+        self.company_add_span = page.locator("div").filter(has_text=re.compile(r"^Company NameAdd$")).locator("span")
+        self.department_add_span = page.locator("div").filter(has_text=re.compile(r"^DepartmentAdd$")).locator("span")
+    
+    # ===== DYNAMIC LOCATORS =====
+    def get_client_card_by_name(self, name: str):
+        """Get client card by client name"""
+        return self.page.locator(f"div:has-text('{name}')")
+    
+    def get_client_search_result(self, name: str):
+        """Get client search result containing the client name"""
+        return self.page.get_by_role("main").locator("div").filter(has_text=name)

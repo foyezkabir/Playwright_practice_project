@@ -171,28 +171,45 @@ class EmailService:
         return None
     
     def wait_for_verification_email(self, email_address: str, max_attempts: int = 20):
+        print(f"📧 Checking for email sent to: {email_address}")
+        print(f"📧 Server ID: {self.server_id}")
+        
         for attempt in range(1, max_attempts + 1):
+            print(f"🔍 Attempt {attempt}/{max_attempts}...")
             time.sleep(3)
             
             try:
                 messages = self.client.messages.list(self.server_id)
+                print(f"📬 Found {len(messages.items)} total messages in inbox")
                 
                 for message in messages.items:
+                    if message.to:
+                        recipient_emails = [addr.email for addr in message.to]
+                        print(f"  📩 Message to: {recipient_emails}")
+                        
                     if (message.to and 
                         any(addr.email == email_address for addr in message.to)):
                         
+                        print(f"✅ Found matching email for {email_address}")
                         # Get full email content
                         full_message = self.client.messages.get_by_id(message.id)
                         email_content = ""
                         if full_message.text and full_message.text.body:
                             email_content = full_message.text.body
                         
+                        print(f"📄 Email content preview: {email_content[:200]}")
+                        
                         # Extract OTP
                         otp_code = self.extract_otp_from_content(email_content)
                         if otp_code:
+                            print(f"✅ Extracted OTP: {otp_code}")
                             return otp_code
+                        else:
+                            print("⚠️ Could not extract OTP from email content")
                         
             except Exception as e:
+                print(f"❌ Error on attempt {attempt}: {str(e)}")
                 continue
         
+        print(f"❌ No OTP found after {max_attempts} attempts")
         return None
