@@ -6,7 +6,7 @@ This project automates end-to-end testing for the Black Pigeon web application u
 - Automated browser tests for login, signup, agency management, email verification, password reset, and more
 - **Job Description (JD) Management**: Complete automation for JD creation, editing, deletion, search, filtering, and bulk operations
 - Screenshots on test failures
-- HTML test reports
+- **Multiple Report Formats**: HTML reports, Excel reports, and interactive Allure reports
 - Random data generation for test isolation
 
 ## Project Structure
@@ -74,8 +74,48 @@ Or for a specific test:
 pytest -k test_agency_01_verify_agency_modal_appearing_in_first_time_login
 ```
 
-### 6. View HTML Report
-After running tests, open `report.html` in your browser.
+### 6. View Test Reports
+After running tests, you can view reports in multiple formats:
+
+**HTML Report** (Basic):
+```powershell
+# Open report.html in browser
+start report.html
+```
+
+**Allure Report** (Interactive - Recommended):
+```powershell
+# Quick method - Run tests and generate report
+.\run_tests_with_allure.ps1
+
+# Or generate report from existing results
+.\generate_allure_report.ps1
+
+# Or run specific test with Allure
+pytest tests/test_client.py -v
+.\generate_allure_report.ps1
+```
+
+**First Time Allure Setup**:
+1. Install Allure CLI (choose one method):
+   ```powershell
+   # Using Scoop (recommended)
+   scoop install allure
+   
+   # Using npm
+   npm install -g allure-commandline
+   ```
+
+2. See `docs/ALLURE_REPORTING_GUIDE.md` for comprehensive Allure documentation
+
+**Allure Report Features**:
+- 📊 Visual dashboard with test statistics
+- 📈 Historical trends and test duration graphs
+- 🔍 Detailed test case information with steps
+- 📷 Automatic screenshot attachment on failures
+- 🏷️ Test categorization by features and stories
+- ⚡ Flaky test detection
+- 🎯 Test retries and execution timeline
 
 ## JD (Job Description) Automation
 

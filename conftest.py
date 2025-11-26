@@ -1,6 +1,7 @@
 import os
 import pytest
 import ast
+import allure
 from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -448,8 +449,18 @@ def pytest_runtest_makereport(item, call):
         elif rep.failed:
             test_results[test_file][test_name] = "FAILED"
             
-            # Screenshot capture is now handled by enhanced assertions
-            # No need to capture screenshots here to avoid duplicates
+            # Attach screenshot to Allure report on failure
+            if hasattr(item, 'funcargs') and 'page' in item.funcargs:
+                page = item.funcargs['page']
+                try:
+                    screenshot_bytes = page.screenshot()
+                    allure.attach(
+                        screenshot_bytes,
+                        name=f"failure_screenshot_{test_name}",
+                        attachment_type=allure.attachment_type.PNG
+                    )
+                except Exception as e:
+                    print(f"Failed to capture screenshot for Allure: {e}")
                 
         elif rep.skipped:
             test_results[test_file][test_name] = "SKIPPED"
