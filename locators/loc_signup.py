@@ -28,7 +28,7 @@ class SignupLocators:
         self.full_name_min_limit = page.get_by_text("Name must be at least 3 characters")
         self.full_name_max_limit = page.get_by_text("Name must not exceed 80 characters")
         self.full_name_contains_special_characters = page.get_by_text("Name must not start or end with special characters.")
-        self.full_name_contains_numbers = page.get_by_text("Name must not contain numbers.")
+        self.full_name_contains_numbers = page.get_by_text("Name not allow any number")
         self.error_email_required = page.get_by_text("Email is required")
         self.error_password_required = page.get_by_text("Password is required")
         self.error_confirm_password_required = page.get_by_text("Confirm Password is required")

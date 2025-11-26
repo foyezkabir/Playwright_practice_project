@@ -25,6 +25,7 @@ class AgencyLocators:
         self.information_technology_option = page.get_by_text("Information Technology")
         self.finance_option = page.get_by_text("Finance")
         self.healthcare_option = page.locator("div").filter(has_text=re.compile(r"^Healthcare$"))
+        self.administration_of_justice_option = page.get_by_text("Administration of Justice")
         self.education_option = page.get_by_text("Education")
         self.website_input = page.get_by_role("textbox", name="Website (optional)")
         self.address_input = page.get_by_role("textbox", name="Address (optional)")

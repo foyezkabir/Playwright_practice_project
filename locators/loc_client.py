@@ -36,9 +36,11 @@ class ClientLocators:
         self.close_modal_button = page.get_by_role("button", name="Close modal")
         
         # Basic information fields
-        self.english_name_input = page.get_by_role("textbox", name="English name")
-        self.japanese_name_input = page.get_by_role("textbox", name="Japanese name")
-        self.job_title_input = page.get_by_role("textbox", name="Job title")
+        self.english_first_name_input = page.get_by_placeholder("English First Name")
+        self.english_last_name_input = page.get_by_placeholder("English Last Name")
+        self.japanese_first_name_input = page.get_by_placeholder("Japanese First Name")
+        self.japanese_last_name_input = page.get_by_placeholder("Japanese Last Name")
+        self.job_title_input = page.get_by_placeholder("Job title")
         
         # Dropdown fields
         self.select_trigger_first = page.locator(".select-trigger").first
@@ -51,15 +53,13 @@ class ClientLocators:
         self.japanese_level_dropdown = page.get_by_text("Japanese Level", exact=True)
         
         # Contact fields - Phone
-        # The input for phone contact name was removed; use the label locator to interact
-        # (clicking the label focuses the input in the UI). Keep the label locator.
-        self.phone_contact_name_label = page.get_by_text("Name").nth(2)
-        self.phone_contact_number_label = page.get_by_text("Number", exact=True)
+        self.phone_label_dropdown = page.get_by_text("Label").first
+        self.phone_number_input = page.get_by_placeholder("Number")
         self.add_phone_number_button = page.get_by_role("button", name="+ Add Phone Number")
         
         # Contact fields - Email
-        self.email_contact_name_label = page.get_by_text("Name").nth(3)
-        self.email_contact_email_label = page.get_by_text("Email", exact=True)
+        self.email_label_dropdown = page.get_by_text("Label").nth(1)
+        self.email_input = page.get_by_placeholder("Email")
         self.add_email_address_button = page.get_by_role("button", name="+ Add Email Address")
         
         # File upload

@@ -65,7 +65,8 @@ def do_reset_password_flow(page: Page, email: str = None, otp: str = None,
     
     if submit and (otp or new_password or confirm_password):
         reset_page.click_set_password()
-        wait_for_action_completion(page, "save")
+        # Don't wait - let the test immediately check for toast messages
+        # wait_for_action_completion(page, "save")
     
     return reset_page
 
@@ -130,10 +131,11 @@ def assert_error_nonverified_email(page: Page):
     enhanced_assert_visible(page, reset_pass_page.locators.error_nonverified_email, "Non-verified email error should be visible")
 
 def assert_error_invalid_otp(page: Page):
-    """Assert invalid OTP error is visible"""
+    """Assert invalid OTP error is visible - Toast message appears immediately"""
     from pages.reset_pass_page import ResetPasswordPage
     reset_pass_page = ResetPasswordPage(page)
-    enhanced_assert_visible(page, reset_pass_page.locators.error_invalid_otp, "Invalid OTP error should be visible")
+    # Toast appears immediately, no need for extra wait - check right away
+    enhanced_assert_visible(page, reset_pass_page.locators.error_invalid_otp, "Invalid OTP error should be visible", timeout=3000)
 
 def assert_error_otp_input_limit(page: Page):
     """Assert OTP input limit error is visible"""

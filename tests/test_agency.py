@@ -1,5 +1,6 @@
 import pytest
 import time
+import allure
 from playwright.sync_api import Page, expect
 from pages.agency_page import AgencyPage   
 from utils.config import BASE_URL
@@ -13,6 +14,7 @@ from utils.enhanced_assertions import enhanced_assert_visible
 def created_agency_name():
     return generate_agency_name()
 
+@allure.title("TC_01 - Verify agency modal appears on first time login.")
 def test_TC_01(page: Page):
     """Verify agency modal appears on first time login."""
     agency_page = do_agency_login(page, "867da9@onemail.host", "Kabir123#")
@@ -22,12 +24,14 @@ def test_TC_01(page: Page):
     time.sleep(1)
     agency_page.expect_all_agencies_message()
 
+@allure.title("TC_02 - Verify agency create modal appears or not with existing agencies.")
 def test_TC_02(page: Page):
     """Verify agency create modal appears or not with existing agencies."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
     agency_page.expect_no_agency_modal()
     agency_page.verify_agency_page_url()
 
+@allure.title("TC_03 - Verify user can open create new agency modal.")
 def test_TC_03(page: Page):
     """Verify user can open create new agency modal."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -40,6 +44,7 @@ def test_TC_03(page: Page):
     time.sleep(1)
     agency_page.click_close_modal_button()
 
+@allure.title("TC_04 - Verify newly created agency appears in the all agency list.")
 def test_TC_04(page: Page, created_agency_name):
     """Verify newly created agency appears in the all agency list."""
     agency_name = created_agency_name
@@ -59,6 +64,7 @@ def test_TC_04(page: Page, created_agency_name):
     # Use .first to handle multiple elements with same text
     enhanced_assert_visible(page, page.get_by_text(agency_name, exact=True).first, f"Agency '{agency_name}' should be visible in the agencies list", "test_TC_04")
 
+@allure.title("TC_05 - Verify user can delete the agency created previously.")
 def test_TC_05(page: Page, created_agency_name):
     """Verify user can delete the agency created previously."""
     agency_name = created_agency_name
@@ -66,6 +72,7 @@ def test_TC_05(page: Page, created_agency_name):
     page.go_back()
     agency_page.delete_agency_by_name(agency_name)
 
+@allure.title("TC_06 - Verify user can edit the agency user created.")
 def test_TC_06(page: Page, created_agency_name):
     """Verify user can edit the agency user created."""
     agency_name = created_agency_name
@@ -79,10 +86,11 @@ def test_TC_06(page: Page, created_agency_name):
     enhanced_assert_visible(page, agency_page.locators.update_confirm_message, "Update confirmation message should be visible", "test_TC_07")
     agency_page.get_agency_by_name(updated_name)
 
+@allure.title("TC_07 - Verify that the create agency modal validates website field and rejects URLs without https.")
 def test_TC_07(page: Page):
     """Verify that the create agency modal validates website field and rejects URLs without https."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
-    time.sleep(2)
+    time.sleep(1)
     agency_page.click_create_new_agency()
     time.sleep(1)
     
@@ -90,12 +98,12 @@ def test_TC_07(page: Page):
     test_agency_name = generate_agency_name()
     agency_page.fill_agency_name(test_agency_name)
     
-    # Fill invalid website URL (without https) using the proper locator
-    agency_page.fill_website_alt("www.invalidurl.com")
+    # Fill invalid website URL (without https)
+    agency_page.fill_website("www.invalidurl.com")
     
     # Try to save
     agency_page.click_agency_save_button()
-    time.sleep(2)
+    time.sleep(1)
     
     # Check for website validation error specifically
     enhanced_assert_visible(page, agency_page.locators.invalid_website_url_error, "Website validation error should be visible", "test_TC_07_website_validation")
@@ -103,6 +111,7 @@ def test_TC_07(page: Page):
     # Close modal
     agency_page.click_close_modal_button()
 
+@allure.title("TC_08 - Verify that submitting form without agency name shows validation error.")
 def test_TC_08(page: Page):
     """Verify that submitting form without agency name shows validation error."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -120,6 +129,7 @@ def test_TC_08(page: Page):
     # Close modal
     agency_page.click_close_modal_button()
 
+@allure.title("TC_09 - Verify that agency name shorter than 3 characters shows validation error.")
 def test_TC_09(page: Page):
     """Verify that agency name shorter than 3 characters shows validation error."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -140,6 +150,7 @@ def test_TC_09(page: Page):
     # Close modal
     agency_page.click_close_modal_button()
 
+@allure.title("TC_10 - Verify that agency name starting with special character triggers validation error.")
 def test_TC_10(page: Page):
     """Verify that agency name starting with special character triggers validation error."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -160,6 +171,7 @@ def test_TC_10(page: Page):
     # Close modal
     agency_page.click_close_modal_button()
 
+@allure.title("TC_11 - Verify that input containing only whitespace characters is not accepted.")
 def test_TC_11(page: Page):
     """Verify that input containing only whitespace characters is not accepted."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -180,6 +192,7 @@ def test_TC_11(page: Page):
     # Close modal
     agency_page.click_close_modal_button()
 
+@allure.title("TC_12 - Verify that all field labels are present, spelled correctly, and aligned with input fields.")
 def test_TC_12(page: Page):
     """Verify that all field labels are present, spelled correctly, and aligned with input fields."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -197,6 +210,7 @@ def test_TC_12(page: Page):
     # Close modal
     agency_page.click_close_modal_button()
 
+@allure.title("TC_13 - Verify that all field labels use the same font size and weight for visual consistency.")
 def test_TC_13(page: Page):
     """Verify that all field labels use the same font size and weight for visual consistency."""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -213,6 +227,7 @@ def test_TC_13(page: Page):
     # Close modal
     agency_page.click_close_modal_button()
 
+@allure.title("TC_14 - Verify that uploading PDF file shows validation message: 'Only accept jpg, png, jpeg, gif file'")
 def test_TC_14(page: Page):
     """Verify that uploading PDF file shows validation message: 'Only accept jpg, png, jpeg, gif file'"""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -234,6 +249,7 @@ def test_TC_14(page: Page):
     # Close modal and end test
     agency_page.click_close_modal_button()
 
+@allure.title("TC_15 - Verify that uploading file larger than 5MB shows validation message: 'File can't be larger than 5 MB'")
 def test_TC_15(page: Page):
     """Verify that uploading file larger than 5MB shows validation message: 'File can't be larger than 5 MB'"""
     agency_page = do_agency_login(page, "50st3o@mepost.pw", "Kabir123#")
@@ -255,7 +271,8 @@ def test_TC_15(page: Page):
     # Close modal and end test
     agency_page.click_close_modal_button()
 
-def test_TC_17(page: Page):
+@allure.title("TC_16 - Verify creating agency with image upload and verify it appears in list")
+def test_TC_16(page: Page):
     """Verify creating agency with image upload and verify it appears in list"""
     
     # Use helper function to handle the entire flow

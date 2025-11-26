@@ -187,6 +187,9 @@ class AgencyPage:
     def click_healthcare_option(self):
         self.locators.healthcare_option.click()
 
+    def click_administration_of_justice_option(self):
+        self.locators.administration_of_justice_option.click()
+
     def click_edit_button(self):
         self.locators.edit_button.click()
 

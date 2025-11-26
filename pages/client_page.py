@@ -120,29 +120,43 @@ class ClientPage:
         """Close the client modal."""
         self.locators.close_modal_button.click()
     
-    def fill_english_name(self, name: str):
-        """Fill English name field."""
-        self.locators.english_name_input.fill(name)
+    def fill_english_name(self, first_name: str, last_name: str = ""):
+        """Fill English first and last name fields."""
+        self.locators.english_first_name_input.fill(first_name)
+        if last_name:
+            self.locators.english_last_name_input.fill(last_name)
+    
+    def fill_english_first_name(self, name: str):
+        """Fill English first name field."""
+        self.locators.english_first_name_input.fill(name)
+    
+    def fill_english_last_name(self, name: str):
+        """Fill English last name field."""
+        self.locators.english_last_name_input.fill(name)
     
     def clear_english_name(self):
-        """Clear English name field."""
-        self.locators.english_name_input.clear()
+        """Clear English name fields."""
+        self.locators.english_first_name_input.clear()
+        self.locators.english_last_name_input.clear()
     
-    def click_english_name_input(self):
-        """Click English name input field."""
-        self.locators.english_name_input.click()
+    def fill_japanese_name(self, first_name: str, last_name: str = ""):
+        """Fill Japanese first and last name fields."""
+        self.locators.japanese_first_name_input.fill(first_name)
+        if last_name:
+            self.locators.japanese_last_name_input.fill(last_name)
     
-    def fill_japanese_name(self, name: str):
-        """Fill Japanese name field."""
-        self.locators.japanese_name_input.fill(name)
+    def fill_japanese_first_name(self, name: str):
+        """Fill Japanese first name field."""
+        self.locators.japanese_first_name_input.fill(name)
+    
+    def fill_japanese_last_name(self, name: str):
+        """Fill Japanese last name field."""
+        self.locators.japanese_last_name_input.fill(name)
     
     def clear_japanese_name(self):
-        """Clear Japanese name field."""
-        self.locators.japanese_name_input.clear()
-    
-    def click_japanese_name_input(self):
-        """Click Japanese name input field."""
-        self.locators.japanese_name_input.click()
+        """Clear Japanese name fields."""
+        self.locators.japanese_first_name_input.clear()
+        self.locators.japanese_last_name_input.clear()
     
     def fill_job_title(self, title: str):
         """Fill job title field."""
@@ -188,9 +202,14 @@ class ClientPage:
         self.page.get_by_text(option_text, exact=True).click()
     
     # ===== CONTACT FIELDS - PHONE =====
-    def click_phone_contact_name_label(self):
-        """Click phone contact name label."""
-        self.locators.phone_contact_name_label.click()
+    def fill_phone_label(self, label: str):
+        """Select phone label from dropdown."""
+        self.locators.phone_label_dropdown.click()
+        self.select_dropdown_option(label)
+    
+    def fill_phone_number(self, number: str):
+        """Fill phone number field."""
+        self.locators.phone_number_input.fill(number)
     
     def click_add_phone_number_button(self):
         """Click Add Phone Number button."""
@@ -198,26 +217,14 @@ class ClientPage:
     
     # ===== CONTACT FIELDS - EMAIL =====
     
-    def fill_email_name(self, name: str):
-        """Fill email name/label field by clicking label then filling input."""
-        self.locators.email_contact_name_label.click()
-        email_name_input = self.page.locator("[id=\"email_contacts[0].name\"]")
-        email_name_input.fill(name)
-    
-    def clear_email_name(self):
-        """Clear email name/label field."""
-        email_name_input = self.page.locator("[id=\"email_contacts[0].name\"]")
-        email_name_input.clear()
-    
-    def click_email_name_input(self):
-        """Click email name/label input field."""
-        self.locators.email_contact_name_label.click()
+    def fill_email_label(self, label: str):
+        """Select email label from dropdown."""
+        self.locators.email_label_dropdown.click()
+        self.select_dropdown_option(label)
     
     def fill_email(self, email: str):
-        """Fill email field by clicking label then filling input."""
-        self.locators.email_contact_email_label.fill(email)
-    
-    def clear_email(self):
+        """Fill email address field."""
+        self.locators.email_input.fill(email)
         """Clear email field."""
         email_input = self.page.locator("[id=\"email_contacts[0].email\"]")
         email_input.clear()
@@ -326,12 +333,14 @@ class ClientPage:
         expect(self.locators.add_new_client_modal_heading).to_be_visible()
     
     def expect_english_name_input(self):
-        """Verify English name input is visible."""
-        expect(self.locators.english_name_input).to_be_visible()
+        """Verify English first and last name inputs are visible."""
+        expect(self.locators.english_first_name_input).to_be_visible()
+        expect(self.locators.english_last_name_input).to_be_visible()
     
     def expect_japanese_name_input(self):
-        """Verify Japanese name input is visible."""
-        expect(self.locators.japanese_name_input).to_be_visible()
+        """Verify Japanese first and last name inputs are visible."""
+        expect(self.locators.japanese_first_name_input).to_be_visible()
+        expect(self.locators.japanese_last_name_input).to_be_visible()
     
     def expect_job_title_input(self):
         """Verify Job title input is visible."""
@@ -358,28 +367,28 @@ class ClientPage:
         expect(self.locators.japanese_level_dropdown).to_be_visible()
     
     def expect_phone_contact_name_label(self):
-        """Verify phone contact name label is visible."""
-        expect(self.locators.phone_contact_name_label).to_be_visible()
+        """Verify phone label dropdown is visible."""
+        expect(self.locators.phone_label_dropdown).to_be_visible()
     
     def expect_phone_contact_number_label(self):
-        """Verify phone contact number label is visible."""
-        expect(self.locators.phone_contact_number_label).to_be_visible()
+        """Verify phone number input is visible."""
+        expect(self.locators.phone_number_input).to_be_visible()
     
     def expect_email_contact_name_label(self):
-        """Verify email contact name label is visible."""
-        expect(self.locators.email_contact_name_label).to_be_visible()
+        """Verify email label dropdown is visible."""
+        expect(self.locators.email_label_dropdown).to_be_visible()
     
     def expect_email_contact_email_label(self):
-        """Verify email label is visible."""
-        expect(self.locators.email_contact_email_label).to_be_visible()
+        """Verify email input is visible."""
+        expect(self.locators.email_input).to_be_visible()
     
     def expect_email_input(self):
-        """Verify email input label is visible."""
-        expect(self.locators.email_contact_email_label).to_be_visible()
+        """Verify email input is visible."""
+        expect(self.locators.email_input).to_be_visible()
     
     def expect_email_name_input(self):
-        """Verify email name/label input label is visible."""
-        expect(self.locators.email_contact_name_label).to_be_visible()
+        """Verify email label dropdown is visible."""
+        expect(self.locators.email_label_dropdown).to_be_visible()
     
     def expect_add_phone_number_button(self):
         """Verify Add Phone Number button is visible."""
@@ -567,47 +576,45 @@ class ClientPage:
     
     
     @decorator_modal_context
-    def create_client_with_mandatory_fields(self, english_name: str, company_name: str, email: str, email_label: str = "Work"):
+    def create_client_with_mandatory_fields(self, english_first_name: str, english_last_name: str, company_name: str, email: str, email_label: str = "Work"):
         """
         Create a client with only mandatory fields.
         
         Args:
-            english_name: Client English name
+            english_first_name: Client English first name
+            english_last_name: Client English last name
             company_name: Company name to select from dropdown
             email: Email address
-            email_label: Email label/name (default: "Work")
+            email_label: Email label (default: "Work")
         """
-        
-        # self.click_add_client_button()
-        # modal_body = self.get_client_modal_body()
-        # backup_page = self.page # Backup current page reference
-        # modal_body.wait_for() # Ensure modal is loaded
-        # self.page = modal_body # Switch context to modal body
-        self.fill_english_name(english_name)
+        self.fill_english_first_name(english_first_name)
+        self.fill_english_last_name(english_last_name)
         self.click_company_dropdown()
         self.select_dropdown_option(company_name)
+        self.fill_email_label(email_label)
         self.fill_email(email)
-        self.fill_email_name(email_label)
         self.click_create_button()
-        # self.page = backup_page # Restore original page reference
+        time.sleep(2)
 
 
     @decorator_modal_context    
     def create_client_with_all_fields(
         self,
         # Mandatory fields
-        english_name: str,
+        english_first_name: str,
+        english_last_name: str,
         company_name: str,
         email: str,
         email_label: str = "Work",
         # Optional fields
-        japanese_name: str = None,
+        japanese_first_name: str = None,
+        japanese_last_name: str = None,
         job_title: str = None,
         gender: str = None,
         department: str = None,
         english_level: str = None,
         japanese_level: str = None,
-        phone_name: str = None,
+        phone_label: str = None,
         phone_number: str = None,
         image: str = None,
         additional_email: str = None,
@@ -618,32 +625,34 @@ class ClientPage:
         
         Args:
             # Mandatory fields:
-            english_name: Client English name (required)
+            english_first_name: Client English first name (required)
+            english_last_name: Client English last name (required)
             company_name: Company name to select from dropdown (required)
             email: Primary email address (required)
-            email_label: Primary email label/name (default: "Work")
+            email_label: Primary email label (default: "Work")
             
             # Optional fields:
-            japanese_name: Client Japanese name
+            japanese_first_name: Client Japanese first name
+            japanese_last_name: Client Japanese last name
             job_title: Client job title
             gender: Gender option to select from dropdown (e.g., "Male", "Female")
             department: Department to select from dropdown
             english_level: English proficiency level
             japanese_level: Japanese proficiency level
-            phone_name: Phone contact name/label
+            phone_label: Phone contact label (e.g., "Mobile", "Work")
             phone_number: Phone contact number
             additional_email: Additional email address
-            additional_email_label: Additional email label/name
+            additional_email_label: Additional email label
         """
-        # Open client creation modal
-        # self.click_add_client_button()
-        
         # Fill mandatory fields
-        self.fill_english_name(english_name)
+        self.fill_english_first_name(english_first_name)
+        self.fill_english_last_name(english_last_name)
         
         # Fill optional basic information
-        if japanese_name:
-            self.fill_japanese_name(japanese_name)
+        if japanese_first_name:
+            self.fill_japanese_first_name(japanese_first_name)
+        if japanese_last_name:
+            self.fill_japanese_last_name(japanese_last_name)
         
         if job_title:
             self.fill_job_title(job_title)
@@ -671,41 +680,33 @@ class ClientPage:
             self.click_japanese_level_dropdown()
             self.select_dropdown_option(japanese_level)
         
-        # Fill phone contact if provided - click the label then fill the input
-        if phone_name:
-            # Clicking the label focuses the phone name input in the UI
-            self.click_phone_contact_name_label()
-            phone_name_input = self.locators.phone_contact_name_label
-            phone_name_input.fill(phone_name)
-        
-        if phone_number:
-            # Note: You may need to add a fill_phone_contact_number method
-            # For now, using a generic approach
-            phone_number_input = self.locators.phone_contact_number_label
-            phone_number_input.fill(phone_number)
+        # Fill phone contact if provided
+        if phone_label and phone_number:
+            self.fill_phone_label(phone_label)
+            self.fill_phone_number(phone_number)
         
         # Fill primary email (mandatory)
+        self.fill_email_label(email_label)
         self.fill_email(email)
-        self.fill_email_name(email_label)
         
         # Add additional email if provided
         if additional_email:
             self.click_add_email_address_button()
-
-            # Fill additional email (may need specific locator for second email field)
-            additional_email_input = self.page.locator("[id=\"email_contacts[1].email\"]")
-            additional_email_input.fill(additional_email)
+            # Fill additional email (you may need to add specific methods for second email)
+            time.sleep(0.5)
+            additional_email_label_dropdown = self.page.get_by_text("Label").nth(2)
+            additional_email_label_dropdown.click()
+            self.select_dropdown_option(additional_email_label)
             
-            if additional_email_label:
-                additional_email_name_input = self.page.locator("[id=\"email_contacts[1].name\"]")
-                additional_email_name_input.fill(additional_email_label)
+            additional_email_input = self.page.get_by_placeholder("Email").nth(1)
+            additional_email_input.fill(additional_email)
 
         self.scroll_to(self.locators.create_button)
         
-
         if image:
             # Upload logo/image if provided
             self.upload_client_image(image)
+            
         # Submit the form
         self.click_create_button()
         time.sleep(2)

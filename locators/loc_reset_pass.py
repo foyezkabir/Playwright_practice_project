@@ -42,7 +42,7 @@ class ResetPasswordLocators:
         self.error_unregistered_email = page.get_by_text("User not found")
         
         # Error messages - Reset password page
-        self.error_nonverified_email = page.get_by_text("Cannot reset password for the user as there is no registered/verified email or phone_number")
+        self.error_nonverified_email = page.get_by_text("You must have a verified email before resetting your password.")
         self.error_otp_required = page.get_by_text("OTP is required")
         self.error_invalid_otp = page.get_by_text("Invalid verification code provided, please try again.")
         self.error_otp_input_limit = page.get_by_text("OTP must be 6 digits")
@@ -54,7 +54,7 @@ class ResetPasswordLocators:
         self.error_reset_pass_attempt_limit = page.get_by_text("Attempt limit exceeded, please try after some time.")
         
         # Toast messages
-        self.toast_email_with_otp_sent = page.get_by_text("Verification code sent to your email")
+        self.toast_email_with_otp_sent = page.get_by_text("OTP has been sent to your email for password reset.")
         self.toast_otp_resent = page.get_by_text("OTP resent successfully")
         self.toast_password_reset_success = page.get_by_text("Password reset successfully")
         self.toast_otp_expired = page.get_by_text("OTP has expired")

@@ -89,7 +89,7 @@ def test_TC_06(page: Page):
     client_page.navigate_to_client_page()
     
     email = random_email.generate_email()
-    client_page.create_client_with_mandatory_fields(english_name="Test Client",company_name="Only for TC 13",email=email,email_label="Work")
+    client_page.create_client_with_mandatory_fields(english_first_name="Test", english_last_name="Client", company_name="Only for TC 13", email=email, email_label="Work")
     client_page.verify_client_created()
 
 @with_client_login(agency_id="174")
@@ -97,49 +97,41 @@ def test_TC_07(page: Page):
     """Verify user can create a client with all fields (mandatory and optional) and file upload validation."""
     client_page: ClientPage = page._client_page    
     
-    # Test 3: Upload valid image and create client with all fields
+    # Create client with all fields using new first/last name structure
     email = random_email.generate_email()
     client_page.create_client_with_all_fields(
-        english_name="Complete Client Test",
+        english_first_name="Complete",
+        english_last_name="Client Test",
         company_name="Only for TC 13",
         email=email,
         email_label="Office",
-        japanese_name="テストクライアント",
+        japanese_first_name="テスト",
+        japanese_last_name="クライアント",
         job_title="Senior Manager",
         gender="Male",
-        phone_name="Mobile",
+        phone_label="Mobile",
         phone_number="+819012345678",
         english_level="Elementary",
         japanese_level="Limited Working",
         department="Sales",
-        image="images_for_test\\pexels-6MB.jpg"
+        image="images_for_test\\pexels-photo.jpeg"
     )
-    # # Test 1: Upload large file (>5MB) - expect file size error
-    # client_page.upload_client_image("images_for_test/pexels-6MB.jpg")
-    # client_page.expect_file_size_error()
-    
-    # # Test 2: Upload invalid file format (PDF) - expect file format error
-    # client_page.upload_client_image("images_for_test/file-PDF_1MB.pdf")
-    # client_page.expect_file_format_error()
 
     client_page.verify_client_created()
 
-
-def test_TC_13(page: Page):
+@with_client_login(agency_id="174")
+def test_TC_08(page: Page):
     """Verify 'View Details' button is visible for existing clients."""
-    client_page = ClientPage(page)
-    client_page.login_and_navigate_to_agency_dashboard("mi003b@onemail.host", "Kabir123#", "173")
+    client_page = page._client_page
     client_page.navigate_to_client_page()
     client_page.expect_view_details_button()
 
-
-def test_TC_14(page: Page):
+@with_client_login(agency_id="174")
+def test_TC_09(page: Page):
     """Verify 'Open action menu' button is visible for existing clients."""
-    client_page = ClientPage(page)
-    client_page.login_and_navigate_to_agency_dashboard("mi003b@onemail.host", "Kabir123#", "173")
+    client_page = page._client_page
     client_page.navigate_to_client_page()
     client_page.expect_open_action_menu_button()
-
 
 def test_TC_15(page: Page):
     """Verify delete confirmation modal appears when deleting a client."""

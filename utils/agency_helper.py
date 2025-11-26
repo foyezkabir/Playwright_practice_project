@@ -69,7 +69,7 @@ def do_create_agency(page: Page, agency_name: str, email: str = "gi7j8d@mepost.p
     print(f"📝 Filling agency details...")
     agency_page.fill_agency_name(agency_name)
     agency_page.click_industry_dropdown()
-    agency_page.click_healthcare_option()
+    agency_page.click_administration_of_justice_option()
     agency_page.fill_website(website)
     agency_page.fill_address(address)
     agency_page.fill_description(description)
@@ -422,7 +422,7 @@ def do_create_agency_with_image_verification(page: Page, email: str = "50st3o@me
     # Fill all agency fields with comprehensive data
     agency_page.fill_agency_name(random_agency_name)
     agency_page.click_industry_dropdown()
-    agency_page.click_healthcare_option()
+    agency_page.click_administration_of_justice_option()
     agency_page.fill_website("https://test-agency-with-image.com")
     agency_page.fill_address("456 Image Upload Street, Test City, TC 12345")
     agency_page.fill_description("Test agency created with image upload functionality")
@@ -443,6 +443,18 @@ def do_create_agency_with_image_verification(page: Page, email: str = "50st3o@me
     agency_page.click_agency_save_button()
     wait_for_action_completion(page, "save")
     time.sleep(5)  # Wait for creation
+    
+    # Check if we need to navigate back to agency list
+    current_url = page.url
+    print(f"📍 Current URL after save: {current_url}")
+    
+    # Wait before refreshing
+    time.sleep(1)
+    
+    # Refresh the page to ensure latest data is loaded
+    print("🔄 Refreshing page to load latest agencies...")
+    page.reload()
+    time.sleep(3)
 
     # Search for the created agency in the paginated list
     print(f"🔍 Searching for agency '{random_agency_name}' in the list...")

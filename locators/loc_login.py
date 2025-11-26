@@ -20,7 +20,7 @@ class LoginLocators:
         self.sign_in_button_visible = page.get_by_role("button", name="Sign in").first
         self.email_label = page.get_by_text("Email", exact=True)
         self.password_label = page.get_by_text("Password", exact=True)
-        self.unregistered_email_error = page.get_by_text("Invalid email or password")
+        self.unregistered_email_error = page.get_by_text("User not found")
         self.dont_have_account_text = page.get_by_text("Don’t you have an account?")
         self.nonverified_email_error = page.get_by_text("Your email is not confirmed. Please check your inbox for the confirmation link.")
         self.verification_required_for_login = page.get_by_text("Your email is not confirmed. Please check your inbox for the confirmation link.")
