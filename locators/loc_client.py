@@ -129,8 +129,9 @@ class ClientLocators:
         self.close_button = page.get_by_role("button", name="Close", exact=True)
         
         # ===== FILTER PANEL ELEMENTS =====
-        self.filters_button = page.get_by_text("Filters")
+        self.filters_button = page.locator("span").filter(has_text="Filters")
         self.filters_modal_heading = page.get_by_role("heading", name="Filters")
+        self.filter_modal_close_button = page.locator("button.hover\\:bg-blue-100.rounded-full")
         self.all_clear_button = page.get_by_role("button", name="All clear")
         
         # Filter categories
@@ -144,6 +145,27 @@ class ClientLocators:
         self.gender_add_span = page.locator("div").filter(has_text=re.compile(r"^GenderAdd$")).locator("span")
         self.company_add_span = page.locator("div").filter(has_text=re.compile(r"^Company NameAdd$")).locator("span")
         self.department_add_span = page.locator("div").filter(has_text=re.compile(r"^DepartmentAdd$")).locator("span")
+        
+        # Filter selections (checkboxes/options)
+        self.client_status_passive = page.get_by_label("Passive")
+        self.client_status_active = page.get_by_label("Active")
+        self.gender_male = page.get_by_label("Male", exact=True)
+        self.gender_female = page.get_by_label("Female")
+        self.filter_company_input = page.get_by_placeholder("Company")
+        self.filter_department_input = page.get_by_placeholder("Department")
+        self.bulk_select_checkbox =  page.get_by_text("Select")
+        
+        # Filter pill close icon (X icon in applied filter tags)
+        self.filter_pill_close_icon = page.locator("div").filter(has_text=re.compile(r"^All clear$")).get_by_role("img")
+        
+        # ===== PAGINATION ELEMENTS =====
+        # Pagination uses SVG elements, not buttons
+        # Structure: [SVG prev] [span "1 of 2"] [SVG next]
+        self.page_number_display = page.locator("span").filter(has_text=re.compile(r"^\d+ of \d+$"))
+        self.pagination_container = self.page_number_display.locator("..")
+        # Use nth(0) for first SVG (previous), nth(1) for second SVG (next)
+        self.previous_page_button = self.pagination_container.locator("svg").nth(0)
+        self.next_page_button = self.pagination_container.locator("svg").nth(1)
     
     # ===== DYNAMIC LOCATORS =====
     def get_client_card_by_name(self, name: str):
@@ -153,3 +175,8 @@ class ClientLocators:
     def get_client_search_result(self, name: str):
         """Get client search result containing the client name"""
         return self.page.get_by_role("main").locator("div").filter(has_text=name)
+    
+    def get_page_button(self, page_number: int):
+        """Get specific page number button - Note: This pagination uses SVG arrows, not page number buttons"""
+        # This pagination style doesn't have clickable page numbers, only prev/next arrows
+        return None

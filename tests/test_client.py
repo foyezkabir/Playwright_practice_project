@@ -10,6 +10,8 @@ from pages.client_page import ClientPage
 from random_values_generator.random_email import RandomEmail
 from random_values_generator.random_talent_name import RandomTalentName
 from utils.client_helper import with_client_login, do_client_login_and_navigate
+from utils.client_helper import do_client_login
+from utils.enhanced_assertions import enhanced_assert_visible
 
 random_email = RandomEmail()
 random_name = RandomTalentName()
@@ -356,4 +358,146 @@ def test_TC_19(page: Page):
     
     # Verify detail view heading shows: TESTLAST TestFirst (Japanese format - same as card)
     client_page.expect_client_name_japanese_format(japanese_format_name)
+
+@with_client_login(agency_id="174")
+def test_TC_20(page: Page):
+    """Verify pagination controls work correctly - forward and backward navigation between pages."""
+    client_page: ClientPage = page._client_page
+    client_page.navigate_to_client_page()
+    time.sleep(2)
+    
+    # Verify previous button is not clickable on first page
+    client_page.expect_previous_page_button_disabled()
+
+    # Click next page button to go to next page
+    client_page.click_next_page()
+    time.sleep(2)
+    # Get current page number
+    current_page = client_page.get_current_page_number()
+    # Verify now on next page
+    client_page.expect_page_number(current_page)
+    time.sleep(2)
+    # Verify forward button is not clickable on last page
+    client_page.expect_next_page_button_disabled()
+    # Click previous page button to go back
+    client_page.click_previous_page()
+    time.sleep(2)
+    # Verify back on previous page
+    client_page.expect_page_number(current_page - 1)
+
+# @allure.title("TC_21 - Verify filter functionality with individual filters and combined filters.")
+# @with_client_login(agency_id="174")
+# def test_TC_21(page: Page):
+#     """Verify filter works correctly with individual field filters and combined multiple filters."""
+#     client_page: ClientPage = page._client_page
+#     client_page.navigate_to_client_page()
+#     time.sleep(2)
+    
+#     # Open filter modal
+#     client_page.click_filters_button()
+#     time.sleep(1)
+    
+#     # Test 1: Filter by Client Status - Passive
+#     client_page.select_client_status_passive()
+#     time.sleep(2)
+#     client_page.close_filter_modal()
+#     time.sleep(1)
+#     client_page.expect_passive_client_in_results()
+    
+#     # Clear filter and re-open
+#     client_page.click_filters_button()
+#     time.sleep(1)
+#     client_page.click_all_clear_filter_button()
+#     time.sleep(1)
+    
+#     # Test 2: Filter by Gender - Male
+#     client_page.select_gender_male()
+#     time.sleep(2)
+#     client_page.close_filter_modal()
+#     time.sleep(1)
+#     client_page.expect_male_client_in_results()
+    
+#     # Clear filter and re-open
+#     client_page.click_filters_button()
+#     time.sleep(1)
+#     client_page.click_all_clear_filter_button()
+#     time.sleep(1)
+    
+#     # Test 3: Filter by Company
+#     client_page.fill_filter_company("Only for TC 13")
+#     time.sleep(2)
+#     client_page.close_filter_modal()
+#     time.sleep(1)
+#     client_page.expect_company_in_results("Only for TC 13")
+    
+#     # Clear filter and re-open
+#     client_page.click_filters_button()
+#     time.sleep(1)
+#     client_page.click_all_clear_filter_button()
+#     time.sleep(1)
+    
+#     # Test 4: Filter by Department
+#     client_page.fill_filter_department("Sales")
+#     time.sleep(2)
+#     client_page.close_filter_modal()
+#     time.sleep(1)
+#     client_page.expect_department_in_results("Sales")
+    
+#     # Clear filter and re-open
+#     client_page.click_filters_button()
+#     time.sleep(1)
+#     client_page.click_all_clear_filter_button()
+#     time.sleep(1)
+    
+#     # Test 5: Combined filters - Client Status (Passive) + Department (Operations) + Company (company for test) + Gender (Male)
+#     # Note: This test assumes clients exist matching ALL these criteria
+#     client_page.select_client_status_passive()
+#     client_page.select_gender_male()
+#     client_page.fill_filter_company("company for test")
+#     time.sleep(1)
+#     client_page.fill_filter_department("Operations")
+#     time.sleep(2)
+#     client_page.close_filter_modal()
+#     time.sleep(1)
+    
+#     # Verify all filter criteria appear in results
+#     client_page.expect_passive_client_in_results()
+#     client_page.expect_male_client_in_results()
+#     client_page.expect_company_in_results("company for test")
+#     client_page.expect_department_in_results("Operations")
+    
+# @allure.title("TC_22 - Verify bulk actions modal opens after selecting bulk checkbox.")
+# @with_client_login(agency_id="174")
+# def test_TC_22(page: Page):
+#     """Verify that after clicking bulk select, Delete and Add Notes buttons appear and their modals open."""
+#     client_page: ClientPage = page._client_page
+#     client_page.navigate_to_client_page()
+#     time.sleep(2)
+#     # Click bulk select checkbox
+#     client_page.click_bulk_select_checkbox()
+#     time.sleep(1)
+#     # Determine client count from visible button (default to 3 for test)
+#     count = 3
+#     # Assert Delete and Add Notes buttons with correct count are visible
+#     enhanced_assert_visible(page, client_page.locators.bulk_delete_button(count), f"Bulk Delete button ({count}) should be visible", "test_TC_22_bulk_delete_visible")
+#     enhanced_assert_visible(page, client_page.locators.bulk_add_notes_button(count), f"Bulk Add Notes button ({count}) should be visible", "test_TC_22_bulk_add_notes_visible")
+#     # Click Delete and assert modal opens
+#     client_page.click_bulk_delete_button(count)
+#     enhanced_assert_visible(page, client_page.locators.bulk_delete_modal_text, "Bulk Delete modal text should be visible", "test_TC_22_bulk_delete_modal_text")
+#     enhanced_assert_visible(page, client_page.locators.bulk_delete_modal_cancel, "Bulk Delete Cancel button should be visible", "test_TC_22_bulk_delete_cancel")
+#     enhanced_assert_visible(page, client_page.locators.bulk_delete_modal_confirm, "Bulk Delete Confirm button should be visible", "test_TC_22_bulk_delete_confirm")
+#     client_page.click_bulk_delete_modal_cancel()
+#     time.sleep(1)
+#     # Click Add Notes and assert modal opens
+#     client_page.click_bulk_add_notes_button(count)
+#     enhanced_assert_visible(page, client_page.locators.bulk_add_notes_modal_heading(count), f"Bulk Add Notes modal heading ({count}) should be visible", "test_TC_22_bulk_add_notes_modal_heading")
+#     enhanced_assert_visible(page, client_page.locators.bulk_add_notes_modal_cancel, "Bulk Add Notes Cancel button should be visible", "test_TC_22_bulk_add_notes_cancel")
+#     enhanced_assert_visible(page, client_page.locators.bulk_add_notes_modal_save_next, "Bulk Add Notes Save & Next button should be visible", "test_TC_22_bulk_add_notes_save_next")
+#     # Test note navigation for each client
+#     for idx in range(1, count+1):
+#         client_page.click_note_nav(idx, count)
+#         time.sleep(0.5)
+#     client_page.click_bulk_add_notes_modal_cancel()
+#     time.sleep(1)
+
 

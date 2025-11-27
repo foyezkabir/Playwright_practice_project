@@ -246,6 +246,42 @@ class ClientPage:
         time.sleep(2)
     
     # ===== DELETE FUNCTIONALITY =====
+        # ===== BULK ACTIONS =====
+        def click_bulk_select_checkbox(self):
+            """Click Bulk select checkbox to enable bulk actions."""
+            self.locators.bulk_select_checkbox.click()
+
+        def click_bulk_delete_button(self, count):
+            """Click Bulk Delete button with count."""
+            self.locators.bulk_delete_button(count).click()
+
+        def click_bulk_add_notes_button(self, count):
+            """Click Bulk Add Notes button with count."""
+            self.locators.bulk_add_notes_button(count).click()
+
+        def click_bulk_delete_modal_cancel(self):
+            """Click Cancel in Bulk Delete modal."""
+            self.locators.bulk_delete_modal_cancel.click()
+
+        def click_bulk_delete_modal_confirm(self):
+            """Click Confirm in Bulk Delete modal."""
+            self.locators.bulk_delete_modal_confirm.click()
+
+        def click_bulk_add_notes_modal_cancel(self):
+            """Click Cancel in Bulk Add Notes modal."""
+            self.locators.bulk_add_notes_modal_cancel.click()
+
+        def click_bulk_add_notes_modal_save_next(self):
+            """Click Save & Next in Bulk Add Notes modal."""
+            self.locators.bulk_add_notes_modal_save_next.click()
+
+        def click_note_nav(self, idx, count):
+            """Click note navigation image for idx of count."""
+            self.locators.note_nav(idx, count).click()
+
+    def click_bulk_select_checkbox(self):
+        """Click Bulk select checkbox to enable bulk actions."""
+        self.locators.bulk_select_checkbox.click()
     
     def click_delete_button(self):
         """Click Delete button in action menu."""
@@ -289,10 +325,12 @@ class ClientPage:
     
     def click_filters_button(self):
         """Click Filters button to open filter panel."""
-        self.locators.filters_button.click()
+        self.page.get_by_text("Filters").first.click(force=True)
+        time.sleep(1)  # Wait for modal animation
     
     def click_all_clear_button(self):
         """Click All clear button to reset filters."""
+        self.locators.all_clear_button.wait_for(state="visible", timeout=5000)
         self.locators.all_clear_button.click()
     
     def click_client_status_add_span(self):
@@ -632,6 +670,118 @@ class ClientPage:
         """Verify Department filter add span is visible."""
         expect(self.locators.department_add_span).to_be_visible()
     
+    # ===== FILTER ACTIONS =====
+    
+    def select_client_status_passive(self):
+        """Select Passive status in filter (auto-applies immediately)."""
+        self.click_client_status_add_span()
+        time.sleep(0.5)
+        self.locators.client_status_passive.click()
+        time.sleep(0.5)  # Brief wait for auto-apply
+        self.locators.client_status_filter_heading.click()  # Close dropdown
+    
+    def select_client_status_active(self):
+        """Select Active status in filter (auto-applies immediately)."""
+        self.click_client_status_add_span()
+        time.sleep(0.5)
+        self.locators.client_status_active.click()
+        time.sleep(0.5)  # Brief wait for auto-apply
+        self.locators.client_status_filter_heading.click()  # Close dropdown
+    
+    def select_gender_male(self):
+        """Select Male gender in filter (auto-applies immediately)."""
+        self.click_gender_add_span()
+        time.sleep(0.5)
+        self.locators.gender_male.click()
+        time.sleep(0.5)  # Brief wait for auto-apply
+        self.locators.gender_filter_heading.click()  # Close dropdown
+    
+    def select_gender_female(self):
+        """Select Female gender in filter (auto-applies immediately)."""
+        self.click_gender_add_span()
+        time.sleep(0.5)
+        self.locators.gender_female.click()
+        time.sleep(0.5)  # Brief wait for auto-apply
+        self.locators.gender_filter_heading.click()  # Close dropdown
+    
+    def fill_filter_company(self, company_name: str):
+        """Fill company name in filter (auto-applies on Enter)."""
+        self.locators.filter_company_input.fill(company_name)
+        self.page.keyboard.press("Enter")
+        time.sleep(0.5)  # Brief wait for auto-apply
+        self.locators.company_name_filter_heading.click()  # Close dropdown
+    
+    def fill_filter_department(self, department_name: str):
+        """Fill department name in filter (auto-applies on Enter)."""
+        self.locators.filter_department_input.fill(department_name)
+        self.page.keyboard.press("Enter")
+        time.sleep(0.5)  # Brief wait for auto-apply
+        self.locators.department_filter_heading.click()  # Close dropdown
+    
+    def click_apply_filter_button(self):
+        """Click Apply button in filter modal."""
+        self.locators.apply_filter_button.click()
+    
+    def click_all_clear_filter_button(self):
+        """Click All clear button in filter modal."""
+        # Verify modal is open first
+        self.locators.filters_modal_heading.wait_for(state="visible", timeout=10000)
+        time.sleep(0.5)
+        self.locators.all_clear_button.click()
+    
+    def close_filter_modal(self):
+        """Close filter modal by pressing Escape key."""
+        self.page.keyboard.press("Escape")
+        time.sleep(0.5)
+    
+    # ===== PAGINATION ACTIONS =====
+    
+    def click_next_page(self):
+        """Click next page button."""
+        self.locators.next_page_button.click()
+    
+    def click_previous_page(self):
+        """Click previous page button."""
+        self.locators.previous_page_button.click()
+    
+    def click_first_page(self):
+        """Click first page button."""
+        self.locators.first_page_button.click()
+    
+    def click_last_page(self):
+        """Click last page button."""
+        self.locators.last_page_button.click()
+    
+    def click_page_number(self, page_number: int):
+        """Click specific page number button."""
+        self.locators.get_page_button(page_number).click()
+    
+    def get_current_page_number(self) -> int:
+        """Get current page number from display (e.g., '1 of 2' returns 1)."""
+        text = self.locators.page_number_display.inner_text()
+        # Extract first number from "1 of 2" format
+        return int(text.split()[0])
+    
+    def expect_page_number(self, expected_page: int):
+        """Verify current page number (checks for 'X of Y' format)."""
+        expect(self.locators.page_number_display).to_contain_text(f"{expected_page} of")
+    
+    def expect_next_page_button_visible(self):
+        """Verify next page button is visible."""
+        expect(self.locators.next_page_button).to_be_visible()
+    
+    def expect_previous_page_button_visible(self):
+        """Verify previous page button is visible."""
+        expect(self.locators.previous_page_button).to_be_visible()
+    
+    def expect_next_page_button_disabled(self):
+        """Verify next page button is disabled (not clickable)."""
+        expect(self.locators.next_page_button).to_have_css("cursor", "not-allowed")
+    
+    def expect_previous_page_button_disabled(self):
+        """Verify previous page button is disabled (not clickable)."""
+        expect(self.locators.previous_page_button).to_have_css("cursor", "not-allowed")
+    
     # ===== SEARCH EXPECTATIONS =====
     
     def expect_search_no_results_message(self, query: str):
@@ -645,6 +795,36 @@ class ClientPage:
     def expect_open_action_menu_button(self):
         """Verify Open action menu button is visible."""
         expect(self.locators.open_action_menu_button_first).to_be_visible()
+    
+    # ===== FILTER RESULT EXPECTATIONS =====
+    
+    def expect_filter_result_contains_text(self, text: str):
+        """Verify filter results contain specific text."""
+        expect(self.page.get_by_text(text).first).to_be_visible(timeout=5000)
+    
+    def expect_passive_client_in_results(self):
+        """Verify Passive client status appears in filter results."""
+        expect(self.page.locator("text=Passive").first).to_be_visible(timeout=5000)
+    
+    def expect_active_client_in_results(self):
+        """Verify Active client status appears in filter results."""
+        expect(self.page.locator("text=Active").first).to_be_visible(timeout=5000)
+    
+    def expect_male_client_in_results(self):
+        """Verify Male gender appears in filter results."""
+        expect(self.page.locator("text=Male").first).to_be_visible(timeout=5000)
+    
+    def expect_female_client_in_results(self):
+        """Verify Female gender appears in filter results."""
+        expect(self.page.locator("text=Female").first).to_be_visible(timeout=5000)
+    
+    def expect_company_in_results(self, company_name: str):
+        """Verify specific company name appears in filter results."""
+        expect(self.page.get_by_text(company_name).first).to_be_visible(timeout=5000)
+    
+    def expect_department_in_results(self, department_name: str):
+        """Verify specific department appears in filter results."""
+        expect(self.page.get_by_text(department_name).first).to_be_visible(timeout=5000)
     
     # ===== HELPER FUNCTIONS =====
 
