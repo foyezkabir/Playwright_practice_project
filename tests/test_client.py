@@ -2,6 +2,8 @@ from email.mime import image
 from http import client
 from pydoc import cli
 import time
+import re
+import random
 import pytest
 import allure
 from playwright.sync_api import Page, expect
@@ -9,8 +11,8 @@ from utils.config import BASE_URL
 from pages.client_page import ClientPage
 from random_values_generator.random_email import RandomEmail
 from random_values_generator.random_talent_name import RandomTalentName
-from utils.client_helper import with_client_login, do_client_login_and_navigate
-from utils.client_helper import do_client_login
+from utils.client_helper import with_client_login, do_client_login_and_navigate, verify_bulk_actions, verify_pagination_navigation
+from utils.client_helper import do_client_login, select_random_clients_from_first_four, select_remaining_clients_from_first_four, wait_for_modal_backdrop_hidden, wait_for_bulk_delete_success
 from utils.enhanced_assertions import enhanced_assert_visible
 
 random_email = RandomEmail()
@@ -241,7 +243,9 @@ def test_TC_13(page: Page):
     client_page.click_open_action_menu()
     client_page.click_delete_button()
     client_page.click_confirm_delete_button()
+    time.sleep(1)
     client_page.verify_client_deleted()
+    time.sleep(1)
 
 @allure.title("TC_14 - Verify search functionality works for finding clients and no results message for non-existent query.")
 @with_client_login(agency_id="174")
@@ -250,10 +254,10 @@ def test_TC_14(page: Page):
     client_page: ClientPage = page._client_page
     
     # Test with valid search
-    client_page.search_for_client("OG IS")
+    client_page.search_for_client("OG IS OG")
     time.sleep(3)
     # Verify search results appear (client card contains the searched name)
-    expect(page.get_by_text("OG IS").first).to_be_visible()
+    expect(page.get_by_text("OG IS OG").first).to_be_visible()
     time.sleep(1.5)
     
     # Test with non-existent search query
@@ -283,7 +287,8 @@ def test_TC_16(page: Page):
     client_page: ClientPage = page._client_page
     client_page.add_note_to_client("This is a test note for the client.")
     time.sleep(2)
-    
+    client_page.expect_note_saved_successfully_message()
+
     # Verify success modal elements
     client_page.expect_note_saved_modal_heading()
     client_page.expect_note_saved_modal_message()
@@ -366,138 +371,233 @@ def test_TC_20(page: Page):
     client_page.navigate_to_client_page()
     time.sleep(2)
     
-    # Verify previous button is not clickable on first page
-    client_page.expect_previous_page_button_disabled()
+    # Get total page info to determine if multiple pages exist
+    page_info = client_page.locators.page_number_display.inner_text()  # e.g., "1 of 2"
+    current_page_num = int(page_info.split()[0])
+    total_pages = int(page_info.split()[2])
+    
+    # Verify navigation buttons are present
+    client_page.expect_next_page_button_visible()
+    client_page.expect_previous_page_button_visible()
+    
+    # Verify pagination navigation based on total pages
+    verify_pagination_navigation(page, client_page, total_pages)
 
-    # Click next page button to go to next page
-    client_page.click_next_page()
+@allure.title("TC_21 - Verify filter functionality with individual filters and combined filters.")
+@with_client_login(agency_id="174")
+def test_TC_21(page: Page):
+    """Verify filter works correctly with individual field filters and combined multiple filters."""
+    client_page: ClientPage = page._client_page
+    client_page.navigate_to_client_page()
     time.sleep(2)
-    # Get current page number
-    current_page = client_page.get_current_page_number()
-    # Verify now on next page
-    client_page.expect_page_number(current_page)
+    
+    # Open filter modal
+    client_page.click_filters_button()
+    time.sleep(1)
+    
+    # Test 1: Filter by Client Status - Passive
+    client_page.select_client_status_passive()
     time.sleep(2)
-    # Verify forward button is not clickable on last page
-    client_page.expect_next_page_button_disabled()
-    # Click previous page button to go back
-    client_page.click_previous_page()
+    client_page.close_filter_modal()
+    time.sleep(1)
+    client_page.expect_passive_client_in_results()
+    
+    # Clear filter and re-open
+    client_page.click_filters_button()
+    time.sleep(1)
+    client_page.click_all_clear_filter_button()
+    time.sleep(1)
+    
+    # Test 2: Filter by Gender - Male
+    client_page.select_gender_male()
     time.sleep(2)
-    # Verify back on previous page
-    client_page.expect_page_number(current_page - 1)
+    client_page.close_filter_modal()
+    time.sleep(1)
+    client_page.expect_male_client_in_results()
+    
+    # Clear filter and re-open
+    client_page.click_filters_button()
+    time.sleep(1)
+    client_page.click_all_clear_filter_button()
+    time.sleep(1)
+    
+    # Test 3: Filter by Company
+    client_page.fill_filter_company("Only for TC 13")
+    time.sleep(2)
+    client_page.close_filter_modal()
+    time.sleep(1)
+    client_page.expect_company_in_results("Only for TC 13")
+    
+    # Clear filter and re-open
+    client_page.click_filters_button()
+    time.sleep(1)
+    client_page.click_all_clear_filter_button()
+    time.sleep(1)
+    
+    # Test 4: Filter by Department
+    client_page.fill_filter_department("Sales")
+    time.sleep(2)
+    client_page.close_filter_modal()
+    time.sleep(1)
+    client_page.expect_department_in_results("Sales")
+    
+    # Clear filter and re-open
+    client_page.click_filters_button()
+    time.sleep(1)
+    client_page.click_all_clear_filter_button()
+    time.sleep(1)
+    
+    # Test 5: Combined filters - Client Status (Passive) + Department (Operations) + Company (company for test) + Gender (Male)
+    # Note: This test assumes clients exist matching ALL these criteria
+    client_page.select_client_status_passive()
+    client_page.select_gender_male()
+    client_page.fill_filter_company("company for test")
+    time.sleep(1)
+    client_page.fill_filter_department("Operations")
+    time.sleep(2)
+    client_page.close_filter_modal()
+    time.sleep(1)
+    
+    # Verify all filter criteria appear in results
+    client_page.expect_passive_client_in_results()
+    client_page.expect_male_client_in_results()
+    client_page.expect_company_in_results("company for test")
+    client_page.expect_department_in_results("Operations")
+    
+@allure.title("TC_22 - Verify bulk actions modal opens after selecting bulk checkbox.")
+@with_client_login(agency_id="174")
+def test_TC_22(page: Page):
+    """Verify that after clicking bulk select, Delete and Add Notes buttons appear and their modals open."""
+    client_page: ClientPage = page._client_page
+    client_page.navigate_to_client_page()
+    time.sleep(2)
+    
+    # Click bulk select checkbox
+    client_page.click_bulk_select_checkbox()
+    time.sleep(1)
+    
+    # Verify all bulk actions functionality
+    verify_bulk_actions(page, client_page)
 
-# @allure.title("TC_21 - Verify filter functionality with individual filters and combined filters.")
-# @with_client_login(agency_id="174")
-# def test_TC_21(page: Page):
-#     """Verify filter works correctly with individual field filters and combined multiple filters."""
-#     client_page: ClientPage = page._client_page
-#     client_page.navigate_to_client_page()
-#     time.sleep(2)
+@allure.title("TC_23 - Verify bulk action buttons disappear after unselecting bulk checkbox.")
+@with_client_login(agency_id="174")
+def test_TC_23(page: Page):
+    """Verify that after unselecting bulk select, bulk action buttons disappear."""
+    client_page: ClientPage = page._client_page
+    client_page.navigate_to_client_page()
+    time.sleep(2)
     
-#     # Open filter modal
-#     client_page.click_filters_button()
-#     time.sleep(1)
+    # Click bulk select checkbox to select all
+    client_page.click_bulk_select_checkbox()
+    time.sleep(1)
     
-#     # Test 1: Filter by Client Status - Passive
-#     client_page.select_client_status_passive()
-#     time.sleep(2)
-#     client_page.close_filter_modal()
-#     time.sleep(1)
-#     client_page.expect_passive_client_in_results()
+    # Verify buttons appear
+    client_page.expect_bulk_action_buttons_visible()
     
-#     # Clear filter and re-open
-#     client_page.click_filters_button()
-#     time.sleep(1)
-#     client_page.click_all_clear_filter_button()
-#     time.sleep(1)
+    # Click again to unselect
+    client_page.click_bulk_select_checkbox()
+    time.sleep(1)
     
-#     # Test 2: Filter by Gender - Male
-#     client_page.select_gender_male()
-#     time.sleep(2)
-#     client_page.close_filter_modal()
-#     time.sleep(1)
-#     client_page.expect_male_client_in_results()
+    # Verify bulk action buttons are no longer visible
+    client_page.expect_bulk_action_buttons_not_visible()
+    print("✅ Bulk action buttons disappeared after unselecting")
+
+@allure.title("TC_24 - Verify selecting individual clients shows correct count in bulk action buttons.")
+@with_client_login(agency_id="174")
+def test_TC_24(page: Page):
+    """Verify that after selecting 2 or 4 individual clients, Delete and Add Notes buttons show correct count."""
+    client_page: ClientPage = page._client_page
+    client_page.navigate_to_client_page()
+    time.sleep(2)
     
-#     # Clear filter and re-open
-#     client_page.click_filters_button()
-#     time.sleep(1)
-#     client_page.click_all_clear_filter_button()
-#     time.sleep(1)
+    # Select 2 random clients from first 4
+    selected_indices = select_random_clients_from_first_four(page, count=2)
     
-#     # Test 3: Filter by Company
-#     client_page.fill_filter_company("Only for TC 13")
-#     time.sleep(2)
-#     client_page.close_filter_modal()
-#     time.sleep(1)
-#     client_page.expect_company_in_results("Only for TC 13")
+    # Verify count is 2
+    client_page.expect_bulk_delete_button_with_count(2)
+    client_page.expect_bulk_add_notes_button_with_count(2)
+    print(f"✅ Verified count of 2 in bulk action buttons")
     
-#     # Clear filter and re-open
-#     client_page.click_filters_button()
-#     time.sleep(1)
-#     client_page.click_all_clear_filter_button()
-#     time.sleep(1)
+    # Select remaining 2 clients from first 4
+    select_remaining_clients_from_first_four(page, selected_indices)
     
-#     # Test 4: Filter by Department
-#     client_page.fill_filter_department("Sales")
-#     time.sleep(2)
-#     client_page.close_filter_modal()
-#     time.sleep(1)
-#     client_page.expect_department_in_results("Sales")
+    # Verify count is now 4
+    client_page.expect_bulk_delete_button_with_count(4)
+    client_page.expect_bulk_add_notes_button_with_count(4)
+    print("✅ Verified count of 4 in bulk action buttons")
+
+@allure.title("TC_25 - Verify bulk delete functionality for 2 selected clients.")
+@with_client_login(agency_id="174")
+def test_TC_25(page: Page):
+    """Verify that user can delete 2 clients using bulk delete action."""
+    client_page: ClientPage = page._client_page
+    client_page.navigate_to_client_page()
+    time.sleep(2)
     
-#     # Clear filter and re-open
-#     client_page.click_filters_button()
-#     time.sleep(1)
-#     client_page.click_all_clear_filter_button()
-#     time.sleep(1)
+    # Select 2 random clients from first 4
+    select_random_clients_from_first_four(page, count=2)
     
-#     # Test 5: Combined filters - Client Status (Passive) + Department (Operations) + Company (company for test) + Gender (Male)
-#     # Note: This test assumes clients exist matching ALL these criteria
-#     client_page.select_client_status_passive()
-#     client_page.select_gender_male()
-#     client_page.fill_filter_company("company for test")
-#     time.sleep(1)
-#     client_page.fill_filter_department("Operations")
-#     time.sleep(2)
-#     client_page.close_filter_modal()
-#     time.sleep(1)
+    # Wait for any modal backdrop to disappear
+    wait_for_modal_backdrop_hidden(page)
     
-#     # Verify all filter criteria appear in results
-#     client_page.expect_passive_client_in_results()
-#     client_page.expect_male_client_in_results()
-#     client_page.expect_company_in_results("company for test")
-#     client_page.expect_department_in_results("Operations")
+    # Click Delete button and confirm
+    client_page.click_bulk_delete_button(2)
+    time.sleep(1)
+    client_page.expect_bulk_delete_modal_text()
+    client_page.click_bulk_delete_modal_confirm()
     
-# @allure.title("TC_22 - Verify bulk actions modal opens after selecting bulk checkbox.")
-# @with_client_login(agency_id="174")
-# def test_TC_22(page: Page):
-#     """Verify that after clicking bulk select, Delete and Add Notes buttons appear and their modals open."""
-#     client_page: ClientPage = page._client_page
-#     client_page.navigate_to_client_page()
-#     time.sleep(2)
-#     # Click bulk select checkbox
-#     client_page.click_bulk_select_checkbox()
-#     time.sleep(1)
-#     # Determine client count from visible button (default to 3 for test)
-#     count = 3
-#     # Assert Delete and Add Notes buttons with correct count are visible
-#     enhanced_assert_visible(page, client_page.locators.bulk_delete_button(count), f"Bulk Delete button ({count}) should be visible", "test_TC_22_bulk_delete_visible")
-#     enhanced_assert_visible(page, client_page.locators.bulk_add_notes_button(count), f"Bulk Add Notes button ({count}) should be visible", "test_TC_22_bulk_add_notes_visible")
-#     # Click Delete and assert modal opens
-#     client_page.click_bulk_delete_button(count)
-#     enhanced_assert_visible(page, client_page.locators.bulk_delete_modal_text, "Bulk Delete modal text should be visible", "test_TC_22_bulk_delete_modal_text")
-#     enhanced_assert_visible(page, client_page.locators.bulk_delete_modal_cancel, "Bulk Delete Cancel button should be visible", "test_TC_22_bulk_delete_cancel")
-#     enhanced_assert_visible(page, client_page.locators.bulk_delete_modal_confirm, "Bulk Delete Confirm button should be visible", "test_TC_22_bulk_delete_confirm")
-#     client_page.click_bulk_delete_modal_cancel()
-#     time.sleep(1)
-#     # Click Add Notes and assert modal opens
-#     client_page.click_bulk_add_notes_button(count)
-#     enhanced_assert_visible(page, client_page.locators.bulk_add_notes_modal_heading(count), f"Bulk Add Notes modal heading ({count}) should be visible", "test_TC_22_bulk_add_notes_modal_heading")
-#     enhanced_assert_visible(page, client_page.locators.bulk_add_notes_modal_cancel, "Bulk Add Notes Cancel button should be visible", "test_TC_22_bulk_add_notes_cancel")
-#     enhanced_assert_visible(page, client_page.locators.bulk_add_notes_modal_save_next, "Bulk Add Notes Save & Next button should be visible", "test_TC_22_bulk_add_notes_save_next")
-#     # Test note navigation for each client
-#     for idx in range(1, count+1):
-#         client_page.click_note_nav(idx, count)
-#         time.sleep(0.5)
-#     client_page.click_bulk_add_notes_modal_cancel()
-#     time.sleep(1)
+    # Wait for and verify bulk delete success message
+    success_message = wait_for_bulk_delete_success(page)
+    enhanced_assert_visible(page, success_message, "Bulk delete success message should appear", "test_TC_25_success")
+    print("✅ Successfully deleted 2 clients via bulk action")
+
+@allure.title("TC_26 - Verify bulk add notes functionality with navigation counter.")
+@with_client_login(agency_id="174")
+def test_TC_26(page: Page):
+    """Verify bulk add notes action for 2 clients with note navigation (1 of 2 to 2 of 2)."""
+    client_page: ClientPage = page._client_page
+    client_page.navigate_to_client_page()
+    time.sleep(2)
+    
+    # Select 2 random clients from first 4
+    select_random_clients_from_first_four(page, count=2)
+    
+    # Wait for any modal backdrop to disappear
+    wait_for_modal_backdrop_hidden(page)
+    
+    # Click Add Notes button
+    client_page.click_bulk_add_notes_button(2)
+    time.sleep(1)
+    
+    # Verify modal heading and navigation
+    client_page.expect_bulk_add_notes_modal_heading(2)
+    client_page.expect_navigation_display("1 of 2")
+    print("✅ Verified navigation shows '1 of 2'")
+    
+    # Fill note for first client
+    client_page.fill_note_textarea("Test note for first client in bulk action")
+    
+    # Click Save & Next
+    client_page.click_bulk_add_notes_modal_save_next()
+    time.sleep(2)
+    
+    # Verify navigation advanced to 2 of 2
+    client_page.expect_navigation_display("2 of 2")
+    print("✅ Verified navigation advanced to '2 of 2'")
+    
+    # Fill note for second client
+    client_page.fill_note_textarea("Test note for second client in bulk action")
+    
+    # Click Save & Finish
+    client_page.click_save_and_finish_button()
+    time.sleep(2)
+    
+    # Verify success message
+    client_page.expect_note_saved_successfully_message()
+    print("✅ Successfully added notes to 2 clients via bulk action with proper navigation")
+    
+    # Verify success message
+    client_page.expect_note_saved_successfully_message()
+    print("✅ Successfully added notes to 2 clients via bulk action with proper navigation")
 
 

@@ -16,7 +16,7 @@ Write-Host "Report will be generated at: $reportDir" -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Cyan
 
 # Run tests with timestamp-based results directory
-pytest tests/test_reset_pass.py tests/test_signup.py tests/test_login.py tests/test_agency.py --alluredir="$resultsDir"
+pytest tests/test_reset_pass.py tests/test_signup.py tests/test_login.py tests/test_email_verification.py tests/test_client.py tests/test_agency.py --alluredir="$resultsDir"
 
 # Check if tests ran successfully
 if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 1) {

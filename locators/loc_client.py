@@ -155,6 +155,16 @@ class ClientLocators:
         self.filter_department_input = page.get_by_placeholder("Department")
         self.bulk_select_checkbox =  page.get_by_text("Select")
         
+        # ===== BULK ACTION ELEMENTS =====
+        # Bulk delete modal elements
+        self.bulk_delete_modal_text = page.get_by_text("Are you sure you want to delete")
+        self.bulk_delete_modal_cancel = page.get_by_role("button", name="Cancel", exact=True)
+        self.bulk_delete_modal_confirm = page.get_by_role("button", name="Confirm", exact=True)
+        
+        # Bulk add notes modal elements
+        self.bulk_add_notes_modal_cancel = page.get_by_role("button", name="Cancel", exact=True)
+        self.bulk_add_notes_modal_save_next = page.get_by_role("button", name="Save & Next")
+        
         # Filter pill close icon (X icon in applied filter tags)
         self.filter_pill_close_icon = page.locator("div").filter(has_text=re.compile(r"^All clear$")).get_by_role("img")
         
@@ -180,3 +190,20 @@ class ClientLocators:
         """Get specific page number button - Note: This pagination uses SVG arrows, not page number buttons"""
         # This pagination style doesn't have clickable page numbers, only prev/next arrows
         return None
+    
+    def bulk_delete_button(self, count: int):
+        """Get bulk delete button with specific count"""
+        return self.page.get_by_role("button", name=f"Delete ({count})")
+    
+    def bulk_add_notes_button(self, count: int):
+        """Get bulk add notes button with specific count"""
+        return self.page.get_by_role("button", name=f"Add Notes ({count})")
+    
+    def bulk_add_notes_modal_heading(self, count: int):
+        """Get bulk add notes modal heading with count"""
+        return self.page.get_by_role("heading", name=f"Add Note to Clients ({count})")
+    
+    def note_nav(self, idx: int, count: int):
+        """Get note navigation element for specific client index"""
+        # The "1 of 10" text display, not clickable - navigation uses arrow buttons
+        return self.page.get_by_text(f"{idx} of {count}")

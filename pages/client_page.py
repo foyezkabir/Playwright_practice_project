@@ -245,43 +245,39 @@ class ClientPage:
         self.locators.create_button.click()
         time.sleep(2)
     
-    # ===== DELETE FUNCTIONALITY =====
-        # ===== BULK ACTIONS =====
-        def click_bulk_select_checkbox(self):
-            """Click Bulk select checkbox to enable bulk actions."""
-            self.locators.bulk_select_checkbox.click()
-
-        def click_bulk_delete_button(self, count):
-            """Click Bulk Delete button with count."""
-            self.locators.bulk_delete_button(count).click()
-
-        def click_bulk_add_notes_button(self, count):
-            """Click Bulk Add Notes button with count."""
-            self.locators.bulk_add_notes_button(count).click()
-
-        def click_bulk_delete_modal_cancel(self):
-            """Click Cancel in Bulk Delete modal."""
-            self.locators.bulk_delete_modal_cancel.click()
-
-        def click_bulk_delete_modal_confirm(self):
-            """Click Confirm in Bulk Delete modal."""
-            self.locators.bulk_delete_modal_confirm.click()
-
-        def click_bulk_add_notes_modal_cancel(self):
-            """Click Cancel in Bulk Add Notes modal."""
-            self.locators.bulk_add_notes_modal_cancel.click()
-
-        def click_bulk_add_notes_modal_save_next(self):
-            """Click Save & Next in Bulk Add Notes modal."""
-            self.locators.bulk_add_notes_modal_save_next.click()
-
-        def click_note_nav(self, idx, count):
-            """Click note navigation image for idx of count."""
-            self.locators.note_nav(idx, count).click()
-
+    # ===== BULK ACTIONS =====
+    
     def click_bulk_select_checkbox(self):
         """Click Bulk select checkbox to enable bulk actions."""
         self.locators.bulk_select_checkbox.click()
+    
+    def click_bulk_delete_button(self, count: int):
+        """Click Bulk Delete button with count."""
+        self.locators.bulk_delete_button(count).click()
+    
+    def click_bulk_add_notes_button(self, count: int):
+        """Click Bulk Add Notes button with count."""
+        self.locators.bulk_add_notes_button(count).click()
+    
+    def click_bulk_delete_modal_cancel(self):
+        """Click Cancel in Bulk Delete modal."""
+        self.locators.bulk_delete_modal_cancel.click()
+    
+    def click_bulk_delete_modal_confirm(self):
+        """Click Confirm in Bulk Delete modal."""
+        self.locators.bulk_delete_modal_confirm.click()
+    
+    def click_bulk_add_notes_modal_cancel(self):
+        """Click Cancel in Bulk Add Notes modal."""
+        self.locators.bulk_add_notes_modal_cancel.click()
+    
+    def click_bulk_add_notes_modal_save_next(self):
+        """Click Save & Next in Bulk Add Notes modal."""
+        self.locators.bulk_add_notes_modal_save_next.click()
+    
+    def click_note_nav(self, idx: int, count: int):
+        """Click note navigation image for idx of count."""
+        self.locators.note_nav(idx, count).click()
     
     def click_delete_button(self):
         """Click Delete button in action menu."""
@@ -562,6 +558,34 @@ class ClientPage:
         """Verify Note Saved! modal heading is visible."""
         expect(self.locators.note_saved_modal_heading).to_be_visible()
     
+    def expect_bulk_add_notes_modal_heading(self, count: int):
+        """Verify bulk add notes modal heading with count."""
+        heading = self.page.get_by_role("heading", name=f"Add Note to Clients ({count})")
+        expect(heading).to_be_visible()
+    
+    def expect_navigation_display(self, text: str):
+        """Verify navigation display shows specific text (e.g., '1 of 2')."""
+        nav_display = self.page.get_by_text(text).first
+        expect(nav_display).to_be_visible()
+    
+    def fill_note_textarea(self, note_text: str):
+        """Fill note in textarea with wait for element to be ready."""
+        import time
+        note_textbox = self.page.locator("textarea").first
+        note_textbox.wait_for(state="visible", timeout=5000)
+        time.sleep(0.5)
+        note_textbox.click()
+        time.sleep(0.3)
+        note_textbox.fill(note_text)
+        time.sleep(0.5)
+    
+    def click_save_and_finish_button(self):
+        """Click Save & Finish button."""
+        import time
+        save_finish_button = self.page.get_by_role("button", name="Save & Finish")
+        save_finish_button.click()
+        time.sleep(2)
+    
     def expect_note_saved_modal_message(self):
         """Verify note saved modal message is visible."""
         expect(self.locators.note_saved_modal_message).to_be_visible()
@@ -595,6 +619,22 @@ class ClientPage:
     def expect_delete_button(self):
         """Verify Delete button is visible."""
         expect(self.locators.delete_button).to_be_visible()
+    
+    def expect_bulk_action_buttons_visible(self):
+        """Verify bulk action buttons (Delete and Add Notes) are visible."""
+        import re
+        delete_button = self.page.get_by_role("button", name=re.compile(r"Delete \(\d+\)"))
+        add_notes_button = self.page.get_by_role("button", name=re.compile(r"Add Notes \(\d+\)"))
+        expect(delete_button).to_be_visible()
+        expect(add_notes_button).to_be_visible()
+    
+    def expect_bulk_action_buttons_not_visible(self):
+        """Verify bulk action buttons (Delete and Add Notes) are not visible."""
+        import re
+        delete_button = self.page.get_by_role("button", name=re.compile(r"Delete \(\d+\)"))
+        add_notes_button = self.page.get_by_role("button", name=re.compile(r"Add Notes \(\d+\)"))
+        expect(delete_button).not_to_be_visible()
+        expect(add_notes_button).not_to_be_visible()
     
     # ===== CLIENT DETAIL VIEW EXPECTATIONS =====
     
@@ -1075,7 +1115,6 @@ class ClientPage:
         self.click_note_textbox()
         self.fill_note_text(note_text)
         self.click_save_and_finish_button()
-        self.expect_note_saved_successfully_message()
     
     def verify_client_created(self, wait_time: int = 2):
         """Verify client was created successfully with optional wait time."""
@@ -1094,3 +1133,34 @@ class ClientPage:
     def get_client_search_result(self, name: str):
         """Get client search result locator by client name."""
         return self.locators.get_client_search_result(name)
+    
+    def expect_bulk_delete_button_with_count(self, count: int):
+        """Verify bulk delete button with specific count is visible."""
+        expect(self.locators.bulk_delete_button(count)).to_be_visible()
+    
+    def expect_bulk_add_notes_button_with_count(self, count: int):
+        """Verify bulk add notes button with specific count is visible."""
+        expect(self.locators.bulk_add_notes_button(count)).to_be_visible()
+    
+    def expect_bulk_delete_modal_text(self):
+        """Verify bulk delete confirmation modal text is visible."""
+        expect(self.locators.bulk_delete_modal_text).to_be_visible()
+    
+    def expect_bulk_add_notes_modal_heading(self, count: int):
+        """Verify bulk add notes modal heading with count is visible."""
+        expect(self.locators.bulk_add_notes_modal_heading(count)).to_be_visible()
+    
+    def expect_navigation_display(self, text: str):
+        """Verify navigation display text (e.g., '1 of 2') is visible."""
+        expect(self.page.get_by_text(text).first).to_be_visible()
+    
+    def fill_note_textarea(self, note_text: str):
+        """Fill note textarea with text after waiting for it to be ready."""
+        import time
+        note_textbox = self.page.locator("textarea").first
+        note_textbox.wait_for(state="visible", timeout=5000)
+        time.sleep(0.5)
+        note_textbox.click()
+        time.sleep(0.3)
+        note_textbox.fill(note_text)
+        time.sleep(0.5)
