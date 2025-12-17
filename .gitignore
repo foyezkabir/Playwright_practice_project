@@ -165,14 +165,13 @@ report.html
 *.xls
 *.xlsm
 
-# Allure reports
-allure-results/
+# Allure reports (keep local timestamped reports ignored)
 allure-report/
 allure-results-*/
 allure-report-*/
 
-# Documentation
-docs/
+# Documentation (allow docs/ folder to be committed)
+# docs/
 
 # mypy
 .mypy_cache/
