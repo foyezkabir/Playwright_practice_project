@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     name: Run Playwright Tests
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     
     strategy:
@@ -49,35 +49,37 @@ jobs:
     - name: Check test results
       if: always()
       run: |
-        if ($LASTEXITCODE -ne 0) {
-          Write-Host "::warning::Some tests failed with exit code $LASTEXITCODE"
-        } else {
-          Write-Host "::notice::All tests passed successfully!"
-        }
-      shell: pwsh
+        if [ $? -ne 0 ]; then
+          echo "::warning::Some tests failed"
+        else
+          echo "::notice::All tests passed successfully!"
+        fi
+      shell: bash
     
-    - name: Install Allure (Chocolatey)
+    - name: Install Allure
       if: always()
       run: |
-        Write-Host "Installing Allure via Chocolatey..."
-        $env:chocolateyUseWindowsCompression = 'true'
-        choco install allure -y --no-progress --limit-output
-      shell: pwsh
+        echo "Installing Allure..."
+        sudo wget https://github.com/allure-framework/allure2/releases/download/2.24.0/allure-2.24.0.tgz
+        sudo tar -zxvf allure-2.24.0.tgz -C /opt/
+        sudo ln -s /opt/allure-2.24.0/bin/allure /usr/bin/allure
+        allure --version
+      shell: bash
       continue-on-error: true
     
     - name: Generate Allure Report
       if: always()
       run: |
-        if (Test-Path allure-results) {
-          Write-Host "Generating Allure report..."
+        if [ -d "allure-results" ]; then
+          echo "Generating Allure report..."
           allure generate allure-results --clean -o allure-report
-          Write-Host "Allure report generated successfully"
-        } else {
-          Write-Host "Warning: No allure-results directory found"
-          New-Item -ItemType Directory -Force -Path allure-report
-          Write-Host "Created empty allure-report directory"
-        }
-      shell: pwsh
+          echo "Allure report generated successfully"
+        else
+          echo "Warning: No allure-results directory found"
+          mkdir -p allure-report
+          echo "Created empty allure-report directory"
+        fi
+      shell: bash
       continue-on-error: true
     
     - name: Upload Allure Report
@@ -130,40 +132,43 @@ jobs:
     - name: Test Summary
       if: always()
       run: |
-        Write-Host "`n========================================" -ForegroundColor Cyan
-        Write-Host "TEST EXECUTION SUMMARY" -ForegroundColor Cyan
-        Write-Host "========================================" -ForegroundColor Cyan
+        echo ""
+        echo "========================================"
+        echo "TEST EXECUTION SUMMARY"
+        echo "========================================"
         
-        if (Test-Path report.html) {
-          Write-Host "✅ HTML Report: Generated" -ForegroundColor Green
-        } else {
-          Write-Host "❌ HTML Report: Not found" -ForegroundColor Red
-        }
+        if [ -f "report.html" ]; then
+          echo "✅ HTML Report: Generated"
+        else
+          echo "❌ HTML Report: Not found"
+        fi
         
-        if (Test-Path allure-report) {
-          Write-Host "✅ Allure Report: Generated" -ForegroundColor Green
-        } else {
-          Write-Host "❌ Allure Report: Not found" -ForegroundColor Red
-        }
+        if [ -d "allure-report" ]; then
+          echo "✅ Allure Report: Generated"
+        else
+          echo "❌ Allure Report: Not found"
+        fi
         
-        if (Test-Path allure-results) {
-          $resultCount = (Get-ChildItem allure-results -Filter *.json).Count
-          Write-Host "✅ Test Results: $resultCount files" -ForegroundColor Green
-        } else {
-          Write-Host "❌ Test Results: Not found" -ForegroundColor Red
-        }
+        if [ -d "allure-results" ]; then
+          resultCount=$(find allure-results -name "*.json" | wc -l)
+          echo "✅ Test Results: $resultCount files"
+        else
+          echo "❌ Test Results: Not found"
+        fi
         
-        if (Test-Path screenshots) {
-          $screenshotCount = (Get-ChildItem screenshots -Recurse -File).Count
-          if ($screenshotCount -gt 0) {
-            Write-Host "⚠️  Screenshots: $screenshotCount (tests failed)" -ForegroundColor Yellow
-          } else {
-            Write-Host "✅ Screenshots: None (all tests passed)" -ForegroundColor Green
-          }
-        } else {
-          Write-Host "✅ Screenshots: None (all tests passed)" -ForegroundColor Green
-        }
+        if [ -d "screenshots" ]; then
+          screenshotCount=$(find screenshots -type f | wc -l)
+          if [ $screenshotCount -gt 0 ]; then
+            echo "⚠️  Screenshots: $screenshotCount (tests failed)"
+          else
+            echo "✅ Screenshots: None (all tests passed)"
+          fi
+        else
+          echo "✅ Screenshots: None (all tests passed)"
+        fi
         
-        Write-Host "`n📦 Artifacts uploaded and available for download" -ForegroundColor Cyan
-        Write-Host "========================================`n" -ForegroundColor Cyan
-      shell: pwsh
+        echo ""
+        echo "📦 Artifacts uploaded and available for download"
+        echo "========================================"
+        echo ""
+      shell: bash
