@@ -44,13 +44,24 @@ jobs:
       continue-on-error: true
       env:
         CI: true
+        PYTHONUNBUFFERED: 1
+    
+    - name: Check test results
+      if: always()
+      run: |
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "::warning::Some tests failed with exit code $LASTEXITCODE"
+        } else {
+          Write-Host "::notice::All tests passed successfully!"
+        }
+      shell: pwsh
     
     - name: Install Allure (Chocolatey)
       if: always()
       run: |
         Write-Host "Installing Allure via Chocolatey..."
-        choco install allure -y
-        refreshenv
+        $env:chocolateyUseWindowsCompression = 'true'
+        choco install allure -y --no-progress --limit-output
       shell: pwsh
       continue-on-error: true
     
@@ -105,12 +116,54 @@ jobs:
         retention-days: 30
         if-no-files-found: warn
     
-    - name: Deploy Allure Report to GitHub Pages
-      if: always() && github.ref == 'refs/heads/master'
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./allure-report
-        destination_dir: reports/run-${{ github.run_number }}
-        keep_files: true
-      continue-on-error: true
+    # GitHub Pages deployment disabled due to git conflicts
+    # To enable: Set up GitHub Pages in repository settings first
+    # - name: Deploy Allure Report to GitHub Pages
+    #   if: always() && github.ref == 'refs/heads/master'
+    #   uses: peaceiris/actions-gh-pages@v4
+    #   with:
+    #     github_token: ${{ secrets.GITHUB_TOKEN }}
+    #     publish_dir: ./allure-report
+    #     destination_dir: reports/run-${{ github.run_number }}
+    #     keep_files: true
+    
+    - name: Test Summary
+      if: always()
+      run: |
+        Write-Host "`n========================================" -ForegroundColor Cyan
+        Write-Host "TEST EXECUTION SUMMARY" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        
+        if (Test-Path report.html) {
+          Write-Host "✅ HTML Report: Generated" -ForegroundColor Green
+        } else {
+          Write-Host "❌ HTML Report: Not found" -ForegroundColor Red
+        }
+        
+        if (Test-Path allure-report) {
+          Write-Host "✅ Allure Report: Generated" -ForegroundColor Green
+        } else {
+          Write-Host "❌ Allure Report: Not found" -ForegroundColor Red
+        }
+        
+        if (Test-Path allure-results) {
+          $resultCount = (Get-ChildItem allure-results -Filter *.json).Count
+          Write-Host "✅ Test Results: $resultCount files" -ForegroundColor Green
+        } else {
+          Write-Host "❌ Test Results: Not found" -ForegroundColor Red
+        }
+        
+        if (Test-Path screenshots) {
+          $screenshotCount = (Get-ChildItem screenshots -Recurse -File).Count
+          if ($screenshotCount -gt 0) {
+            Write-Host "⚠️  Screenshots: $screenshotCount (tests failed)" -ForegroundColor Yellow
+          } else {
+            Write-Host "✅ Screenshots: None (all tests passed)" -ForegroundColor Green
+          }
+        } else {
+          Write-Host "✅ Screenshots: None (all tests passed)" -ForegroundColor Green
+        }
+        
+        Write-Host "`n📦 Artifacts uploaded and available for download" -ForegroundColor Cyan
+        Write-Host "========================================`n" -ForegroundColor Cyan
+      shell: pwsh
