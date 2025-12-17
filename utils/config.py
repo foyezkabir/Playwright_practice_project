@@ -1,6 +1,10 @@
+import os
+
 BASE_URL = "https://bprp-qa.shadhinlab.xyz"
 BROWSER_NAME = "chromium"  # chromium, firefox, webkit
-HEADLESS = False
+
+# Automatically run in headless mode in CI/CD environments
+HEADLESS = os.getenv("CI", "false").lower() == "true"
 DEFAULT_TIMEOUT = 15000  # in milliseconds
 
 # Screenshot configuration
