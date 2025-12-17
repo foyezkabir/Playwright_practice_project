@@ -1,5 +1,10 @@
 # Black Pigeon Automation Project (BPRP-QA)
 
+[![Playwright Tests](https://github.com/foyezkabir/Playwright_practice_project/actions/workflows/playwright-tests.yml/badge.svg)](https://github.com/foyezkabir/Playwright_practice_project/actions/workflows/playwright-tests.yml)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![Playwright](https://img.shields.io/badge/playwright-1.54.0-green.svg)](https://playwright.dev/)
+[![License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
+
 Comprehensive end-to-end test automation suite for the Black Pigeon web application using **Playwright** and **Pytest**. This project implements a robust Page Object Model architecture with centralized locators, enhanced assertions, and multiple reporting formats.
 
 ## 🎯 Project Overview
